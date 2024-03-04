@@ -1,3 +1,5 @@
+# Tutorial example from PowerSimulations.jl
+# Sequential simulations
 using PowerSystems
 using PowerSimulations
 using HydroPowerSimulations

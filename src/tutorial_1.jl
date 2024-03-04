@@ -1,9 +1,10 @@
+# Tutorial example from PowerSimulations.jl
 using PowerSystems
 using PowerSimulations
 using HydroPowerSimulations
 using PowerSystemCaseBuilder
 using Gurobi # solver
-
+using JuMP
 # data
 sys = build_system(PSISystems, "modified_RTS_GMLC_DA_sys")
 # load an empty template
