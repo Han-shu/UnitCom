@@ -1,4 +1,6 @@
-function apply_stroage!(sys::System, model::JuMP.Model, time_steps)::Nothing
+function _add_stroage!(sys::System, model::JuMP.Model)::Nothing
+    time_steps = model[:param].time_steps
+    scenarios = model[:param].scenarios
     # model GeneraticBattery
     @assert length(get_components(BatteryEMS, sys)) == 0
     # get parameters

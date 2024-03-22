@@ -4,6 +4,7 @@ function _add_net_injection!(model::JuMP.Model, sys::System)::Nothing
 
     scenarios = model[:param].scenarios
     time_steps = model[:param].time_steps
+    start_time = model[:param].start_time
     VOLL = model[:param].VOLL
 
     loads = collect(get_components(PowerLoad, sys))
@@ -12,13 +13,15 @@ function _add_net_injection!(model::JuMP.Model, sys::System)::Nothing
         # Load curtailment
         curtailment[s,t] = @variable(model, lower_bound = 0)
 
-        add_to_expression!(expr_net_injection[s,t], curtail[s,t], 1.0)
+        add_to_expression!(expr_net_injection[s,t], curtailment[s,t], 1.0)
         add_to_expression!(model[:obj], VOLL*curtailment[s,t], 1/length(scenarios))
     end
 
     for load in loads
-        get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
-        expr_net_injection[s,t]
+        load_matrix = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
+        for s in scenarios, t in time_steps
+            add_to_expression!(expr_net_injection[s,t], load_matrix[t,s], -1.0)
+        end
     end
     return
 end

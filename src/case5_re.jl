@@ -11,17 +11,6 @@ load_file = joinpath(ts_dir, "load_scenarios.h5")
 file_dir = joinpath(pkgdir(PowerSystems), "docs", "src", "tutorials", "tutorials_data")
 system = System(joinpath(file_dir, "case5_re.m"), assign_new_uuids = true)
 
-
-
-# FORECASTS_DIR = "/Users/hanshu/Desktop/Sienna/PowerSystemsTestData/5-Bus/5bus_ts"
-# FORECASTS_DIR = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot"
-# fname = joinpath(FORECASTS_DIR, "timeseries_pointers_da.json")
-# open(fname, "r") do f
-#     JSON3.@pretty JSON3.read(f)
-# end
-# add_time_series!(system, fname)
-
-
 thermal_gen_names = get_name.(get_components(ThermalGen, system))
 renewable_gen_names = get_name.(get_components(RenewableGen, system))
 load_names = get_name.(get_components(PowerLoad, system))

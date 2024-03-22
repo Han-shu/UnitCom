@@ -2,7 +2,7 @@ function _add_renewables!(model::JuMP.Model, sys::System)
     scenarios = model[:param].scenarios
     time_steps = model[:param].time_steps
     start_time = model[:param].start_time
-    expr_net_injection = _init(model, :expr_net_injection)
+    expr_net_injection = model[:expr_net_injection]
 
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys)
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys)
@@ -19,11 +19,7 @@ function _add_renewables!(model::JuMP.Model, sys::System)
     @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps] >= 0)
     @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps] >= 0)
 
-    println(time_steps)
-    for g in solar_gen_names
-        println("test1", total_solar[g])
-        println("test2", total_solar[g][24,1])
-    end
+
     for g in solar_gen_names, s in scenarios, t in time_steps
         @constraint(model, pS[g,s,t] <= total_solar[g][t,s])
     end
