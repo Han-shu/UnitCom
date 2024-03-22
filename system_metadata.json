@@ -1,0 +1,66 @@
+{
+    "name": "",
+    "description": "",
+    "frequency": 60,
+    "time_series_resolution_milliseconds": 0,
+    "component_counts": [
+        {
+            "type": "ACBus",
+            "count": 73
+        },
+        {
+            "type": "Arc",
+            "count": 109
+        },
+        {
+            "type": "Area",
+            "count": 3
+        },
+        {
+            "type": "FixedAdmittance",
+            "count": 3
+        },
+        {
+            "type": "HydroDispatch",
+            "count": 20
+        },
+        {
+            "type": "Line",
+            "count": 104
+        },
+        {
+            "type": "LoadZone",
+            "count": 21
+        },
+        {
+            "type": "PowerLoad",
+            "count": 51
+        },
+        {
+            "type": "RenewableDispatch",
+            "count": 30
+        },
+        {
+            "type": "RenewableFix",
+            "count": 31
+        },
+        {
+            "type": "TapTransformer",
+            "count": 15
+        },
+        {
+            "type": "ThermalStandard",
+            "count": 76
+        },
+        {
+            "type": "Transformer2W",
+            "count": 1
+        },
+        {
+            "type": "TwoTerminalHVDCLine",
+            "count": 1
+        }
+    ],
+    "time_series_counts": [
+    ]
+}
