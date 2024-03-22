@@ -1,9 +1,11 @@
 using PowerSystems, PowerSimulations, HydroPowerSimulations
-using Dates, Gurobi
+using Dates, HiGHS
 
 file_path = "/Users/hanshu/Desktop/Price_formation/Data/Doubleday_data/"
 initial_time = "2018-03-15T00:00:00"
-solver = optimizer_with_attributes(Gurobi.Optimizer, "MIPGap" => 0.5)
+solver = optimizer_with_attributes(HiGHS.Optimizer, "mip_rel_gap" => 0.05)
+
+# solver = optimizer_with_attributes(Gurobi.Optimizer, "MIPGap" => 0.5)
 
 ############################## Stage 1 Problem Definition, UC ##############################
 sys_da = System(file_path*"DA_sys_31_scenarios.json")
@@ -73,3 +75,11 @@ results = SimulationResults(sim);
 uc_results = get_decision_problem_results(results, "UC"); # UC stage result metadata
 ed_results = get_decision_problem_results(results, "HAUC"); # ED stage result metadata
 
+
+renewables = collect(get_components(RenewableGen, sys_da))
+get_time_series_array(Deterministic, renewables[2], "max_active_power")
+
+area = get_component(Area, sys_da, "FarWest")
+get_time_series_values(Scenarios, area, "solar_power")
+get_time_series_array(Scenarios, area, "solar_power")
+get_time_series_array(Deterministic, area, "max_active_power")

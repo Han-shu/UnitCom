@@ -12,11 +12,11 @@ function ed_model(sys::System, optimizer)
 
     net_load = zeros(length(time_period))
     for g in get_components(RenewableGen, sys)
-        net_load -= get_time_series_values(SingleTimeSeries, g, "max_active_power")[time_periods]
+        net_load -= get_time_series_values(SingleTimeSeries, g, "max_active_power")[time_period]
     end
 
     for g in get_components(StaticLoad, sys)
-        net_load += get_time_series_values(SingleTimeSeries, g, "max_active_power")[time_periods]
+        net_load += get_time_series_values(SingleTimeSeries, g, "max_active_power")[time_period]
     end
     
     for t in time_period
@@ -26,10 +26,10 @@ function ed_model(sys::System, optimizer)
     @objective(ed_m, Min, sum(
                    pg[get_name(g), t]^2*get_cost(get_variable(get_operation_cost(g)))[1] +
                    pg[get_name(g), t]*get_cost(get_variable(get_operation_cost(g)))[2]
-                   for g in get_components(ThermalGen, sys), t in time_periods))
+                   for g in get_components(ThermalGen, sys), t in time_period))
     optimize!(ed_m)
     return ed_m
 end
 
 pjmsys = build_system(PSISystems, "c_sys5_pjm")
-results = ed_model(pjmsys, Gurobi.Optimizer)
+results = ed_model(pjmsys, HiGHS.Optimizer)
