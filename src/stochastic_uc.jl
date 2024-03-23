@@ -1,7 +1,9 @@
 using DataStructures, JuMP, Dates, PowerSystems
 using HiGHS
 
+# include("case5_re.jl")
 include("structs.jl")
+include("get_init_value.jl")
 include("net_injection.jl")
 include("add_renewables.jl")
 include("add_thermal.jl")
@@ -18,13 +20,18 @@ end
 function stochastic_uc(
     sys::System, optimizer; 
     start_time = Dates.Date(2018,1,1), scenario_count = 10, horizon = 24, 
-    VOLL=5000, use_must_run=false
+    VOLL=5000, use_must_run=false, init_value=nothing
     )
-
+    
     model = Model(optimizer)
     model[:obj] = QuadExpr()
     parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL)
     model[:param] = parameters
+
+    if isnothing(init_value)
+        init_value = _get_init_value(sys)
+    end
+    model[:init_value] = init_value
 
     _add_net_injection!(model, sys)
     
@@ -46,5 +53,5 @@ function stochastic_uc(
     return model  
 end
 
-model = stochastic_uc(system, HiGHS.Optimizer, start_time = DateTime(Date(2018, 7, 18)))
+# model = stochastic_uc(system, HiGHS.Optimizer, start_time = DateTime(Date(2018, 7, 18)))
 

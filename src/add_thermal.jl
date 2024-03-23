@@ -33,8 +33,8 @@ function _add_thermal_generators!(model::JuMP.Model, sys::System, use_must_run::
     ramp_dn = Dict(g => get_rmp_dn_limit(get_component(thermal_type, sys, g))*60 for g in thermal_gen_names)
 
     # initial condition
-    ug_t0 = Dict(g => PSY.get_status(get_component(thermal_type, sys, g)) for g in thermal_gen_names)
-    Pg_t0 = Dict(g => PSY.get_active_power(get_component(thermal_type, sys, g)) for g in thermal_gen_names)
+    ug_t0 = model[:init_value].ug_t0
+    Pg_t0 = model[:init_value].Pg_t0
 
     if use_must_run
         must_run_gen_names = get_name.(get_components(x -> PSY.get_must_run(x), thermal_type, sys))

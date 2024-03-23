@@ -3,7 +3,7 @@ using JSON3, Dates, HDF5
 const PSI = PowerSimulations
 const PSY = PowerSystems
 
-ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot"
+ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/idx_hour"
 solar_file = joinpath(ts_dir, "solar_scenarios.h5")
 wind_file = joinpath(ts_dir, "wind_scenarios.h5")
 load_file = joinpath(ts_dir, "load_scenarios.h5")
@@ -31,15 +31,15 @@ solar_gens = get_components(
 )
 
 
-initial_time = Dates.Date(2018, 1, 1)
+initial_time = Dates.DateTime(2018, 1, 1)
 da_interval = Dates.Hour(24)
 da_resolution = Dates.Hour(1)
-day_count = 365
+hour_count = 8760-48+1
 hour_ahead_forecast = Dict{Dates.DateTime, Matrix{Float64}}()
 
 
-for ix in 1:day_count
-    curr_time = initial_time + Day(ix - 1)
+for ix in 1:hour_count
+    curr_time = initial_time + Hour(ix - 1)
     forecast = h5open(solar_file, "r") do file
         return read(file, string(curr_time))
     end
@@ -55,8 +55,8 @@ scenario_forecast_data = Scenarios(
 add_time_series!(system, solar_gens, scenario_forecast_data)
 
 
-for ix in 1:day_count
-    curr_time = initial_time + Day(ix - 1)
+for ix in 1:hour_count
+    curr_time = initial_time + Hour(ix - 1)
     forecast = h5open(wind_file, "r") do file
         return read(file, string(curr_time))
     end
@@ -72,8 +72,8 @@ scenario_forecast_data = Scenarios(
 add_time_series!(system, wind_gens, scenario_forecast_data)
 
 
-for ix in 1:day_count
-    curr_time = initial_time + Day(ix - 1)
+for ix in 1:hour_count
+    curr_time = initial_time + Hour(ix - 1)
     forecast = h5open(load_file, "r") do file
         return read(file, string(curr_time))
     end

@@ -8,7 +8,8 @@ function _add_stroage!(sys::System, model::JuMP.Model)::Nothing
     
     eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, system, b)) for b in storage_names)
 
-    eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, system, b)) for b in storage_names)
+    # eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, system, b)) for b in storage_names)
+    eb_t0 = model[:init_value].eb_t0
     η = Dict(b => get_efficiency(get_component(GenericBattery, system, b)) for b in storage_names)
     pb_in_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
     pb_out_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)

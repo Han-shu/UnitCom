@@ -32,17 +32,17 @@ end
     #     net_load += get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
     # end
 
-    # power_balance_constraints = _init(model, :power_balance_constraints)
+    # eq_power_balance = _init(model, :eq_power_balance)
     # if has_storage
     #     #TODO power balance constraints with storage
     #     for s in scenarios, t in time_steps
-    #         power_balance_constraints[s,t] = @constraint(model, sum(pg[g,s,t] for g in thermal_gen_names) 
+    #         eq_power_balance[s,t] = @constraint(model, sum(pg[g,s,t] for g in thermal_gen_names) 
     #             + sum(pW[g,s,t] for g in wind_gen_names) + sum(pS[g,s,t] for g in solar_gen_names) 
     #             + curtailment[s,t] == net_load[t,s])
     #     end 
     # else
     #     for s in scenarios, t in time_steps
-    #         power_balance_constraints[s,t] = @constraint(model, sum(pg[g,s,t] for g in thermal_gen_names) 
+    #         eq_power_balance[s,t] = @constraint(model, sum(pg[g,s,t] for g in thermal_gen_names) 
     #             + sum(pW[g,s,t] for g in wind_gen_names) + sum(pS[g,s,t] for g in solar_gen_names) 
     #             + curtailment[s,t] == net_load[t,s])
     #     end 
