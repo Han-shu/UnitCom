@@ -1,14 +1,14 @@
 using DataStructures, JuMP, Dates, PowerSystems
-using HiGHS
+using Cbc
 
-# include("case5_re.jl")
+include("case5_re.jl")
 include("structs.jl")
 include("get_init_value.jl")
-include("net_injection.jl")
+include("add_net_injection.jl")
 include("add_renewables.jl")
 include("add_thermal.jl")
-include("storage_equations.jl")
-include("system_equations.jl")
+include("add_storage.jl")
+include("add_system_eqs.jl")
 
 function _init(model::JuMP.Model, key::Symbol)::OrderedDict
     if !(key in keys(object_dictionary(model)))
@@ -53,5 +53,5 @@ function stochastic_uc(
     return model  
 end
 
-# model = stochastic_uc(system, HiGHS.Optimizer, start_time = DateTime(Date(2018, 7, 18)))
+model = stochastic_uc(system, Cbc.Optimizer, start_time = DateTime(Date(2018, 1, 1)))
 

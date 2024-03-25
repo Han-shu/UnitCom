@@ -1,4 +1,4 @@
-function _add_thermal_generators!(model::JuMP.Model, sys::System, use_must_run::Bool)::Nothing
+function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)::Nothing
     scenarios = model[:param].scenarios
     time_steps = model[:param].time_steps
 
@@ -43,12 +43,15 @@ function _add_thermal_generators!(model::JuMP.Model, sys::System, use_must_run::
     # -----------------------------------------------------------------------------------------  
     # Variables 
     # -----------------------------------------------------------------------------------------
-    # commitment variables
-    @variable(model, ug[g in thermal_gen_names, t in time_steps], binary = true)
-    # startup variables
-    @variable(model, 0 <= vg[g in thermal_gen_names, t in time_steps] <= 1)
-    # shutdown variables
-    @variable(model, 0 <= wg[g in thermal_gen_names, t in time_steps] <= 1)
+    ug = _init(model, :ug) # commitment variables
+    vg = _init(model, :vg) # startup variables
+    wg = _init(model, :wg) # shutdown variables
+    for g in thermal_gen_names, t in time_steps
+        ug[g,t] = @variable(model, binary = true)
+        vg[g,t] = @variable(model, lower_bound = 0, upper_bound = 1)
+        wg[g,t] = @variable(model, lower_bound = 0, upper_bound = 1)
+    end
+ 
     # power generation variables
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
     if thermal_type == ThermalMultiStart
@@ -65,9 +68,7 @@ function _add_thermal_generators!(model::JuMP.Model, sys::System, use_must_run::
         end
     end
 
-    # -----------------------------------------------------------------------------------------  
-    # Constraints 
-    # -----------------------------------------------------------------------------------------
+
     # Commitment status constraints
     for g in thermal_gen_names, t in time_steps
         if t == 1
@@ -77,9 +78,10 @@ function _add_thermal_generators!(model::JuMP.Model, sys::System, use_must_run::
         end
     end
 
+    # must run generators 
     if use_must_run
         for g in must_run_gen_names, t in time_steps
-            JuMP.fix(ug[g,t], 1.0; force = true)
+            fix(ug[g,t], 1.0; force = true)
         end
     end
 
@@ -101,6 +103,62 @@ function _add_thermal_generators!(model::JuMP.Model, sys::System, use_must_run::
     end
     for s in scenarios, t in time_steps
         add_to_expression!(expr_net_injection[s,t], sum(pg[g,s,t] for g in thermal_gen_names), 1.0)
+    end
+
+    # Up and down time constraints
+    if thermal_type == ThermalMultiStart
+        history_vg = model[:init_value].history_vg
+        history_wg = model[:init_value].history_wg
+        time_up_t0 = Dict(g => ug_t0[g] * get_time_at_status(get_component(ThermalMultiStart, system, g)) for g in thermal_gen_names)
+        time_down_t0 = Dict(g => (1 - ug_t0[g])*get_time_at_status(get_component(ThermalMultiStart, system, g)) for g in thermal_gen_names)
+        eq_uptime = _init(model, :eq_uptime)
+        eq_downtime = _init(model, :eq_downtime)
+        for g in thermal_gen_names, t in time_steps
+            time_limits = get_time_limits(get_component(ThermalMultiStart, sys, g))
+            prev_len = length(history_vg[g])
+            lhs_on = AffExpr(0)
+
+            if t - time_limits[:up] + 1 >= 1
+                for i in UnitRange{Int}(Int(t - time_limits[:up] + 1), t)
+                    add_to_expression!(lhs_on, vg[g,i])
+                end
+            else
+                if prev_len >= floor(Int, time_limits[:up]-t) + 1 
+                    for i in UnitRange{Int}(1, t)
+                        add_to_expression!(lhs_on, vg[g,i])
+                    end
+                    for i in UnitRange{Int}(0, floor(Int, time_limits[:up]-t))
+                        add_to_expression!(lhs_on, history_vg[g][end-i])
+                    end
+                elseif t <= max(0, time_limits[:up] - time_up_t0[g]) && time_up_t0[g] > 0
+                    add_to_expression!(lhs_on, 1)
+                else
+                    continue
+                end
+            end
+            eq_uptime[g,t] = @constraint(model, lhs_on - ug[g,t] <= 0.0)
+
+            lhs_off = AffExpr(0)
+            if t - time_limits[:down] + 1 >= 1
+                for i in UnitRange{Int}(Int(t - time_limits[:down] + 1), t)
+                    add_to_expression!(lhs_off, vg[g,i])
+                end
+            else
+                if prev_len >= floor(Int, time_limits[:down]-t) + 1 
+                    for i in UnitRange{Int}(1, t)
+                        add_to_expression!(lhs_off, wg[g,i])
+                    end
+                    for i in UnitRange{Int}(0, floor(Int, time_limits[:down]-t))
+                        add_to_expression!(lhs_off, history_wg[g][end-i])
+                    end
+                elseif t <= max(0, time_limits[:down] - time_down_t0[g]) && time_down_t0[g] > 0
+                    add_to_expression!(lhs_off, 1)
+                else
+                    continue
+                end
+            end
+            eq_downtime[g,t] = @constraint(model, lhs_off + ug[g,t] <= 1.0)
+        end
     end
 
     if isa(variable_cost[thermal_gen_names[1]], Tuple)
