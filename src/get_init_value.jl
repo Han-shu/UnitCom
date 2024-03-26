@@ -15,9 +15,8 @@ function _get_init_value(sys::System, model::JuMP.Model)::InitValue
     storage_names = PSY.get_name.(get_components(GenericBattery, sys))
     thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
     ug_t0 = Dict(g => value(model[:ug][g, 1]) for g in thermal_gen_names)
-    #TODO: pg[g,s,t] average or make each scenario the same
-    Pg_t0 = Dict(g => value(model[:pg][g, 1, 1]) for g in thermal_gen_names)
-    eb_t0 = Dict(b => value(model[:init_value][b]) for b in storage_names)
+    Pg_t0 = Dict(g => value(model[:t_pg][g]) for g in thermal_gen_names)
+    eb_t0 = Dict(b => value(model[:t_eb][b]) for b in storage_names)
     for g in thermal_gen_names
         push!(history_vg[g], Int(value(model[:vg][g, 1])))
         push!(history_wg[g], Int(value(model[:wg][g, 1])))

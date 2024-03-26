@@ -175,5 +175,14 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
                    ug[g,t]*fixed_cost[g] + vg[g,t]*startup_cost[g] + 
                    wg[g,t]*shutdown_cost[g] for g in thermal_gen_names, t in time_steps))
 
+    # Enforce decsion variables for t = 1
+    t_pg = _init(model, :t_pg)
+    for g in thermal_gen_names
+        t_pg[g] = @variable(model, lower_bound = 0)
+        for s in scenarios
+            @constraint(model, pg[g,s,1] == t_pg[g])
+        end
+    end
+    
     return
 end

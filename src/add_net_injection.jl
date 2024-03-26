@@ -23,6 +23,13 @@ function _add_net_injection!(model::JuMP.Model, sys::System)::Nothing
             add_to_expression!(expr_net_injection[s,t], load_matrix[t,s], -1.0)
         end
     end
+
+    # Enforce decsion variables for t = 1
+    t_curtailment = _init(model, :t_curtailment)
+    t_curtailment = @variable(model, lower_bound = 0) 
+    for s in scenarios
+        @constraint(model, curtailment[s,1] == t_curtailment)
+    end
     return
 end
 

@@ -9,41 +9,51 @@ function _add_stroage!(sys::System, model::JuMP.Model)::Nothing
     storage_names = PSY.get_name.(get_components(PSY.GenericBattery, system))
     eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, system, b)) for b in storage_names)
     η = Dict(b => get_efficiency(get_component(GenericBattery, system, b)) for b in storage_names)
-    pb_in_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
-    pb_out_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
+    kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
+    kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
 
     # Variables
-    pb_in = @variable(model, pb_in[b in storage_names, t in time_steps] >= 0)
-    pb_out = @variable(model, pb_out[b in storage_names, t in time_steps] >= 0)
+    kb_charge = _init(model, :kb_charge)
+    kb_discharge = _init(model, :kb_discharge)
     eb = _init(model, :eb)
-    ϕb = _init(model, :ϕb)
-    for b in storage_names, t in time_steps
-        eb[b, t] = @variable(model, lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
-        ϕb[b, t] = @variable(model, binary = true) # 1==discharge, 0==charge
+    for b in storage_names, s in scenarios, t in time_steps
+        kb_charge[b,s,t] = @variable(model, lower_bound = 0, upper_bound = kb_charge_max[b])
+        kb_discharge[b,s,t] = @variable(model, lower_bound = 0, upper_bound = kb_discharge_max[b])
+        eb[b,s,t] = @variable(model, lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
     end
 
     # Constraints
     # net injection
     expr_net_injection = model[:expr_net_injection]
     for s in scenarios, t in time_steps
-        add_to_expression!(expr_net_injection[s,t], sum(pb_in[b,t] - pb_out[b,t] for b in storage_names), -1)
+        add_to_expression!(expr_net_injection[s,t], sum(kb_charge[b,s,t] - kb_discharge[b,s,t] for b in storage_names), -1)
     end
-    # Storage charge/discharge decisions
-    storage_charge_constraints = @constraint(model, [b in storage_names, t in time_steps], 
-        pb_in[b,t] <= pb_in_max[b] * (1 - ϕb[b, t]))
-    storage_discharge_constraints = @constraint(model, [b in storage_names, t in time_steps],
-        pb_out[b, t] <= pb_out_max[b] * ϕb[b, t])
+
     # Storage energy update
-    storage_energy_balance = _init(model, :storage_energy_balance)
-    for b in storage_names, t in time_steps
+    eq_storage_energy = _init(model, :eq_storage_energy)
+    for b in storage_names, s in scenarios, t in time_steps
         if t == 1
-            storage_energy_balance[b, 1] = @constraint(model,
-                eb[b, 1] == eb_t0[b] + η[b].in * pb_in[b, 1] - (1 / η[b].out) * pb_out[b, 1])
+            eq_storage_energy[b,s,1] = @constraint(model,
+                eb[b,s,1] == eb_t0[b] + η[b].in * kb_charge[b,s,1] - (1 / η[b].out) * kb_discharge[b,s,1])
         else
-            storage_energy_balance[b, t] = @constraint(model,
-                eb[b, t] == eb[b, t - 1] + η[b].in * pb_in[b, t] - (1 / η[b].out) * pb_out[b, t])
+            eq_storage_energy[b, t] = @constraint(model,
+                eb[b,s,t] == eb[b,s,t-1] + η[b].in * kb_charge[b,s,t] - (1 / η[b].out) * kb_discharge[b,s,t])
         end
     end
 
+    # Enforce decsion variables for t = 1
+    t_kb_charge = _init(model, :t_kb_charge)
+    t_kb_discharge = _init(model, :t_kb_discharge)
+    t_eb = _init(model, :t_eb)
+    for b in storage_names
+        t_kb_charge[b] = @variable(model, lower_bound = 0, upper_bound = kb_charge_max[b])
+        t_kb_discharge[b] = @variable(model, lower_bound = 0, upper_bound = kb_discharge_max[b])
+        t_eb[b] = @variable(model, lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
+        for s in scenarios
+            @constraint(model, kb_charge[b,s,1] == t_kb_charge[b])
+            @constraint(model, kb_discharge[b,s,1] == t_kb_discharge[b])
+            @constraint(model, eb[b,s,1] == t_eb[b])
+        end
+    end
     return 
 end
