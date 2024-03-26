@@ -1,7 +1,6 @@
 using DataStructures, JuMP, Dates, PowerSystems
-using Cbc
+using HiGHS
 
-include("case5_re.jl")
 include("structs.jl")
 include("get_init_value.jl")
 include("add_net_injection.jl")
@@ -19,7 +18,7 @@ end
 
 function stochastic_uc(
     sys::System, optimizer; 
-    start_time = Dates.Date(2018,1,1), scenario_count = 10, horizon = 24, 
+    start_time = DateTime(2018,1,1,0), scenario_count = 10, horizon = 24, 
     VOLL=5000, use_must_run=false, init_value=nothing
     )
     
@@ -52,6 +51,4 @@ function stochastic_uc(
     optimize!(model)
     return model  
 end
-
-model = stochastic_uc(system, Cbc.Optimizer, start_time = DateTime(Date(2018, 1, 1)))
 
