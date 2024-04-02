@@ -9,7 +9,7 @@ horizon = 24
 total_elapsed_time = 0.0
 init_value = _get_init_value(system)
 solution = initiate_solution_uc_t(system)
-for i in 1:10 #8712
+for i in 1:8712
     global total_elapsed_time, init_value, solution
     start_time = initial_time + Dates.Hour(i-1)
     @info "Running rolling horizon UC for $(start_time)"

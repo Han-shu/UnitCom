@@ -42,10 +42,10 @@ function get_solution_uc_t(sys::System, model::JuMP.Model, sol::OrderedDict)::Or
         push!(sol["Batter energy"][b], value(model[:t_eb][b]))
     end
     
-    wind_gen_names = get_name.(get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys))
-    solar_gen_names = get_name.(get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys))
-    push!(sol["Wind energy"], value(model[:t_pW][wind_gen_names[1]]))
-    push!(sol["Solar energy"], value(model[:t_pS][solar_gen_names[1]]))
+    # wind_gen_names = get_name.(get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys))
+    # solar_gen_names = get_name.(get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys))
+    # push!(sol["Wind energy"], value(model[:t_pW][wind_gen_names[1]]))
+    # push!(sol["Solar energy"], value(model[:t_pS][solar_gen_names[1]]))
     push!(sol["Curtailed energy"], value.(model[:curtailment][:,1]))
     push!(sol["LMP"], dual(model[:eq_power_balance][1,1]))
     return sol

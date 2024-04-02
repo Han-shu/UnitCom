@@ -1,5 +1,5 @@
 using PowerSystems, PowerSimulations, HydroPowerSimulations
-using JSON3, Dates, HDF5
+using JSON3, Dates, HDF5, Statistics
 const PSI = PowerSimulations
 const PSY = PowerSystems
 
@@ -43,6 +43,7 @@ for ix in 1:hour_count
     forecast = h5open(solar_file, "r") do file
         return read(file, string(curr_time))
     end
+    forecast[1, :] .= mean(forecast[1, :])
     hour_ahead_forecast[curr_time] = forecast
 end
 
@@ -60,6 +61,7 @@ for ix in 1:hour_count
     forecast = h5open(wind_file, "r") do file
         return read(file, string(curr_time))
     end
+    forecast[1, :] .= mean(forecast[1, :])
     hour_ahead_forecast[curr_time] = forecast
 end
 
@@ -77,6 +79,7 @@ for ix in 1:hour_count
     forecast = h5open(load_file, "r") do file
         return read(file, string(curr_time))
     end
+    forecast[1, :] .= mean(forecast[1, :])
     hour_ahead_forecast[curr_time] = forecast./3
 end
 
