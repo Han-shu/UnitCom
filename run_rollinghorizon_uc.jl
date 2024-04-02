@@ -13,7 +13,7 @@ for i in 1:10 #8712
     start_time = initial_time + Dates.Hour(i-1)
     @info "Running rolling horizon UC for $(start_time)"
     elapsed_time = @elapsed begin
-        model = stochastic_uc(system, HiGHS.Optimizer, init_value = init_value, 
+        model = stochastic_uc(system, Gurobi.Optimizer, init_value = init_value, 
                     start_time = start_time, scenario_count = 10, horizon = horizon)
         init_value = _get_init_value(system, model)  
         solution = get_solution_uc_t(system, model, solution)

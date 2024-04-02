@@ -1,5 +1,5 @@
 using DataStructures, JuMP, Dates, PowerSystems
-using HiGHS
+using Gurobi
 
 include("structs.jl")
 include("get_init_value.jl")

@@ -10,7 +10,7 @@ using Gurobi #solver
 
 # solver
 solver = optimizer_with_attributes(Gurobi.Optimizer, "MIPGap" => 0.5)
-# solver = optimizer_with_attributes(HiGHS.Optimizer, "mip_rel_gap" => 0.5)
+# solver = optimizer_with_attributes(Gurobi.Optimizer, "mip_rel_gap" => 0.5)
 
 # hourly DA system
 sys_DA = build_system(PSISystems, "modified_RTS_GMLC_DA_sys")

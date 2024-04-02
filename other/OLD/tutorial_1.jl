@@ -27,7 +27,7 @@ set_service_model!(template_uc, VariableReserve{ReserveDown}, RangeReserve)
 set_network_model!(template_uc, NetworkModel(CopperPlatePowerModel))
 # solver
 solver = optimizer_with_attributes(Gurobi.Optimizer, "MIPGap" => 0.5)
-# solver = optimizer_with_attributes(HiGHS.Optimizer, "mip_rel_gap" => 0.5)
+# solver = optimizer_with_attributes(Gurobi.Optimizer, "mip_rel_gap" => 0.5)
 
 # Build an DecisionModel
 problem = DecisionModel(template_uc, sys; optimizer = solver, horizon = 24)

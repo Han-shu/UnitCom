@@ -1,9 +1,9 @@
 using PowerSystems, PowerSimulations, HydroPowerSimulations
-using Dates, HiGHS
+using Dates, Gurobi
 
 file_path = "/Users/hanshu/Desktop/Price_formation/Data/Doubleday_data/"
 initial_time = "2018-03-15T00:00:00"
-solver = optimizer_with_attributes(HiGHS.Optimizer, "mip_rel_gap" => 0.05)
+solver = optimizer_with_attributes(Gurobi.Optimizer, "mip_rel_gap" => 0.05)
 
 # solver = optimizer_with_attributes(Gurobi.Optimizer, "MIPGap" => 0.5)
 

@@ -32,4 +32,4 @@ function ed_model(sys::System, optimizer)
 end
 
 pjmsys = build_system(PSISystems, "c_sys5_pjm")
-results = ed_model(pjmsys, HiGHS.Optimizer)
+results = ed_model(pjmsys, Gurobi.Optimizer)

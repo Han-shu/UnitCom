@@ -1,6 +1,6 @@
 using PowerSystemCaseBuilder
 using PowerSystems, PowerSimulations, HydroPowerSimulations
-using HiGHS, Logging, Dates
+using Gurobi, Logging, Dates
 const PSI = PowerSimulations
 
 sys_hy_wk = build_system(PSISystems, "5_bus_hydro_wk_sys")
@@ -11,7 +11,7 @@ sys_hy_wk_targets = build_system(PSISystems, "5_bus_hydro_wk_sys_with_targets")
 sys_hy_uc_targets = build_system(PSISystems, "5_bus_hydro_uc_sys_with_targets")
 sys_hy_ed_targets = build_system(PSISystems, "5_bus_hydro_ed_sys_with_targets")
 
-solver = optimizer_with_attributes(HiGHS.Optimizer, "mip_rel_gap" => 0.05)
+solver = optimizer_with_attributes(Gurobi.Optimizer, "mip_rel_gap" => 0.05)
 
 # solver = optimizer_with_attributes(Gurobi.Optimizer, "MIPGap" => 0.5)
 odir = mktempdir(cleanup=true)

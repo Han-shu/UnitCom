@@ -1,4 +1,4 @@
-using HiGHS, JuMP, Ipopt
+using Gurobi, JuMP, Ipopt
 using PowerSystems, PowerSimulations, PowerSystemCaseBuilder
 const PSI = PowerSimulations
 const PSY = PowerSystems
@@ -21,8 +21,8 @@ set_device_model!(template_ed, HydroEnergyReservoir, HydroDispatchRunOfRiver)
 c_sys5_hy_uc = build_system(PSITestSystems, "c_sys5_hy_uc")
 c_sys5_hy_ed = build_system(PSITestSystems, "c_sys5_hy_ed")
 
-HiGHS_optimizer = JuMP.optimizer_with_attributes(
-    HiGHS.Optimizer,
+Gurobi_optimizer = JuMP.optimizer_with_attributes(
+    Gurobi.Optimizer,
     "time_limit" => 100.0,
     "log_to_console" => false,
 )
@@ -41,7 +41,7 @@ models = SimulationModels(;
             template_uc,
             c_sys5_hy_uc;
             name = "UC",
-            optimizer = HiGHS_optimizer,
+            optimizer = Gurobi_optimizer,
             initialize_model = false,
             calculate_conflict = true,
         ),
