@@ -8,6 +8,7 @@ include("add_renewables.jl")
 include("add_thermal.jl")
 include("add_storage.jl")
 include("add_system_eqs.jl")
+include("compute_conflict.jl")
 
 function _init(model::JuMP.Model, key::Symbol)::OrderedDict
     if !(key in keys(object_dictionary(model)))
@@ -48,7 +49,14 @@ function stochastic_uc(
     _add_power_balance_eq!(model)
 
     @objective(model, Min, model[:obj])
+
     optimize!(model)
+
+    model_status = JuMP.primal_status(model)
+    if model_status != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
+        print_conflict(model, write_iis = false)
+    end
+
     return model  
 end
 

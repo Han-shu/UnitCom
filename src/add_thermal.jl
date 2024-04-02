@@ -43,14 +43,9 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
     # -----------------------------------------------------------------------------------------  
     # Variables 
     # -----------------------------------------------------------------------------------------
-    ug = _init(model, :ug) # commitment variables
-    vg = _init(model, :vg) # startup variables
-    wg = _init(model, :wg) # shutdown variables
-    for g in thermal_gen_names, t in time_steps
-        ug[g,t] = @variable(model, binary = true)
-        vg[g,t] = @variable(model, lower_bound = 0, upper_bound = 1)
-        wg[g,t] = @variable(model, lower_bound = 0, upper_bound = 1)
-    end
+    @variable(model, ug[g in thermal_gen_names, t in time_steps], binary = true)
+    @variable(model, vg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
+    @variable(model, wg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
  
     # power generation variables
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
@@ -169,19 +164,16 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
         add_to_expression!(model[:obj], (1/length(scenarios))*sum(
                     pg[g,s,t]^2*variable_cost[g][2][1] + pg[g,s,t]*variable_cost[g][2][2]
                     for g in thermal_gen_names, s in scenarios, t in time_steps))
-    end
+    end   
     
     add_to_expression!(model[:obj], sum(
                    ug[g,t]*fixed_cost[g] + vg[g,t]*startup_cost[g] + 
                    wg[g,t]*shutdown_cost[g] for g in thermal_gen_names, t in time_steps))
 
     # Enforce decsion variables for t = 1
-    t_pg = _init(model, :t_pg)
-    for g in thermal_gen_names
-        t_pg[g] = @variable(model, lower_bound = 0)
-        for s in scenarios
-            @constraint(model, pg[g,s,1] == t_pg[g])
-        end
+    @variable(model, t_pg[g in thermal_gen_names], lower_bound = 0)
+    for g in thermal_gen_names, s in scenarios
+        @constraint(model, pg[g,s,1] == t_pg[g])
     end
     
     return

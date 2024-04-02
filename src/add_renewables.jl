@@ -33,20 +33,15 @@ function _add_renewables!(model::JuMP.Model, sys::System)
     end
 
     # Enforce decsion variables for t = 1
-    t_pS = _init(model, :t_pS)
-    t_pW = _init(model, :t_pW)
-    for g in solar_gen_names
-        t_pS[g] = @variable(model, lower_bound = 0)
-        for s in scenarios
-            @constraint(model, pS[g,s,1] == t_pS[g])
-        end
+    @variable(model, t_pS[g in solar_gen_names] >= 0)
+    @variable(model, t_pW[g in wind_gen_names] >= 0)
+    for g in solar_gen_names, s in scenarios
+        @constraint(model, pS[g,s,1] == t_pS[g])
     end
-    for g in wind_gen_names
-        t_pW[g] = @variable(model, lower_bound = 0)
-        for s in scenarios
-            @constraint(model, pW[g,s,1] == t_pW[g])
-        end
-    end 
+    for g in wind_gen_names, s in scenarios
+        @constraint(model, pW[g,s,1] == t_pW[g])
+    end
+
     return
 end
 

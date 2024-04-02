@@ -1,6 +1,5 @@
 function _add_net_injection!(model::JuMP.Model, sys::System)::Nothing
     expr_net_injection = _init(model, :expr_net_injection)
-    curtailment = _init(model, :curtail)
 
     scenarios = model[:param].scenarios
     time_steps = model[:param].time_steps
@@ -8,11 +7,10 @@ function _add_net_injection!(model::JuMP.Model, sys::System)::Nothing
     VOLL = model[:param].VOLL
 
     loads = collect(get_components(PowerLoad, sys))
+    # Load curtailment
+    @variable(model, curtailment[s in scenarios, t in time_steps], lower_bound = 0)
     for s in scenarios, t in time_steps
         expr_net_injection[s,t] = AffExpr()
-        # Load curtailment
-        curtailment[s,t] = @variable(model, lower_bound = 0)
-
         add_to_expression!(expr_net_injection[s,t], curtailment[s,t], 1.0)
         add_to_expression!(model[:obj], VOLL*curtailment[s,t], 1/length(scenarios))
     end
@@ -25,11 +23,10 @@ function _add_net_injection!(model::JuMP.Model, sys::System)::Nothing
     end
 
     # Enforce decsion variables for t = 1
-    t_curtailment = _init(model, :t_curtailment)
-    t_curtailment = @variable(model, lower_bound = 0) 
-    for s in scenarios
-        @constraint(model, curtailment[s,1] == t_curtailment)
-    end
+    # @variable(model, t_curtailment, lower_bound = 0) 
+    # for s in scenarios
+    #     @constraint(model, curtailment[s,1] == t_curtailment)
+    # end
     return
 end
 

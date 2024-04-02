@@ -17,7 +17,8 @@ function initiate_solution_uc_t(sys::System)::OrderedDict
     return sol
 end
 
-function solution_uc_t(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
+function get_solution_uc_t(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
+    @info "Reoptimize with fixed integer variables ..."
     fix!(sys, model)
     optimize!(model)
 
@@ -37,9 +38,11 @@ function solution_uc_t(sys::System, model::JuMP.Model, sol::OrderedDict)::Ordere
         push!(sol["Batter energy"][b], value(model[:t_eb][b]))
     end
     
-    push!(sol["Wind energy"], value(model[:t_wind]))
-    push!(sol["Solar energy"], value(model[:t_solar]))
-    push!(sol["Curtailed energy"], value(model[:t_curtailment]))
+    wind_gen_names = get_name.(get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys))
+    solar_gen_names = get_name.(get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys))
+    push!(sol["Wind energy"], value(model[:t_pW][wind_gen_names[1]]))
+    push!(sol["Solar energy"], value(model[:t_pS][solar_gen_names[1]]))
+    push!(sol["Curtailed energy"], value.(model[:curtailment][:,1]))
     push!(sol["LMP"], dual(model[:eq_power_balance][1,1]))
     return sol
 end
@@ -56,14 +59,14 @@ end
 function fix!(sys::System, model::JuMP.Model)
     time_steps = model[:param].time_steps
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+    sol = get_integer_solution(model, thermal_gen_names)
     ug = model[:ug]
     vg = model[:vg]
     wg = model[:wg]
-    sol = get_integer_solution(model, thermal_gen_names)
     for g in thermal_gen_names, t in time_steps
-        ug_value = round(sol["ug"][g][t], digits = 1)
-        vg_value = round(sol["vg"][g][t], digits = 1)
-        wg_value = round(sol["wg"][g][t], digits = 1)
+        ug_value = round(sol["ug"][g][t])
+        vg_value = round(sol["vg"][g][t])
+        wg_value = round(sol["wg"][g][t])
         JuMP.fix(ug[g,t], ug_value, force = true)
         JuMP.fix(vg[g,t], vg_value, force = true)
         JuMP.fix(wg[g,t], wg_value, force = true)

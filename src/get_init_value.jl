@@ -10,8 +10,8 @@ function _get_init_value(sys::System)::InitValue
 end
 
 function _get_init_value(sys::System, model::JuMP.Model)::InitValue
-    history_wg = model[init_value].history_wg
-    history_vg = model[init_value].history_vg
+    history_wg = model[:init_value].history_wg
+    history_vg = model[:init_value].history_vg
     storage_names = PSY.get_name.(get_components(GenericBattery, sys))
     thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
     ug_t0 = Dict(g => value(model[:ug][g, 1]) for g in thermal_gen_names)
