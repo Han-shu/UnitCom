@@ -2,6 +2,7 @@
 include("system/case5_re.jl")
 include("src/stochastic_uc.jl")
 include("src/get_solution.jl")
+include("src/write_json.jl")
 
 initial_time = Dates.DateTime(2018, 1, 1)
 horizon = 24

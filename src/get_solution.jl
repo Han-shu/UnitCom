@@ -20,6 +20,10 @@ end
 function get_solution_uc_t(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
     @info "Reoptimize with fixed integer variables ..."
     fix!(sys, model)
+    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+    for g in thermal_gen_names, t in model[:param].time_steps
+        unset_binary(model[:ug][g,t])
+    end 
     optimize!(model)
 
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))

@@ -8,4 +8,19 @@ model = stochastic_uc(system, Gurobi.Optimizer, start_time = DateTime(2018, 1, 1
     @test model[:param].scenarios == 1:10
     @test model[:param].start_time == DateTime(2018, 1, 1, 0)
     @test get_time_series_counts(system) == (5, 0, 5)
+    thermal_gen_names = get_name.(get_components(ThermalGen, system))
+
+    fix!(system, model)
+    @test is_binary(model[:ug][thermal_gen_names[1],1]) == true
+    for g in thermal_gen_names, t in model[:param].time_steps
+        unset_binary(model[:ug][g,t])
+    end
+
+    @test is_fixed(model[:ug][thermal_gen_names[1],1]) == true
+    @test is_binary(model[:ug][thermal_gen_names[1],1]) == false
+
+    optimize!(model)
+    @test JuMP.primal_status(model) == MOI.FEASIBLE_POINT
+    @test JuMP.dual_status(model) == MOI.FEASIBLE_POINT
+    @test isnothing(dual(model[:eq_power_balance][1,1])) == false
 end
