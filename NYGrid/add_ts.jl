@@ -26,7 +26,7 @@ solar_gens = get_components(
 )
 
 
-initial_time = Dates.DateTime(2018, 1, 1)
+initial_time = Dates.DateTime(2019, 1, 1)
 da_resolution = Dates.Hour(1)
 hour_count = 8760-48+1
 scenario_count = 10

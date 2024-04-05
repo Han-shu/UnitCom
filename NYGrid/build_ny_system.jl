@@ -7,7 +7,7 @@ using InfrastructureSystems
 using PowerSystems
 const PSY = PowerSystems
 
-data_dir = "/Users/hanshu/Desktop/Price_formation/UnitCom/system/NYGrid/Data"
+data_dir = "/Users/hanshu/Desktop/Price_formation/UnitCom/NYGrid/Data"
 
 include("parsing_utils.jl")
 
@@ -122,5 +122,3 @@ for (gen_id, gen) in enumerate(eachrow(df_gen))
 end
 
 include("add_ts.jl")
-
-
