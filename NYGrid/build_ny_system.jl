@@ -110,7 +110,6 @@ for (gen_id, gen) in enumerate(eachrow(df_gen))
     end
     genprop = df_genprop[gen_id, :]
     gen_cost = df_gencost[gen_id, :]
-    # bus = get_bus(system, gen.GEN_BUS)
     bus = get_bus(system, 1)
     name = genprop.GEN_NAME
     pmax = gen.PMAX
