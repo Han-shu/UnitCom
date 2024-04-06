@@ -10,6 +10,7 @@ const PSY = PowerSystems
 data_dir = "/Users/hanshu/Desktop/Price_formation/UnitCom/system/NYGrid/Data"
 
 include("parsing_utils.jl")
+include("manual_data_entries.jl")
 
 base_power = 100
 system = PSY.System(base_power)
@@ -75,24 +76,6 @@ for re in eachrow(renewable_config)
 end
 
 # Add thermal generators
-map_UnitType = Dict(
-    "Combustion Turbine" => PrimeMovers.CT,
-    "Combined Cycle" => PrimeMovers.CC,
-    "Internal Combustion" => PrimeMovers.IC,
-    "Steam Turbine" => PrimeMovers.ST,
-    "Jet Engine" => PrimeMovers.GT,
-    "Nuclear" => PrimeMovers.ST,
-)
-
-map_FuelType = Dict(
-    "Kerosene" => ThermalFuels.NATURAL_GAS,
-    "Natural Gas" => ThermalFuels.NATURAL_GAS,
-    "Fuel Oil 2" => ThermalFuels.DISTILLATE_FUEL_OIL,
-    "Coal" => ThermalFuels.COAL,
-    "Fuel Oil 6" => ThermalFuels.RESIDUAL_FUEL_OIL,
-    "Nuclear" => ThermalFuels.NUCLEAR,
-    )
-
 gen_header = ["GEN_BUS", "PG", "QG", "QMAX", "QMIN", "VG", "MBASE", "GEN_STATUS", "PMAX", "PMIN", "PC1", "PC2", "QC1MIN", "QC1MAX", "QC2MIN", "QC2MAX", "RAMP_AGC", "RAMP_10", "RAMP_30", "RAMP_Q", "APF"]
 gencost_header = ["MODEL", "STARTUP", "SHUTDOWN", "NCOST", "COST_1", "COST_0"]
 df_gen = CSV.read(joinpath(data_dir, "gen_2019.csv"), DataFrame, header = gen_header)

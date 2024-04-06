@@ -53,6 +53,9 @@ fuel = Dict(g => get_fuel(get_component(ThermalGen, system, g)) for g in thermal
 
 get_power_trajectory(get_component(ThermalGen, system, "Solitude"))
 
+time_limits = get_time_limits(get_component(ThermalGen, system, thermal_gen_names[1]))
+
+time_status = get_time_at_status(get_component(ThermalGen, system, thermal_gen_names[1]))
 
 file_path = "/Users/hanshu/Desktop/Price_formation/Data/Doubleday_data/"
 system31 = System(file_path*"DA_sys_31_scenarios.json")
