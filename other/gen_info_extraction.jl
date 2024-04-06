@@ -28,6 +28,7 @@ get_base_power(system)
 
 PSI.get_active_power_limits(thermal_gens[3])
 
+thermal_gen_names = get_name.(get_components(ThermalGen, system))
 op_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, system, g)))) for g in thermal_gen_names)
 no_load_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, system, g))) for g in thermal_gen_names)
 shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, system, g))) for g in thermal_gen_names)
