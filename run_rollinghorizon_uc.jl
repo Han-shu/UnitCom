@@ -1,10 +1,10 @@
-# Load the system data
-include("system/case5_re.jl")
+# Load the NYGrid data
+include("NYGrid/build_ny_system.jl")
 include("src/stochastic_uc.jl")
 include("src/get_solution.jl")
 include("src/write_json.jl")
 
-initial_time = Dates.DateTime(2018, 1, 1)
+initial_time = Dates.DateTime(2019, 1, 1)
 horizon = 24
 total_elapsed_time = 0.0
 init_value = _get_init_value(system)
