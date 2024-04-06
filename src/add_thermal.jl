@@ -156,10 +156,14 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
         end
     end
 
-    if isa(variable_cost[thermal_gen_names[1]], Tuple)
+    if isa(variable_cost[thermal_gen_names[1]], Float64)
         add_to_expression!(model[:obj], sum(
-                   pg[g,s,t]^2*variable_cost[g][1] + pg[g,s,t]*variable_cost[g][2]
+                   pg[g,s,t]*variable_cost[g]
                    for g in thermal_gen_names, s in scenarios, t in time_steps))
+    elseif isa(variable_cost[thermal_gen_names[1]], Tuple)
+        add_to_expression!(model[:obj], sum(
+                    pg[g,s,t]^2*variable_cost[g][1] + pg[g,s,t]*variable_cost[g][2]
+                    for g in thermal_gen_names, s in scenarios, t in time_steps))
     else
         add_to_expression!(model[:obj], (1/length(scenarios))*sum(
                     pg[g,s,t]^2*variable_cost[g][2][1] + pg[g,s,t]*variable_cost[g][2][2]
