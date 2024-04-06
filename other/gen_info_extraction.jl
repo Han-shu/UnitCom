@@ -16,12 +16,12 @@ has_time_series(loads[1], Scenarios)
 has_time_series(loads[1], Deterministic)
 get_time_series_container(loads[1])
 
-get_time_series_array(Scenarios, loads[1], "load", start_time = DateTime("2018-01-06T00:00:00"), len = 48)
+get_time_series_array(Scenarios, loads[1], "load", start_time = DateTime("2019-01-06T00:00:00"), len = 48)
 
-get_time_series_values(Scenarios, loads[1], "load", start_time = DateTime("2018-01-06T00:00:00"), len = 48)
+get_time_series_values(Scenarios, loads[1], "load", start_time = DateTime("2019-01-06T00:00:00"), len = 48)
 
-get_time_series_array(Scenarios, renewables[1], "solar_power", start_time = DateTime("2018-01-06T00:00:00"), len = 48)
-get_time_series_array(Scenarios, renewables[2], "wind_power", start_time = DateTime("2018-01-06T00:00:00"), len = 48)
+get_time_series_array(Scenarios, renewables[1], "solar_power", start_time = DateTime("2019-01-06T00:00:00"), len = 48)
+get_time_series_array(Scenarios, renewables[2], "wind_power", start_time = DateTime("2019-01-06T00:00:00"), len = 48)
 
 get_max_active_power(thermal_gens[3])
 get_base_power(system)
@@ -66,13 +66,13 @@ reserve3 = collect(get_components(VariableReserveNonSpinning, system31))
 has_time_series(reserve1[1])
 get_time_series_container(reserve1[1])
 REG_DN = get_time_series(Deterministic, reserve1[1], "requirement")
-REG_DN[DateTime("2018-01-01T00:00:00")]
+REG_DN[DateTime("2019-01-01T00:00:00")]
 
 for key in keys(REG_DN)
     println(key, " ", REG_DN[key])
     break
 end
-REG_DN.data[DateTime("2018-01-01T00:00:00")]
+REG_DN.data[DateTime("2019-01-01T00:00:00")]
 
 
 get_components(ThermalMultiStart, sys)
