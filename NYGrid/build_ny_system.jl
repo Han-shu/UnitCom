@@ -98,9 +98,10 @@ for (gen_id, gen) in enumerate(eachrow(df_gen))
     pmax = gen.PMAX
     pmin = gen.PMIN
     ramp_rate = gen.RAMP_10
-    cost = TwoPartCost(gen_cost.COST_1, gen_cost.COST_0)
+    # cost = TwoPartCost(gen_cost.COST_1, gen_cost.COST_0)
+    # ThreePartCost(variable, fixed, start_up, shut_down)
+    cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, 0.0, 0.0)
     pm = map_UnitType[genprop.GEN_FUEL]
     add_thermal(system, bus, name = name, fuel = fuel, pmin = pmin, pmax = pmax, ramp_rate = ramp_rate, cost = cost, pm = pm)
 end
 
-include("add_ts.jl")
