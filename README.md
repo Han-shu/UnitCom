@@ -26,6 +26,10 @@
 - ~~Time series data (wind, solar, load)~~
 
 ```
+set_shut_down!(op_cost, 0.2 * start_up.hot)
+```
+
+```
 mutable struct ThreePartCost <: OperationalCost
     variable::VariableCost
     fixed::Float64
