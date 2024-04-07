@@ -64,15 +64,14 @@ load = PSY.StandardLoad(
 add_component!(system, load)
 
 # Add Battery
-renewable_config = CSV.read(joinpath(data_dir, "Renewable_config.csv"), DataFrame)
-for re in eachrow(renewable_config)
-    if re.Type == "BA"
-        eff = 0.9
-        energy_rating = re.EnergyRating / 100.0
-        power_rating = re.PowerRating / 100.0
-        bus = get_bus(system, 1)
-        _build_battery(system, GenericBattery, bus, re.Name, energy_rating, power_rating, eff)  # Call build battery function
-    end
+# renewable_config = CSV.read(joinpath(data_dir, "Renewable_config.csv"), DataFrame)
+storage = CSV.read(joinpath(data_dir, "StorageAssignment.csv"), DataFrame, header = ["PowerRating", "EnergyRating"])
+for (i, ba) in enumerate(eachrow(storage))
+    eff = 0.9
+    energy_rating = ba.EnergyRating / 100.0
+    power_rating = ba.PowerRating / 100.0
+    bus = get_bus(system, 1)
+    _build_battery(system, GenericBattery, bus, "BA_$i", energy_rating, power_rating, eff)  # Call build battery function
 end
 
 # Add thermal generators

@@ -38,7 +38,7 @@ for ix in 1:hour_count
     forecast = h5open(solar_file, "r") do file
         return read(file, string(curr_time))
     end
-    forecast[1, :] .= mean(forecast[1, :])
+    forecast[1, :] .= mean(forecast[1, :]) # ensure the first time point is the same for all scenarios
     hour_ahead_forecast[curr_time] = forecast./base_power
 end
 

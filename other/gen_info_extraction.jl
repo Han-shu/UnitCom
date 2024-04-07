@@ -115,42 +115,9 @@ add_time_series!(sys, component, ts)
 transform_single_time_series!(sys, 24, Hour(24))
 
 
-# start_time = DateTime(Date(2018, 7, 18))
-# time_steps = 1:24   
-# wind_gen = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
-# total_wind = Dict(get_name(g) => 
-#         get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))
-#         for g in wind_gens)
-
-# startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(thermal_type, system, g))) for g in thermal_gen_names)
-# shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(thermal_type, system, g))) for g in thermal_gen_names)
-
-# new_startup_cost = Dict()
-# for g in thermal_gen_names
-#     new_startup_cost[g] = sum(startup_cost[g])/length(startup_cost[g])
-# end
-
-# op_cost_types = Set()
-# for g in 1:length(thermal_gen_names)
-#     println(g)
-#     println(typeof(thermal_gens[g].operation_cost))
-#     push!(op_cost_types, string(typeof(thermal_gens[g].operation_cost)))
-# end
-
-# thermal_type = first(gen_type)
-# get_components(ThermalGen, system)
-
-# thermal_type == ThermalStandard
-# thermal_type == ThermalMultiStart
-
-# variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(thermal_type, system, g)))) for g in thermal_gen_names)
-
-# length(variable_cost["DEER_PARK_ENERGY_CENTER_CC4"])
-
-# FORECASTS_DIR = "/Users/hanshu/Desktop/Sienna/PowerSystemsTestData/5-Bus/5bus_ts"
-# FORECASTS_DIR = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot"
-# fname = joinpath(FORECASTS_DIR, "timeseries_pointers_da.json")
-# open(fname, "r") do f
-#     JSON3.@pretty JSON3.read(f)
-# end
-# add_time_series!(system, fname)
+# batteries
+storage_names = PSY.get_name.(get_components(PSY.GenericBattery, system))
+eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, system, b)) for b in storage_names)
+η = Dict(b => get_efficiency(get_component(GenericBattery, system, b)) for b in storage_names)
+kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
+kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)

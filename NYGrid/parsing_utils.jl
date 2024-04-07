@@ -127,7 +127,7 @@ function _build_battery(sys, ::Type{T}, bus::PSY.Bus, name, energy_capacity, rat
         active_power=rating,               # Set active power equal to rating
         input_active_power_limits=(min=0.0, max=rating),  # Set input active power limits
         output_active_power_limits=(min=0.0, max=rating),  # Set output active power limits
-        efficiency=(in=efficiency / 10000, out=1.0),  # Set efficiency
+        efficiency=(in=efficiency, out=1.0),  # Set efficiency
         reactive_power=0.0,                # Set reactive power
         reactive_power_limits=nothing,      # No reactive power limits
         base_power=100.0,                    # Set base power
