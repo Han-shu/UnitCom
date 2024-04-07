@@ -35,3 +35,35 @@ duration_lims = Dict(
     "SCGT90" => (up = 1.0, down = 1.0), # Simple-cycle greater than 90 MW -> WECC (5) Large-frame Gas CT
     "SCLE90" => (up = 1.0, down = 0.0), # Simple-cycle less than 90 MW -> WECC (6) Aero derivative CT
 )
+
+function _thermal_type(pm, fuel, pmax)
+    if pm == PrimeMovers.CT
+        if pmax > 90
+            return "SCGT90"
+        else
+            return "SCLE90"
+        end
+    elseif pm == PrimeMovers.CC
+        if pmax > 90
+            return "CCGT90"
+        else
+            return "CCLE90"
+        end
+    elseif pm == PrimeMovers.IC
+        return "SCLE90"
+    elseif pm == PrimeMovers.ST
+        if fuel == ThermalFuels.COAL
+            if pmax > 900
+                return ("CLLIG", "SUPER")
+            elseif pmax > 300
+                return ("CLLIG", "LARGE")
+            else
+                return ("CLLIG", "SMALL")
+            end
+        else
+            return "GSNONR"
+        end
+    elseif pm == PrimeMovers.GT
+        return "GSNONR"
+    end 
+end

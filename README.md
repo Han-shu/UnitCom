@@ -21,7 +21,7 @@
     - ThreePartCost: Fixed cost, variable cost, and start-up cost
     - Need: start-up, shut-down, no-load cost
     - heat rate * fuel cost
-- ThermalGen time_limits (min up and down time)
+- ~~ThermalGen time_limits (min up and down time)~~
 - ~~Battery~~
 - ~~Time series data (wind, solar, load)~~
 

@@ -97,10 +97,14 @@ for (gen_id, gen) in enumerate(eachrow(df_gen))
     pmax = gen.PMAX
     pmin = gen.PMIN
     ramp_rate = gen.RAMP_10
+    #TODO ThreePartCost
     # cost = TwoPartCost(gen_cost.COST_1, gen_cost.COST_0)
     # ThreePartCost(variable, fixed, start_up, shut_down)
     cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, 0.0, 0.0)
     pm = map_UnitType[genprop.GEN_FUEL]
-    add_thermal(system, bus, name = name, fuel = fuel, pmin = pmin, pmax = pmax, ramp_rate = ramp_rate, cost = cost, pm = pm)
+    type = _thermal_type(pm, fuel, pmax)
+    uptime, downtime = duration_lims[type][:up], duration_lims[type][:down]
+    add_thermal(system, bus, name = name, fuel = fuel, pmin = pmin, pmax = pmax, ramp_rate = ramp_rate, cost = cost, pm = pm, uptime = uptime, downtime = downtime)
 end
+
 

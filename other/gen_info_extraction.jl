@@ -29,6 +29,15 @@ get_base_power(system)
 PSI.get_active_power_limits(thermal_gens[3])
 
 thermal_gen_names = get_name.(get_components(ThermalGen, system))
+fuel = Dict(g => get_fuel(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
+pm = Dict(g => get_prime_mover_type(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
+all_fuel = unique(get_fuel(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
+all_pm = unique(get_prime_mover_type(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
+
+pm_coal = get_prime_mover_type.(get_components(x -> PSY.get_fuel(x) == ThermalFuels.COAL, ThermalGen, system))
+
+ST_fuel = get_fuel.(get_components(x -> PSY.get_prime_mover_type(x) == PrimeMovers.ST, ThermalGen, system))
+
 op_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, system, g)))) for g in thermal_gen_names)
 no_load_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, system, g))) for g in thermal_gen_names)
 shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, system, g))) for g in thermal_gen_names)
@@ -54,7 +63,7 @@ fuel = Dict(g => get_fuel(get_component(ThermalGen, system, g)) for g in thermal
 
 get_power_trajectory(get_component(ThermalGen, system, "Solitude"))
 
-time_limits = get_time_limits(get_component(ThermalGen, system, thermal_gen_names[1]))
+time_limits = get_time_limits(get_component(ThermalGen, system, thermal_gen_names[2]))
 
 time_status = get_time_at_status(get_component(ThermalGen, system, thermal_gen_names[1]))
 
@@ -75,13 +84,6 @@ end
 REG_DN.data[DateTime("2019-01-01T00:00:00")]
 
 
-get_components(ThermalMultiStart, sys)
-get_components(RenewableDispatch, sys)
-thermal_gen_names = get_name.(get_components(ThermalGen, sys))
-renewable_gen_names = get_name.(get_components(RenewableGen, sys))
-
-thermal_gen_names2 = get_name.(get_components(ThermalMultiStart, sys))
-renewable_gen_names2 = get_name.(get_components(RenewableDispatch, sys))
 
 
 file_dir = joinpath(pkgdir(PowerSystems), "docs", "src", "tutorials", "tutorials_data")

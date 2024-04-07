@@ -267,6 +267,8 @@ function add_thermal(
     ramp_rate,
     cost::PSY.OperationalCost,
     pm::PSY.PrimeMovers,
+    uptime,
+    downtime,
 )
     device = PSY.ThermalStandard(
         name=name,
@@ -281,7 +283,7 @@ function add_thermal(
         active_power_limits=PSY.MinMax((pmin, pmax)),
         reactive_power_limits=nothing,
         ramp_limits=(up=ramp_rate, down=ramp_rate),
-        time_limits=(up=1.0, down=1.0),
+        time_limits=(up=uptime, down=downtime),
         operation_cost=cost,
         base_power=base_power,
         time_at_status=999.0,
