@@ -19,8 +19,11 @@
 - Thermal Generators operation cost 
     - Heat rate, TwoPartCost, ThreePartCost, MarketBids?
     - ThreePartCost: Fixed cost, variable cost, and start-up cost
-    - Need: start-up, shut-down, no-load cost
+    - Need: start-up
+            shut-down = 0.2*start_up 
+            no-load cost = 0
     - heat rate * fuel cost
+    - differenciate nuclear, thermal_st, thermal
 - ~~ThermalGen time_limits (min up and down time)~~
 - ~~Battery~~
 - ~~Time series data (wind, solar, load)~~
