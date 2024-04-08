@@ -5,6 +5,37 @@ const IS = InfrastructureSystems
 file_path = "/Users/hanshu/Desktop/Price_formation/Data/Doubleday_data/"
 system = System(file_path*"DA_sys_31_scenarios.json", assign_new_uuids = true)
 
+base_power = get_base_power(system)
+thermal_gen_names = get_name.(get_components(ThermalGen, system))
+op_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, system, g)))) for g in thermal_gen_names)
+no_load_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, system, g))) for g in thermal_gen_names)
+shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, system, g))) for g in thermal_gen_names)
+# startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalGen, system, g))) for g in thermal_gen_names)
+startup_cost_hot = Dict(g => get_start_up(get_operation_cost(get_component(ThermalGen, system, g)))[:hot] for g in thermal_gen_names)
+startup_cost_warm = Dict(g => get_start_up(get_operation_cost(get_component(ThermalGen, system, g)))[:warm] for g in thermal_gen_names)
+startup_cost_cold = Dict(g => get_start_up(get_operation_cost(get_component(ThermalGen, system, g)))[:cold] for g in thermal_gen_names)
+pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
+fuel = Dict(g => get_fuel(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
+pm = Dict(g => get_prime_mover_type(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
+
+df = DataFrame(
+    name = thermal_gen_names,
+    no_load_cost = [no_load_cost[g] for g in thermal_gen_names],
+    shutdown_cost = [shutdown_cost[g] for g in thermal_gen_names],
+    startup_cost_hot = [startup_cost_hot[g] for g in thermal_gen_names],
+    startup_cost_warm = [startup_cost_warm[g] for g in thermal_gen_names],
+    startup_cost_cold = [startup_cost_cold[g] for g in thermal_gen_names],
+    pg_min = [pg_lim[g][:min]*base_power for g in thermal_gen_names],
+    pg_max = [pg_lim[g][:max]*base_power for g in thermal_gen_names],
+    fuel = [fuel[g] for g in thermal_gen_names],
+    pm = [pm[g] for g in thermal_gen_names],
+    op_cost = [op_cost[g] for g in thermal_gen_names],
+)
+CSV.write(file_path*"thermal_gen_info.csv", df)
+
+
+
+
 # clear existing time series
 clear_time_series!(system)
 
@@ -101,10 +132,5 @@ thermal_gens = collect(get_components(ThermalGen, system))
 
 # clear_components!(system)
 # remove_component!(system, renewables[2])
-# op_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(RenewableDispatch, system, g)))) for g in get_name.(wind_gens))
-# no_load_cost = Dict(g => get_fixed(get_operation_cost(get_component(RenewableDispatch, system, g))) for g in get_name.(wind_gens))
-# shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, system, g))) for g in thermal_gen_names)
-# startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalGen, system, g))) for g in thermal_gen_names)
-# pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
 
 
