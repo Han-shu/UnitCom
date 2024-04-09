@@ -1,4 +1,4 @@
-function ed_model(sys::System, optimizer; VOLL = 1000, start_time = DateTime(Date(2018, 1, 1)))
+function ed_model(sys::System, optimizer; VOLL = 1000, start_time = DateTime(Date(2019, 1, 1)))
     model = Model(optimizer)
     model[:obj] = QuadExpr()
     time_periods = 1:24
@@ -47,7 +47,7 @@ function ed_model(sys::System, optimizer; VOLL = 1000, start_time = DateTime(Dat
     return model
 end
 
-model = ed_model(system, Gurobi.Optimizer, start_time = DateTime(Date(2018, 7, 18)))
+model = ed_model(system, Gurobi.Optimizer, start_time = DateTime(Date(2019, 7, 18)))
 
 # access variable values
 value(model[:curtailment][10,1])

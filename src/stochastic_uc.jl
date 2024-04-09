@@ -19,7 +19,7 @@ end
 
 function stochastic_uc(
     sys::System, optimizer; 
-    start_time = DateTime(2018,1,1,0), scenario_count = 10, horizon = 24, 
+    start_time = DateTime(2019,1,1,0), scenario_count = 10, horizon = 24, 
     VOLL=5000, use_must_run=false, init_value=nothing
     )
     

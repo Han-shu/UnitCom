@@ -64,7 +64,7 @@ solar_file = joinpath(ts_dir, "solar_scenarios.h5")
 wind_file = joinpath(ts_dir, "wind_scenarios.h5")
 load_file = joinpath(ts_dir, "load_scenarios.h5")
 
-initial_time = Dates.Date(2018, 1, 1)
+initial_time = Dates.Date(2019, 1, 1)
 da_interval = Dates.Hour(24)
 da_resolution = Dates.Hour(1)
 day_count = 365
