@@ -259,7 +259,7 @@ end
 function _add_hydro(
     sys::PSY.System,
     bus::PSY.Bus;
-    name::String,
+    name::AbstractString,
     pmin::Float64,
     pmax::Float64, 
     ramp_rate::Float64, 
