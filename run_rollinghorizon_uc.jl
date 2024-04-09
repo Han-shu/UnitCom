@@ -6,11 +6,11 @@ include("src/get_solution.jl")
 include("src/write_json.jl")
 
 initial_time = Dates.DateTime(2019, 1, 1)
-horizon = 24
+horizon = 36
 total_elapsed_time = 0.0
 init_value = _get_init_value(system)
 solution = initiate_solution_uc_t(system)
-for i in 1:8712
+for i in 1:10#8712
     global total_elapsed_time, init_value, solution
     start_time = initial_time + Dates.Hour(i-1)
     @info "Running rolling horizon UC for $(start_time)"
@@ -26,7 +26,7 @@ end
 @info "Total elapsed time: $total_elapsed_time seconds"
 
 # save the solution
-result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-write_json(joinpath(result_dir, "solution.json"), solution)
+# result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+# write_json(joinpath(result_dir, "solution.json"), solution)
 
 

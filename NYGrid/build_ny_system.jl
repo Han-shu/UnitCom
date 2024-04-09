@@ -101,13 +101,24 @@ for (gen_id, gen) in enumerate(eachrow(df_gen))
     if fuel == ThermalFuels.NUCLEAR
         cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, 1e4, 1e6)
     else
-        start_up_cost = 100
+        start_up_cost = 5000
         cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, start_up_cost, 0.2*start_up_cost)
     end
     pm = map_UnitType[genprop.GEN_FUEL]
     type = _thermal_type(pm, fuel, pmax)
     uptime, downtime = duration_lims[type][:up], duration_lims[type][:down]
-    add_thermal(system, bus; name = name, fuel = fuel, pmin = pmin, pmax = pmax, ramp_rate = ramp_rate, cost = cost, pm = pm, uptime = uptime, downtime = downtime)
+    _add_thermal(system, bus; name = name, fuel = fuel, pmin = pmin, pmax = pmax, ramp_rate = ramp_rate, cost = cost, pm = pm, uptime = uptime, downtime = downtime)
 end
 
+# Add hydro
+hydro = df_genprop[df_genprop.GEN_FUEL .== "Hydro", :]
+for (i, hy) in enumerate(eachrow(hydro))
+    bus = get_bus(system, 1)
+    name = hy.GEN_NAME
+    pmax = hy.PMAX
+    pmin = hy.PMIN
+    ramp_rate = hy.RAMP_10
+    cost = TwoPartCost(VariableCost(0.0), 0.0)
+    _add_hydro(system, bus; name = name, pmin = pmin, pmax = pmax, ramp_rate = ramp_rate, cost = cost)
+end
 

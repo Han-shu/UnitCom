@@ -256,8 +256,39 @@ function _build_interface_flow(sys; name, rating, ifdict)
     return device
 end
 
+function _add_hydro(
+    sys::PSY.System,
+    bus::PSY.Bus;
+    name::String,
+    pmin::Float64,
+    pmax::Float64, 
+    ramp_rate::Float64, 
+    cost::PSY.OperationalCost,
+    )
+    base_power = get_base_power(sys)
+    device = PSY.HydroDispatch(
+        name = name,
+        available = true,
+        bus = bus,
+        active_power = 0.0,
+        reactive_power = 0.0,
+        rating = pmax / base_power,
+        prime_mover_type = PSY.PrimeMovers.HY,
+        active_power_limits = PSY.MinMax((pmin, pmax)),
+        reactive_power_limits=nothing,
+        ramp_limits = (up=ramp_rate, down=ramp_rate), 
+        time_limits = nothing,
+        base_power = base_power,
+        operation_cost = cost,
+        ext = Dict{String,Any}(),
+    )
+    PSY.add_component!(sys, device)
+    return device
+end
 
-function add_thermal(
+
+
+function _add_thermal(
     sys,
     bus::PSY.Bus;
     name,

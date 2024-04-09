@@ -26,6 +26,7 @@
     - differenciate nuclear, thermal_st, thermal
 - ~~ThermalGen time_limits (min up and down time)~~
 - ~~Battery~~
+- Hydro
 - ~~Time series data (wind, solar, load)~~
 
 ```
