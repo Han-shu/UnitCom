@@ -34,6 +34,7 @@ duration_lims = Dict(
     "GSSUP" => (up = 2.0, down = 4.0), # Gas-steam supercritical -> WECC (4) Gas-fired steam (sub- and super-critical)
     "SCGT90" => (up = 1.0, down = 1.0), # Simple-cycle greater than 90 MW -> WECC (5) Large-frame Gas CT
     "SCLE90" => (up = 1.0, down = 0.0), # Simple-cycle less than 90 MW -> WECC (6) Aero derivative CT
+    "NUCLEAR" => (up = 8760.0, down = 8760.0), # Nuclear
 )
 
 function _thermal_type(pm, fuel, pmax)
@@ -60,6 +61,8 @@ function _thermal_type(pm, fuel, pmax)
             else
                 return ("CLLIG", "SMALL")
             end
+        elseif fuel == ThermalFuels.NUCLEAR
+            return "NUCLEAR"
         else
             return "GSNONR"
         end

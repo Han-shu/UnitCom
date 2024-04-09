@@ -3,7 +3,7 @@ include("NYGrid/build_ny_system.jl")
 include("NYGrid/add_ts.jl")
 include("src/stochastic_uc.jl")
 include("src/get_solution.jl")
-model = stochastic_uc(system, Gurobi.Optimizer, start_time = DateTime(2019, 1, 1, 0), scenario_count = 10, horizon = 24)
+model = stochastic_uc(system, Gurobi.Optimizer, start_time = DateTime(2018, 1, 1, 0), scenario_count = 10, horizon = 24)
 
 @testset "stochastic_uc" begin
     @test model[:param].time_steps == 1:24
