@@ -7,7 +7,7 @@
     - 10 min non-synchronized 
     - 30 min reserve (spinning + non-synchronized)
 - New reserve product in NYISO, 60 min, 4 hour notice
-- Add tests
+- Add hydro power plants
 
 # Time series TODO
 - Generate time series with NYISO data

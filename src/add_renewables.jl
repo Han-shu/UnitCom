@@ -10,10 +10,10 @@ function _add_renewables!(model::JuMP.Model, sys::System)
     solar_gen_names = get_name.(solar_gens)
 
     forecast_solar = Dict(get_name(g) => 
-        get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps))
+        get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps), ignore_scaling_factors = true)
         for g in solar_gens)
     forecast_wind = Dict(get_name(g) => 
-        get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))
+        get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps), ignore_scaling_factors = true)
         for g in wind_gens)
     
     @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps] >= 0)

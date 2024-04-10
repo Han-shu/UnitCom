@@ -12,7 +12,7 @@ uc = ProblemTemplate()
 
 set_device_model!(uc, ThermalMultiStart, ThermalMultiStartUnitCommitment)
 set_device_model!(uc, RenewableDispatch, RenewableFullDispatch)
-set_device_model!(uc, PowerLoad, StaticPowerLoad)
+set_device_model!(uc, StaticLoad, StaticPowerLoad)
 # Use FixedOutput instead of HydroDispatchRunOfRiver to get consistent results because model might decide to curtail wind vs. hydro (same cost)
 set_device_model!(uc, HydroDispatch, HydroDispatchRunOfRiver)
 

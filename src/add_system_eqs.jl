@@ -5,6 +5,5 @@ function _add_power_balance_eq!(model::JuMP.Model)::Nothing
     for s in scenarios, t in time_steps
         eq_power_balance[s,t] = @constraint(model, model[:expr_net_injection][s,t] == 0)
     end
-
     return
 end

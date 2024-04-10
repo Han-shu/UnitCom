@@ -18,19 +18,19 @@ odir = mktempdir(cleanup=true)
 
 template_md = ProblemTemplate()
 set_device_model!(template_md, ThermalStandard, ThermalDispatchNoMin)
-set_device_model!(template_md, PowerLoad, StaticPowerLoad)
+set_device_model!(template_md, StaticLoad, StaticPowerLoad)
 set_device_model!(template_md, HydroEnergyReservoir, HydroDispatchReservoirStorage)
 
 # For the daily model, we can increase the modeling detail since we'll be solving shorter
 # problems.
 template_da = ProblemTemplate()
 set_device_model!(template_da, ThermalStandard, ThermalBasicUnitCommitment)
-set_device_model!(template_da, PowerLoad, StaticPowerLoad)
+set_device_model!(template_da, StaticLoad, StaticPowerLoad)
 set_device_model!(template_da, HydroEnergyReservoir, HydroDispatchReservoirStorage)
 
 template_ed = ProblemTemplate()
 set_device_model!(template_ed, ThermalStandard, ThermalDispatchNoMin)
-set_device_model!(template_ed, PowerLoad, StaticPowerLoad)
+set_device_model!(template_ed, StaticLoad, StaticPowerLoad)
 set_device_model!(template_ed, HydroEnergyReservoir, HydroDispatchReservoirStorage)
 
 # # 3-Stage Simulation:

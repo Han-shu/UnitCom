@@ -39,14 +39,14 @@ CSV.write(file_path*"thermal_gen_info.csv", df)
 # clear existing time series
 clear_time_series!(system)
 
-loads = collect(get_components(PowerLoad, system))
+loads = collect(get_components(StaticLoad, system))
 renewables = collect(get_components(RenewableGen, system))
 
 # Keep only one load and one wind and one solar generator
 for component in collect(get_components(RenewableDispatch, system))
     remove_component!(system, component)
 end
-for component in collect(get_components(PowerLoad, system))
+for component in collect(get_components(StaticLoad, system))
     remove_component!(system, component)
 end
 @assert renewables[1].prime_mover_type == PrimeMovers.WT
@@ -118,15 +118,15 @@ scenario_forecast_data = Scenarios(
     data = hour_ahead_forecast,
     scenario_count = 10
 )
-add_time_series!(system, collect(get_components(PowerLoad, system)), scenario_forecast_data)
+add_time_series!(system, collect(get_components(StaticLoad, system)), scenario_forecast_data)
 
 
 
 # thermal_gen_names = get_name.(get_components(ThermalGen, system))
 # renewable_gen_names = get_name.(get_components(RenewableGen, system))
-# load_names = get_name.(get_components(PowerLoad, system))
+# load_names = get_name.(get_components(StaticLoad, system))
 thermal_gens = collect(get_components(ThermalGen, system))
-# loads = collect(get_components(PowerLoad, system))
+# loads = collect(get_components(StaticLoad, system))
 # renewables = collect(get_components(RenewableGen, system))
 
 

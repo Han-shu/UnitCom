@@ -1,5 +1,4 @@
-# Load the NYGrid data
-include("NYGrid/build_ny_system.jl") # build the system
+include("NYGrid/build_ny_system.jl") # build the NYGrid system
 include("NYGrid/add_ts.jl") # add time series data
 include("src/stochastic_uc.jl")
 include("src/get_solution.jl")

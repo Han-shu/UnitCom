@@ -16,7 +16,7 @@ set_device_model!(template_uc, TapTransformer, StaticBranch)
 # Add injecrtion devices
 set_device_model!(template_uc, ThermalStandard, ThermalStandardUnitCommitment)
 set_device_model!(template_uc, RenewableDispatch, RenewableFullDispatch)
-set_device_model!(template_uc, PowerLoad, StaticPowerLoad)
+set_device_model!(template_uc, StaticLoad, StaticPowerLoad)
 set_device_model!(template_uc, HydroDispatch, HydroDispatchRunOfRiver)
 set_device_model!(template_uc, RenewableFix, FixedOutput)
 
