@@ -70,3 +70,49 @@ function _thermal_type(pm, fuel, pmax)
         return "GSNONR"
     end 
 end
+
+function _thermal_start_up_cost(pm, pmax)
+    if pm == PrimeMovers.CC
+        if pmax <= 200
+            return 0
+        else
+            return 50*pmax
+        end
+    elseif pm == PrimeMovers.IC
+        if pmax >= 4
+            return 0
+        else
+            return 3.3*pmax
+        end
+    elseif pm == PrimeMovers.ST
+        return 60*pmax
+    elseif pm == PrimeMovers.GT
+        return 50*pmax
+    elseif pm == PrimeMovers.CT
+        return 20*pmax
+    end
+end
+
+
+    # "Combustion Turbine" => PrimeMovers.CT,
+    # "Combined Cycle" => PrimeMovers.CC,
+    # "Internal Combustion" => PrimeMovers.IC,
+    # "Steam Turbine" => PrimeMovers.ST,
+    # "Jet Engine" => PrimeMovers.GT,
+    # "Nuclear" => PrimeMovers.ST,
+
+
+    # "Kerosene" => ThermalFuels.NATURAL_GAS,
+    # "Natural Gas" => ThermalFuels.NATURAL_GAS,
+    # "Fuel Oil 2" => ThermalFuels.DISTILLATE_FUEL_OIL,
+    # "Coal" => ThermalFuels.COAL,
+    # "Fuel Oil 6" => ThermalFuels.RESIDUAL_FUEL_OIL,
+    # "Nuclear" => ThermalFuels.NUCLEAR,
+
+    solution["LMP"] == zeros(100)
+
+    for (i,val) in enumerate(solution["LMP"])
+        if val > 0.0
+            println("$i is ", val)
+        end
+    end 

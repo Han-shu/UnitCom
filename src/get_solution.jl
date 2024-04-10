@@ -26,7 +26,6 @@ function get_solution_uc_t(sys::System, model::JuMP.Model, sol::OrderedDict)::Or
     end 
     optimize!(model)
 
-    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     push!(sol["Time"], model[:param].start_time)
     for g in thermal_gen_names

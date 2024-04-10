@@ -311,7 +311,7 @@ function _add_thermal(
         rating=pmax / base_power,
         prime_mover_type=pm,
         fuel=fuel,
-        active_power_limits=PSY.MinMax((pmin, pmax)),
+        active_power_limits=PSY.MinMax((pmin/base_power, pmax/base_power)),
         reactive_power_limits=nothing,
         ramp_limits=(up=ramp_rate, down=ramp_rate),
         time_limits=(up=uptime, down=downtime),

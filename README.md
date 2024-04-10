@@ -8,6 +8,7 @@
     - 30 min reserve (spinning + non-synchronized)
 - New reserve product in NYISO, 60 min, 4 hour notice
 - Add hydro power plants
+- Add initial conditions: now ug_t0 = 1 for all thermal gens
 
 # Time series TODO
 - Generate time series with NYISO data

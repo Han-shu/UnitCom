@@ -18,3 +18,12 @@ end
 # get_time_series(Scenarios, loads[1], "load", start_time = start_time, len = length(time_steps), count = 2)
 # get_time_series_values(Scenarios, loads[1], "load", start_time = start_time, len = length(time_steps), ignore_scaling_factors = true)
 # get_time_series_array(Scenarios, loads[1], "load", start_time = start_time, len = length(time_steps))
+
+thermal_gen_names = get_name.(get_components(ThermalGen, system))
+for g in thermal_gen_names
+    for i in eachindex(solution["Generator energy dispatch"][g])
+        if solution["Generator energy dispatch"][g][i] > 0
+            println("$(g) $(i) $(solution["Generator energy dispatch"][g][i])")
+        end
+    end
+end
