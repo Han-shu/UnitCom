@@ -44,6 +44,14 @@ shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(Thermal
 startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalGen, system, g))) for g in thermal_gen_names)
 pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
 
+
+storage_names = PSY.get_name.(get_components(PSY.GenericBattery, system))
+eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, system, b)) for b in storage_names)
+η = Dict(b => get_efficiency(get_component(GenericBattery, system, b)) for b in storage_names)
+kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
+kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
+
+
 get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
 get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
 ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, system, g))*60 for g in thermal_gen_names)

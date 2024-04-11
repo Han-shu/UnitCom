@@ -92,27 +92,3 @@ function _thermal_start_up_cost(pm, pmax)
         return 20*pmax
     end
 end
-
-
-    # "Combustion Turbine" => PrimeMovers.CT,
-    # "Combined Cycle" => PrimeMovers.CC,
-    # "Internal Combustion" => PrimeMovers.IC,
-    # "Steam Turbine" => PrimeMovers.ST,
-    # "Jet Engine" => PrimeMovers.GT,
-    # "Nuclear" => PrimeMovers.ST,
-
-
-    # "Kerosene" => ThermalFuels.NATURAL_GAS,
-    # "Natural Gas" => ThermalFuels.NATURAL_GAS,
-    # "Fuel Oil 2" => ThermalFuels.DISTILLATE_FUEL_OIL,
-    # "Coal" => ThermalFuels.COAL,
-    # "Fuel Oil 6" => ThermalFuels.RESIDUAL_FUEL_OIL,
-    # "Nuclear" => ThermalFuels.NUCLEAR,
-
-    solution["LMP"] == zeros(100)
-
-    for (i,val) in enumerate(solution["LMP"])
-        if val > 0.0
-            println("$i is ", val)
-        end
-    end 

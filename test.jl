@@ -12,7 +12,7 @@ for g in thermal_gen_names, t in model[:param].time_steps
 end 
 optimize!(model)
 
-LMP = dual(model[:eq_power_balance][1,48])
+LMP = dual(model[:eq_power_balance][1,1])
 wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
 solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, system)
 wind_gen_names = get_name.(wind_gens)
