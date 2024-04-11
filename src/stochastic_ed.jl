@@ -1,3 +1,5 @@
+using JuMP
+
 function ed_model(sys::System, optimizer; VOLL = 1000, start_time = DateTime(Date(2019, 1, 1)))
     model = Model(optimizer)
     model[:obj] = QuadExpr()
@@ -20,15 +22,15 @@ function ed_model(sys::System, optimizer; VOLL = 1000, start_time = DateTime(Dat
 
     net_load = zeros(length(time_periods), length(scenarios))
     for g in solar_gens
-        net_load -= get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_periods), ignore_scaling_factors = true)
+        net_load -= get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_periods))#, ignore_scaling_factors = true)
     end
 
     for g in wind_gens
-        net_load -= get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_periods), ignore_scaling_factors = true)
+        net_load -= get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_periods))#, ignore_scaling_factors = true)
     end
 
     for load in get_components(StaticLoad, sys)
-        net_load += get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_periods), ignore_scaling_factors = true)
+        net_load += get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_periods))#, ignore_scaling_factors = true)
     end
     
     net_load = max.(net_load, 0)
@@ -45,27 +47,17 @@ function ed_model(sys::System, optimizer; VOLL = 1000, start_time = DateTime(Dat
 
     add_to_expression!(model[:obj], (1/length(scenarios))*sum(curtailment[s,t] for s in scenarios, t in time_periods), VOLL)
 
+    # Enforce decsion variables for t = 1
+    # @variable(model, t_pg[g in thermal_gen_names], lower_bound = 0)
+    # for g in thermal_gen_names, s in scenarios
+    #     @constraint(model, pg[g,s,1] == t_pg[g])
+    # end
+
     @objective(model, Min, model[:obj])
 
     optimize!(model)
     return model
 end
 
-model = ed_model(system, Gurobi.Optimizer, start_time = DateTime(Date(2019, 7, 18)))
 
-# cheack infeasibility
-model_status = JuMP.primal_status(model)
-if model_status != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
-    print_conflict(model; write_iis = false)
-end
-
-# access variable values
-LMP_matrix = zeros(10, 24)
-Curtail_matrix = zeros(10, 24)
-for s in 1:10
-    for t in 1:24
-        LMP_matrix[s,t] = dual(model[:eq_pb][s,t])
-        Curtail_matrix[s,t] = value(model[:curtailment][s,t])
-    end
-end
 

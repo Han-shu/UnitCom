@@ -2,6 +2,7 @@ using DataStructures, JuMP, Dates, PowerSystems
 using Gurobi
 
 include("structs.jl")
+include("stochastic_ed.jl")
 include("get_init_value.jl")
 include("add_net_injection.jl")
 include("add_renewables.jl")
