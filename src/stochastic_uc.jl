@@ -1,6 +1,6 @@
 using DataStructures, JuMP, Dates, PowerSystems
 using Gurobi
-
+include("functions.jl")
 include("structs.jl")
 include("stochastic_ed.jl")
 include("get_init_value.jl")
@@ -10,13 +10,6 @@ include("add_thermal.jl")
 include("add_storage.jl")
 include("add_system_eqs.jl")
 include("compute_conflict.jl")
-
-function _init(model::JuMP.Model, key::Symbol)::OrderedDict
-    if !(key in keys(object_dictionary(model)))
-        model[key] = OrderedDict()
-    end
-    return model[key]
-end
 
 function stochastic_uc(
     sys::System, optimizer; 
@@ -55,7 +48,7 @@ function stochastic_uc(
 
     model_status = JuMP.primal_status(model)
     if model_status != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
-        print_conflict(model; write_iis = false)
+        print_conflict(model; write_iis = true, iis_path = "/Users/hanshu/Desktop/Price_formation/Result")
     end
 
     return model  

@@ -1,4 +1,4 @@
-function initiate_solution_uc_t(sys::System)::OrderedDict
+function _initiate_solution_uc_t(sys::System)::OrderedDict
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     sol = OrderedDict()
@@ -46,7 +46,14 @@ function get_solution_uc_t(sys::System, model::JuMP.Model, sol::OrderedDict)::Or
     # push!(sol["Wind energy"], value(model[:t_pW][wind_gen_names[1]]))
     # push!(sol["Solar energy"], value(model[:t_pS][solar_gen_names[1]]))
     push!(sol["Curtailed energy"], value.(model[:curtailment][:,1]))
-    push!(sol["LMP"], dual(model[:eq_power_balance][1,1]))
+    LMP = 0.0
+    for s in model[:param].scenarios
+        if abs(dual(model[:eq_power_balance][s,1])) > 0.0
+            LMP = dual(model[:eq_power_balance][s,1])
+            break
+        end
+    end
+    push!(sol["LMP"], LMP)
     return sol
 end
 

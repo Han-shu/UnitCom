@@ -22,15 +22,15 @@ function ed_model(sys::System, optimizer; VOLL = 1000, start_time = DateTime(Dat
 
     net_load = zeros(length(time_periods), length(scenarios))
     for g in solar_gens
-        net_load -= get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_periods))#, ignore_scaling_factors = true)
+        net_load -= get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_periods))
     end
 
     for g in wind_gens
-        net_load -= get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_periods))#, ignore_scaling_factors = true)
+        net_load -= get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_periods))
     end
 
     for load in get_components(StaticLoad, sys)
-        net_load += get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_periods))#, ignore_scaling_factors = true)
+        net_load += get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_periods))
     end
     
     net_load = max.(net_load, 0)
@@ -52,6 +52,17 @@ function ed_model(sys::System, optimizer; VOLL = 1000, start_time = DateTime(Dat
     # for g in thermal_gen_names, s in scenarios
     #     @constraint(model, pg[g,s,1] == t_pg[g])
     # end
+    # @variable(model, t_curtailment, lower_bound = 0)
+    # for s in scenarios
+    #     @constraint(model, curtailment[s,1] == t_curtailment)
+    # end
+
+    for s in 2:10
+        @constraint(model, curtailment[s,1] == curtailment[1,1])
+        for g in thermal_gen_names
+            @constraint(model, pg[g,s,1] == pg[g,1,1])
+        end
+    end
 
     @objective(model, Min, model[:obj])
 

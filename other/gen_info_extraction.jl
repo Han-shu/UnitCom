@@ -20,8 +20,9 @@ get_time_series_array(Scenarios, loads[1], "load", start_time = DateTime("2019-0
 
 get_time_series_values(Scenarios, loads[1], "load", start_time = DateTime("2019-01-06T00:00:00"), len = 48)
 
+renewables = collect(get_components(RenewableGen, system))
 get_time_series_array(Scenarios, renewables[1], "solar_power", start_time = DateTime("2019-01-06T00:00:00"), len = 48)
-get_time_series_array(Scenarios, renewables[2], "wind_power", start_time = DateTime("2019-01-06T00:00:00"), len = 48)
+a = get_time_series_values(Scenarios, renewables[2], "wind_power", start_time = DateTime("2019-01-01T10:00:00"), len = 48)
 
 get_max_active_power(thermal_gens[3])
 get_base_power(system)

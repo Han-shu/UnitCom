@@ -60,6 +60,7 @@ for ix in 1:hour_count
         return read(file, string(curr_time))
     end
     forecast[1, :] .= mean(forecast[1, :])
+    forecast = max.(forecast, 0)
     hour_ahead_forecast[curr_time] = forecast./base_power
 end
 
