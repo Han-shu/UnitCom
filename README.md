@@ -4,10 +4,14 @@
 - ~~Run rolling horizon with solution from previous time point~~
 - ~~Investigate the infeasibility at DateTime(2019,1,1,13)~~
 - ~~Add deterministic version of the model~~
+- Thermal start-up cost by finding the the most like gen in PERC gen data (machine learning)
 - Replicate Jacob's policy and results
+- Add reserve
+    - reserve requirement
+    - reserve variables for thermal gen and battery
 
 # Model TODO
-- Deterministic version
+- ~~Deterministic version~~
 - Add reserve as current implementations in NYISO
     - 10 min spinning 
     - 10 min non-synchronized 

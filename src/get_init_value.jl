@@ -8,8 +8,6 @@ function _get_init_value(sys::System)::InitValue
     return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_wg, history_vg)
 end
 
-
-
 function _get_init_value(sys::System, model::JuMP.Model)::InitValue
     history_wg = model[:init_value].history_wg
     history_vg = model[:init_value].history_vg

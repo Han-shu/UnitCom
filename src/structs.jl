@@ -3,11 +3,14 @@ mutable struct Parameters
     scenarios::UnitRange{Int}
     start_time::DateTime
     VOLL::Int
+    reserve_requirements::Dict
+    reserve_short_penalty::Dict
 end
 
-function _construct_model_parameters(horizon::Int, scenario_count::Int, start_time::DateTime, VOLL::Int)
-    return Parameters(1:horizon, 1:scenario_count, start_time, VOLL)
+function _construct_model_parameters(horizon::Int, scenario_count::Int, start_time::DateTime, VOLL::Int, reserve_requirements, reserve_short_penalty)
+    return Parameters(1:horizon, 1:scenario_count, start_time, VOLL, reserve_requirements, reserve_short_penalty)
 end
+
 
 mutable struct InitValue
     ug_t0::Dict

@@ -10,6 +10,7 @@ include("add_thermal.jl")
 include("add_storage.jl")
 include("add_system_eqs.jl")
 include("compute_conflict.jl")
+include("../NYGrid/manual_data_entries.jl")
 
 function stochastic_uc(
     sys::System, optimizer; 
@@ -19,7 +20,7 @@ function stochastic_uc(
     
     model = Model(optimizer)
     model[:obj] = QuadExpr()
-    parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL)
+    parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, reserve_requirement, reserve_short_penalty)
     model[:param] = parameters
 
     if isnothing(init_value)
@@ -41,6 +42,8 @@ function stochastic_uc(
     end
 
     _add_power_balance_eq!(model)
+
+    _add_reserve_requirement_eq!(model, sys)
 
     @objective(model, Min, model[:obj])
 

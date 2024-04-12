@@ -1,3 +1,15 @@
+reserve_requirement = Dict(
+    "spin10" => 985,
+    "res10" => 2630,
+    "res30" => 5500,
+)
+
+reserve_short_penalty = Dict(
+    "spin10" => 1000,
+    "res10" => 500,
+    "res30" => 100,
+)
+
 map_UnitType = Dict(
     "Combustion Turbine" => PrimeMovers.CT,
     "Combined Cycle" => PrimeMovers.CC,
