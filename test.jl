@@ -25,8 +25,9 @@ end
     
 
 # UC test
+scenario_count = 1
 uc_time = @elapsed begin
-    model = stochastic_uc(system, Gurobi.Optimizer, start_time = DateTime(2019, 1, 1, 0), scenario_count = 10, horizon = 48)
+    model = stochastic_uc(system, Gurobi.Optimizer, start_time = DateTime(2019, 1, 1, 0), scenario_count = scenario_count, horizon = 48)
     optimize!(model)
     fix!(system, model)
     thermal_gen_names = get_name.(get_components(ThermalGen, system))
@@ -37,8 +38,8 @@ uc_time = @elapsed begin
 end
 println("Running time for a signle uc problem: $uc_time")
 
-LMP_matrix = zeros(10, 48)
-for s in 1:10
+LMP_matrix = zeros(scenario_count, 48)
+for s in 1:scenario_count
     for t in 1:48
         LMP_matrix[s,t] = dual(model[:eq_power_balance][s,t])
     end

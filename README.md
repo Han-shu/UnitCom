@@ -1,9 +1,10 @@
 # UnitCom
 
 # April 11 - 17 TODO
-- Run rolling horizon with solution from previous time point
+- ~~Run rolling horizon with solution from previous time point~~
 - ~~Investigate the infeasibility at DateTime(2019,1,1,13)~~
-- Add deterministic version of the model
+- ~~Add deterministic version of the model~~
+- Replicate Jacob's policy and results
 
 # Model TODO
 - Deterministic version
