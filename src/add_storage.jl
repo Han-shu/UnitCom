@@ -13,12 +13,17 @@ function _add_stroage!(sys::System, model::JuMP.Model)::Nothing
     kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
 
     # Variables
-    @variable(model, kb_charge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_charge_max[b])
+    @variable(model, kb_charge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0)
     @variable(model, kb_discharge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b])
     @variable(model, eb[b in storage_names, s in scenarios, t in time_steps], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
 
+    @variable(model, res_10[b in storage_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, res_30[b in storage_names, s in scenarios, t in time_steps] >= 0)
+
     # Constraints
     # net injection
+    @constraint(model, battery_charge[b in storage_names, s in scenarios, t in time_steps], kb_charge[b,s,t] + res_10[b,s,t] + res_30[b,s,t] <= kb_charge_max[b])
+
     expr_net_injection = model[:expr_net_injection]
     for s in scenarios, t in time_steps
         add_to_expression!(expr_net_injection[s,t], sum(kb_charge[b,s,t] - kb_discharge[b,s,t] for b in storage_names), -1)

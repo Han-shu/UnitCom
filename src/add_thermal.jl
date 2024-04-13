@@ -49,6 +49,12 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
  
     # power generation variables
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    # reserve variables
+    @variable(model, spin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, Nspin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, spin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, Nspin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+
     if thermal_type == ThermalMultiStart
         segprod = _init(model, :segprod)
         eq_segprod_limit = _init(model, :eq_segprod_limit)
@@ -83,19 +89,26 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
     # energy dispatch constraints 
     for g in thermal_gen_names, s in scenarios, t in time_steps
         @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g,t])
-        @constraint(model, pg[g,s,t] <= pg_lim[g].max*ug[g,t])
+        @constraint(model, pg[g,s,t] + spin_10[g,s,t] + spin_30[g,s,t] <= pg_lim[g].max*ug[g,t])
     end
 
     # ramping constraints
     for g in thermal_gen_names, s in scenarios, t in time_steps
         if t == 1
-            @constraint(model, pg[g,s,1] - ug_t0[g]*(Pg_t0[g] - pg_lim[g].min) <= ramp_up[g])
-            @constraint(model, ug_t0[g]*(Pg_t0[g] - pg_lim[g].min) - pg[g,s,1]  <= ramp_dn[g])
+            @constraint(model, pg[g,s,1] - Pg_t0[g] + spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g])
+            @constraint(model, Pg_t0[g] - pg[g,s,1]  <= ramp_dn[g])
         else
-            @constraint(model, pg[g,s,t] - pg[g,s,t-1] <= ramp_up[g])
+            @constraint(model, pg[g,s,t] - pg[g,s,t-1] + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g])
             @constraint(model, pg[g,s,t-1] - pg[g,s,t] <= ramp_dn[g])
         end
+        spin_10[g,s,1] <= ramp_up[g]*ug[g,t]/6
+        spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g]*ug[g,t]/2
+        Nspin_10[g,s,1] <= ramp_up[g]*(1-ug[g,t])/6
+        Nspin_10[g,s,1] + Nspin_30[g,s,1] <= ramp_up[g]*(1-ug[g,t])/2
+        spin_10[g,s,1] + spin_30[g,s,1] <= (pg_lim[g].max - pg_lim[g].min)*ug[g,t]
+        Nspin_10[g,s,1] + Nspin_30[g,s,1] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g,t])
     end
+
     for s in scenarios, t in time_steps
         add_to_expression!(expr_net_injection[s,t], sum(pg[g,s,t] for g in thermal_gen_names), 1.0)
     end
