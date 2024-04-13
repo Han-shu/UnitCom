@@ -101,12 +101,12 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
             @constraint(model, pg[g,s,t] - pg[g,s,t-1] + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g])
             @constraint(model, pg[g,s,t-1] - pg[g,s,t] <= ramp_dn[g])
         end
-        spin_10[g,s,1] <= ramp_up[g]*ug[g,t]/6
-        spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g]*ug[g,t]/2
-        Nspin_10[g,s,1] <= ramp_up[g]*(1-ug[g,t])/6
-        Nspin_10[g,s,1] + Nspin_30[g,s,1] <= ramp_up[g]*(1-ug[g,t])/2
-        spin_10[g,s,1] + spin_30[g,s,1] <= (pg_lim[g].max - pg_lim[g].min)*ug[g,t]
-        Nspin_10[g,s,1] + Nspin_30[g,s,1] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g,t])
+        @constraint(model, spin_10[g,s,1] <= ramp_up[g]*ug[g,t]/6)
+        @constraint(model, spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g]*ug[g,t]/2)
+        @constraint(model, Nspin_10[g,s,1] <= ramp_up[g]*(1-ug[g,t])/6)
+        @constraint(model, Nspin_10[g,s,1] + Nspin_30[g,s,1] <= ramp_up[g]*(1-ug[g,t])/2)
+        @constraint(model, spin_10[g,s,1] + spin_30[g,s,1] <= (pg_lim[g].max - pg_lim[g].min)*ug[g,t])
+        @constraint(model, Nspin_10[g,s,1] + Nspin_30[g,s,1] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g,t]))
     end
 
     for s in scenarios, t in time_steps

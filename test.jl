@@ -26,7 +26,7 @@ end
     
 
 # UC test
-scenario_count = 1
+scenario_count = 10
 uc_time = @elapsed begin
     model = stochastic_uc(system, Gurobi.Optimizer, start_time = DateTime(2019, 1, 1, 0), scenario_count = scenario_count, horizon = 48)
     optimize!(model)

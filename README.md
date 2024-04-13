@@ -6,9 +6,9 @@
 - ~~Add deterministic version of the model~~
 - Thermal start-up cost by finding the the most like gen in PERC gen data (machine learning)
 - Replicate Jacob's policy and results
-- Add reserve
-    - reserve requirement
-    - reserve variables for thermal gen and battery
+- ~~Add reserve~~
+    - ~~reserve requirement~~
+    - ~~reserve variables for thermal gen and battery~~
 
 # Model TODO
 - ~~Deterministic version~~
