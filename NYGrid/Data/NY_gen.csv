@@ -1,0 +1,234 @@
+Unnamed: 0,GEN_NAME,PMAX,PMIN,RAMP_10,GEN_FUEL,PRIMEMOVER,Energy_Source_1 (Fuel),RAMP_min,SimGEN_PERCidx,StartUpCost,MinDownTime,MinRunTime
+0,59 St.  GT 1,17.1,0.0,17.1,Combustion Turbine,CT,KER,1.7100000000000002,191,2520.42,2.0,3.0
+1,74 St.  GT 1,18.5,0.0,18.5,Combustion Turbine,CT,KER,1.85,191,2520.42,2.0,3.0
+2,74 St.  GT 2,18.5,0.0,18.5,Combustion Turbine,CT,KER,1.85,191,2520.42,2.0,3.0
+3,Allegany,66.0,11.0,66.0,Combined Cycle,CC,NG,6.6,680,6994.0,4.0,6.0
+4,Allied Frozen Storage,0.1,0.0,0.1,Internal Combustion,IC,NG,0.01,702,0.0,,
+5,Arthur Kill Cogen,11.1,0.0,11.1,Internal Combustion,IC,NG,1.1099999999999999,702,0.0,,
+6,Arthur Kill GT 1,20.0,0.0,20.0,Combustion Turbine,CT,NG,2.0,191,2520.42,2.0,3.0
+7,Arthur Kill ST 2,349.0,96.0,349.0,Steam Turbine,ST,NG,34.9,236,20000.0,7.0,8.0
+8,Arthur Kill ST 3,539.0,1.0,539.0,Steam Turbine,ST,NG,53.9,170,0.0,7.0,8.0
+9,Astoria 2,153.0,1.0,153.0,Steam Turbine,ST,NG,15.3,170,0.0,7.0,8.0
+10,Astoria 3,756.0,40.0,756.0,Steam Turbine,ST,DFO,75.6,15,9900.0,7.0,8.0
+11,Astoria 5,776.0,2.0,776.0,Steam Turbine,ST,DFO,77.6,15,9900.0,7.0,8.0
+12,Astoria CC 1,318.0,129.0,318.0,Combined Cycle,CC,NG,31.8,680,6994.0,4.0,6.0
+13,Astoria CC 2,320.0,99.0,320.0,Combined Cycle,CC,NG,32.0,680,6994.0,4.0,6.0
+14,Astoria East Energy - CC1,313.0,163.0,313.0,Combined Cycle,CC,NG,31.3,473,0.0,4.0,6.0
+15,Astoria East Energy - CC2,313.0,166.0,313.0,Combined Cycle,CC,NG,31.3,473,0.0,4.0,6.0
+16,Astoria Energy 2 - CC3,313.0,92.0,313.0,Combined Cycle,CC,NG,31.3,680,6994.0,4.0,6.0
+17,Astoria Energy 2 - CC4,313.0,87.0,313.0,Combined Cycle,CC,NG,31.3,680,6994.0,4.0,6.0
+18,Astoria GT 01,16.0,0.0,16.0,Combustion Turbine,CT,NG,1.6,191,2520.42,2.0,3.0
+19,Astoria GT 2-1,44.0,0.0,44.0,Jet Engine,GT,KER,4.4,233,0.0,2.0,3.0
+20,Astoria GT 2-2,44.0,0.0,44.0,Jet Engine,GT,KER,4.4,233,0.0,2.0,3.0
+21,Astoria GT 2-3,44.0,0.0,44.0,Jet Engine,GT,KER,4.4,233,0.0,2.0,3.0
+22,Astoria GT 2-4,40.0,0.0,40.0,Jet Engine,GT,KER,4.0,233,0.0,2.0,3.0
+23,Astoria GT 3-1,40.0,0.0,40.0,Jet Engine,GT,KER,4.0,233,0.0,2.0,3.0
+24,Astoria GT 3-2,44.0,0.0,44.0,Jet Engine,GT,KER,4.4,233,0.0,2.0,3.0
+25,Astoria GT 3-3,40.0,0.0,40.0,Jet Engine,GT,KER,4.0,233,0.0,2.0,3.0
+26,Astoria GT 3-4,46.0,0.0,46.0,Jet Engine,GT,KER,4.6,233,0.0,2.0,3.0
+27,Astoria GT 4-1,40.0,0.0,40.0,Jet Engine,GT,KER,4.0,233,0.0,2.0,3.0
+28,Astoria GT 4-2,40.0,0.0,40.0,Jet Engine,GT,KER,4.0,233,0.0,2.0,3.0
+29,Astoria GT 4-3,44.0,0.0,44.0,Jet Engine,GT,KER,4.4,233,0.0,2.0,3.0
+30,Astoria GT 4-4,42.0,0.0,42.0,Jet Engine,GT,KER,4.2,233,0.0,2.0,3.0
+31,Athens 1,390.0,271.0,390.0,Combined Cycle,CC,NG,39.0,697,0.0,4.0,6.0
+32,Athens 2,378.0,132.0,378.0,Combined Cycle,CC,NG,37.8,680,6994.0,4.0,6.0
+33,Athens 3,392.0,269.45,392.0,Combined Cycle,CC,NG,39.2,715,0.0,,
+34,Barrett 03,24.0,1.0,24.0,Combustion Turbine,CT,NG,2.4,191,2520.42,2.0,3.0
+35,Barrett 04,24.0,1.0,24.0,Combustion Turbine,CT,NG,2.4,191,2520.42,2.0,3.0
+36,Barrett 05,22.0,1.0,22.0,Combustion Turbine,CT,NG,2.2,191,2520.42,2.0,3.0
+37,Barrett 06,22.0,1.0,22.0,Combustion Turbine,CT,NG,2.2,191,2520.42,2.0,3.0
+38,Barrett 08,23.0,1.0,3.5,Combustion Turbine,CT,NG,0.35,190,2633.36,2.0,3.0
+39,Barrett 09,41.8,0.0,6.966667,Jet Engine,GT,NG,0.6966667,862,1949.75,3.0,5.0
+40,Barrett 10,41.8,0.0,6.966667,Jet Engine,GT,NG,0.6966667,862,1949.75,3.0,5.0
+41,Barrett 11,41.8,0.0,6.966667,Jet Engine,GT,NG,0.6966667,862,1949.75,3.0,5.0
+42,Barrett 12,41.8,0.0,6.966667,Jet Engine,GT,NG,0.6966667,862,1949.75,3.0,5.0
+43,Barrett GT 01,22.0,1.0,3.25,Combustion Turbine,CT,NG,0.325,190,2633.36,2.0,3.0
+44,Barrett GT 02,22.0,1.0,3.25,Combustion Turbine,CT,NG,0.325,190,2633.36,2.0,3.0
+45,Barrett ST 01,209.0,49.0,22.583333,Steam Turbine,ST,NG,2.2583333,978,19448.0,3.5,5.5
+46,Barrett ST 02,201.0,48.0,14.25,Steam Turbine,ST,NG,1.425,978,19448.0,3.5,5.5
+47,Batavia,43.0,9.0,4.416667,Combined Cycle,CC,NG,0.4416667,198,19448.0,4.0,6.0
+48,Beaver Falls,98.0,1.3,8.083333,Combined Cycle,CC,NG,0.8083332999999999,680,6994.0,4.0,6.0
+49,Bethlehem Energy Center,618.0,116.0,60.0,Combined Cycle,CC,NG,6.0,198,19448.0,4.0,6.0
+50,Bethpage,61.0,10.0,8.5,Combined Cycle,CC,NG,0.85,198,19448.0,4.0,6.0
+51,Bethpage 3,83.0,27.0,8.75,Combined Cycle,CC,NG,0.875,198,19448.0,4.0,6.0
+52,Bethpage GT4,49.0,14.0,6.416667,Combustion Turbine,CT,NG,0.6416667,197,0.0,4.0,5.0
+53,Binghamton (RET - 1/9/18),47.7,0.0,7.95,Combined Cycle,CC,NG,0.795,680,6994.0,4.0,6.0
+54,Bowline 1,621.0,30.55,62.083333,Steam Turbine,ST,NG,6.2083333000000005,211,61627.07,7.0,8.0
+55,Bowline 2,593.0,83.4,49.0,Steam Turbine,ST,NG,4.9,978,19448.0,3.5,5.5
+56,Brentwood,49.0,15.0,6.583333,Combustion Turbine,CT,NG,0.6583333,197,0.0,4.0,5.0
+57,Brooklyn Navy Yard,240.0,101.0,15.916667,Combined Cycle,CC,NG,1.5916667,198,19448.0,4.0,6.0
+58,"Burrstone Engy Center, LLC LU",1.1,0.0,0.183333,Internal Combustion,IC,NG,0.0183333,702,0.0,,
+59,"Burrstone Engy Center, LLC U",2.2,0.0,0.366667,Internal Combustion,IC,NG,0.0366667,702,0.0,,
+60,CPV_VALLEY___CC1,361.0,222.0,35.333333,Combined Cycle,CC,NG,3.5333333000000002,198,19448.0,4.0,6.0
+61,CPV_VALLEY___CC2,362.0,221.0,32.833333,Combined Cycle,CC,NG,3.2833333000000002,198,19448.0,4.0,6.0
+62,Caithness_CC_1,373.0,247.0,27.25,Combined Cycle,CC,NG,2.725,198,19448.0,4.0,6.0
+63,Carr St.-E. Syr,82.0,15.0,8.916667,Combined Cycle,CC,NG,0.8916667,198,19448.0,4.0,6.0
+64,Carthage Energy,61.0,0.0,10.166667,Combined Cycle,CC,NG,1.0166667,680,6994.0,4.0,6.0
+65,Castleton Energy Center,78.0,39.0,6.416667,Combined Cycle,CC,NG,0.6416667,198,19448.0,4.0,6.0
+66,Cayuga 1,166.0,59.0,12.666667,Steam Turbine,ST,COAL,1.2666667,445,0.0,9.0,15.0
+67,Charles P Keller 09,3.5,0.0,0.583333,Internal Combustion,IC,DFO,0.0583333,161,7.69,,
+68,Charles P Keller 10,3.5,0.0,0.583333,Internal Combustion,IC,DFO,0.0583333,161,7.69,,
+69,Charles P Keller 11,5.2,0.0,0.866667,Internal Combustion,IC,DFO,0.0866667,161,7.69,,
+70,Charles P Keller 14,6.2,0.0,1.033333,Internal Combustion,IC,DFO,0.1033333,161,7.69,,
+71,Coxsackie GT,21.6,0.0,3.6,Combustion Turbine,CT,KER,0.36,191,2520.42,2.0,3.0
+72,Danskammer 1,74.0,7.0,6.5,Steam Turbine,ST,NG,0.65,978,19448.0,3.5,5.5
+73,Danskammer 2,70.0,7.75,7.333333,Steam Turbine,ST,NG,0.7333333,978,19448.0,3.5,5.5
+74,Danskammer 3,147.0,3.85,12.083333,Steam Turbine,ST,NG,1.2083333,238,13630.5,7.0,8.0
+75,Danskammer 4,243.0,4.9,18.25,Steam Turbine,ST,NG,1.825,236,20000.0,7.0,8.0
+76,EMPIRE_CC_1,327.0,161.0,29.0,Combined Cycle,CC,NG,2.9,198,19448.0,4.0,6.0
+77,EMPIRE_CC_2,327.0,159.0,31.25,Combined Cycle,CC,NG,3.125,198,19448.0,4.0,6.0
+78,East Hampton 2,2.0,0.0,0.333333,Internal Combustion,IC,DFO,0.033333299999999996,161,7.69,,
+79,East Hampton 3,2.0,0.0,0.333333,Internal Combustion,IC,DFO,0.033333299999999996,161,7.69,,
+80,East Hampton 4,2.0,0.0,0.333333,Internal Combustion,IC,DFO,0.033333299999999996,161,7.69,,
+81,East Hampton GT 01,21.3,0.0,3.55,Jet Engine,GT,DFO,0.355,243,0.0,2.0,2.0
+82,East River 1,223.0,88.0,22.833333,Combined Cycle,CC,NG,2.2833333,198,19448.0,4.0,6.0
+83,East River 2,227.0,83.0,23.25,Combined Cycle,CC,NG,2.325,198,19448.0,4.0,6.0
+84,Far Rockaway GT1,60.0,36.0,10.0,Jet Engine,GT,NG,1.0,866,1949.75,3.0,5.0
+85,Far Rockaway GT2,54.0,23.5,9.0,Jet Engine,GT,KER,0.9,220,0.0,4.0,5.0
+86,Flynn,111.0,25.0,9.083333,Combined Cycle,CC,NG,0.9083333,198,19448.0,4.0,6.0
+87,Fortistar - N.Tonawanda,51.0,12.0,5.083333,Combined Cycle,CC,NG,0.5083333,198,19448.0,4.0,6.0
+88,Freeport 1-4,5.1,0.0,0.85,Internal Combustion,IC,DFO,0.08499999999999999,161,7.69,,
+89,Freeport 2-3,18.1,0.0,3.016667,Combustion Turbine,CT,KER,0.3016667,191,2520.42,2.0,3.0
+90,Freeport CT 1,50.0,0.0,8.333333,Combustion Turbine,CT,NG,0.8333332999999999,191,2520.42,2.0,3.0
+91,Freeport CT 2,51.0,1.0,6.583333,Combustion Turbine,CT,NG,0.6583333,709,1949.75,2.0,3.0
+92,General Mills Inc,3.8,0.0,0.633333,Combustion Turbine,CT,NG,0.06333330000000001,191,2520.42,2.0,3.0
+93,Glenwood GT 02,64.0,6.45,8.666667,Combustion Turbine,CT,DFO,0.8666667,498,0.0,3.0,5.0
+94,Glenwood GT 03,64.0,7.2,7.75,Combustion Turbine,CT,DFO,0.775,498,0.0,3.0,5.0
+95,Glenwood GT 04,49.0,1.0,7.833333,Combustion Turbine,CT,NG,0.7833333,709,1949.75,2.0,3.0
+96,Glenwood GT 05,50.0,2.0,7.75,Combustion Turbine,CT,NG,0.775,709,1949.75,2.0,3.0
+97,Gowanus 1-1,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+98,Gowanus 1-2,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+99,Gowanus 1-3,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+100,Gowanus 1-4,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+101,Gowanus 1-5,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+102,Gowanus 1-6,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+103,Gowanus 1-7,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+104,Gowanus 2-1,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+105,Gowanus 2-2,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+106,Gowanus 2-3,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+107,Gowanus 2-4,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+108,Gowanus 2-5,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+109,Gowanus 2-6,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+110,Gowanus 2-7,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+111,Gowanus 2-8,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+112,Gowanus 3-1,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+113,Gowanus 3-2,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+114,Gowanus 3-3,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+115,Gowanus 3-4,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+116,Gowanus 3-5,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+117,Gowanus 3-6,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+118,Gowanus 3-7,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+119,Gowanus 3-8,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+120,Gowanus 4-1,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+121,Gowanus 4-2,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+122,Gowanus 4-3,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+123,Gowanus 4-4,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+124,Gowanus 4-5,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+125,Gowanus 4-6,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+126,Gowanus 4-8,20.0,0.0,3.333333,Combustion Turbine,CT,DFO,0.3333333,498,0.0,3.0,5.0
+127,Gowanus 5,44.0,19.0,7.333333,Combustion Turbine,CT,NG,0.7333333,197,0.0,4.0,5.0
+128,Gowanus 6,43.0,6.0,7.166667,Combustion Turbine,CT,NG,0.7166667,959,3067.9,4.0,5.0
+129,Greenidge 4,113.0,36.0,18.833333,Steam Turbine,ST,NG,1.8833332999999999,978,19448.0,3.5,5.5
+130,Greenport GT1,60.0,21.0,10.0,Jet Engine,GT,DFO,1.0,91,45185.78,4.0,5.0
+131,Harlem River 1,43.0,18.0,7.166667,Combustion Turbine,CT,NG,0.7166667,197,0.0,4.0,5.0
+132,Harlem River 2,43.0,17.5,7.166667,Combustion Turbine,CT,NG,0.7166667,197,0.0,4.0,5.0
+133,Hellgate 1,43.0,17.0,7.166667,Combustion Turbine,CT,NG,0.7166667,197,0.0,4.0,5.0
+134,Hellgate 2,43.0,16.0,7.166667,Combustion Turbine,CT,NG,0.7166667,197,0.0,4.0,5.0
+135,Hillburn GT,37.0,1.0,6.166667,Jet Engine,GT,NG,0.6166667,599,8496.0,3.0,5.0
+136,Holtsville 01,17.0,1.0,2.833333,Jet Engine,GT,DFO,0.2833333,294,0.0,2.0,2.0
+137,Holtsville 02,17.0,1.0,2.833333,Jet Engine,GT,DFO,0.2833333,294,0.0,2.0,2.0
+138,Holtsville 03,15.0,1.0,2.5,Jet Engine,GT,DFO,0.25,181,9145.7,2.0,3.0
+139,Holtsville 04,15.0,1.0,2.5,Jet Engine,GT,DFO,0.25,181,9145.7,2.0,3.0
+140,Holtsville 05,16.0,1.0,2.666667,Jet Engine,GT,DFO,0.2666667,294,0.0,2.0,2.0
+141,Holtsville 06,16.0,1.0,2.666667,Jet Engine,GT,DFO,0.2666667,294,0.0,2.0,2.0
+142,Holtsville 07,16.0,1.0,2.666667,Jet Engine,GT,DFO,0.2666667,294,0.0,2.0,2.0
+143,Holtsville 08,16.0,1.0,2.666667,Jet Engine,GT,DFO,0.2666667,294,0.0,2.0,2.0
+144,Holtsville 09,15.0,1.0,2.5,Jet Engine,GT,DFO,0.25,181,9145.7,2.0,3.0
+145,Holtsville 10,15.0,1.0,2.5,Jet Engine,GT,DFO,0.25,181,9145.7,2.0,3.0
+146,Hudson Ave 3,16.3,0.0,2.716667,Combustion Turbine,CT,KER,0.27166670000000004,191,2520.42,2.0,3.0
+147,Hudson Ave 4,16.3,0.0,2.716667,Combustion Turbine,CT,KER,0.27166670000000004,191,2520.42,2.0,3.0
+148,Hudson Ave 5,16.3,0.0,2.716667,Combustion Turbine,CT,KER,0.27166670000000004,191,2520.42,2.0,3.0
+149,Indeck-Corinth,140.0,123.0,23.333333,Combined Cycle,CC,NG,2.3333333,198,19448.0,4.0,6.0
+150,Indeck-Olean,84.0,18.0,14.0,Combined Cycle,CC,NG,1.4,198,19448.0,4.0,6.0
+151,Indeck-Oswego,61.0,7.0,10.166667,Combined Cycle,CC,NG,1.0166667,697,0.0,4.0,6.0
+152,Indeck-Silver Springs,60.0,6.0,10.0,Combined Cycle,CC,NG,1.0,474,0.0,4.0,6.0
+153,Indeck-Yerkes,57.0,4.0,9.5,Combined Cycle,CC,NG,0.95,680,6994.0,4.0,6.0
+154,Independence,1218.0,103.0,203.0,Combined Cycle,CC,NG,20.3,680,6994.0,4.0,6.0
+155,Jamestown 5,28.7,0.0,4.783333,Steam Turbine,ST,NG,0.47833329999999996,170,0.0,7.0,8.0
+156,Jamestown 6,25.0,0.0,4.166667,Steam Turbine,ST,NG,0.41666670000000006,170,0.0,7.0,8.0
+157,Jamestown 7,46.0,32.0,7.666667,Combustion Turbine,CT,NG,0.7666667,197,0.0,4.0,5.0
+158,Kent,65.0,17.0,10.833333,Combined Cycle,CC,NG,1.0833333,198,19448.0,4.0,6.0
+159,KIAC_JFK_GT1,71.0,4.0,11.833333,Combined Cycle,CC,NG,1.1833333,680,6994.0,4.0,6.0
+160,KIAC_JFK_GT2,49.0,8.0,8.166667,Combustion Turbine,CT,NG,0.8166667000000001,913,43629.4,4.0,5.0
+161,Lockport,153.0,28.0,25.5,Combined Cycle,CC,NG,2.55,198,19448.0,4.0,6.0
+162,Massena,55.0,0.0,9.166667,Combined Cycle,CC,NG,0.9166667000000001,680,6994.0,4.0,6.0
+163,Narrows 1-1,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+164,Narrows 1-2,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+165,Narrows 1-3,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+166,Narrows 1-4,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+167,Narrows 1-5,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+168,Narrows 1-6,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+169,Narrows 1-7,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+170,Narrows 1-8,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+171,Narrows 2-1,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+172,Narrows 2-2,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+173,Narrows 2-3,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+174,Narrows 2-4,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+175,Narrows 2-5,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+176,Narrows 2-6,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+177,Narrows 2-7,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+178,Narrows 2-8,22.0,0.0,3.666667,Combustion Turbine,CT,DFO,0.3666667,498,0.0,3.0,5.0
+179,Nassau Energy Corporation,53.0,35.0,8.833333,Combined Cycle,CC,NG,0.8833333,198,19448.0,4.0,6.0
+180,Northport 1,410.0,108.0,68.333333,Steam Turbine,ST,NG,6.8333333,978,19448.0,3.5,5.5
+181,Northport 2,410.0,111.0,68.333333,Steam Turbine,ST,NG,6.8333333,978,19448.0,3.5,5.5
+182,Northport 3,411.0,109.0,68.5,Steam Turbine,ST,NG,6.85,978,19448.0,3.5,5.5
+183,Northport 4,413.0,109.0,68.833333,Steam Turbine,ST,NG,6.883333299999999,978,19448.0,3.5,5.5
+184,Northport GT,16.0,0.0,2.666667,Combustion Turbine,CT,DFO,0.2666667,498,0.0,3.0,5.0
+185,Oswego 5,866.0,39.15,144.333333,Steam Turbine,ST,RFO,14.433333300000001,225,0.0,7.0,8.0
+186,Oswego 6,862.0,25.45,143.666667,Steam Turbine,ST,RFO,14.3666667,226,0.0,7.0,8.0
+187,Pilgrim GT1,47.0,13.7,7.833333,Combustion Turbine,CT,NG,0.7833333,197,0.0,4.0,5.0
+188,Pilgrim GT2,48.0,5.15,8.0,Combustion Turbine,CT,NG,0.8,938,16560.0,4.0,5.0
+189,Pinelawn Power 1,81.0,14.5,13.5,Combined Cycle,CC,NG,1.35,198,19448.0,4.0,6.0
+190,Port Jefferson 3,201.0,45.0,33.5,Steam Turbine,ST,RFO,3.35,501,98278.0,7.0,8.0
+191,Port Jefferson 4,204.0,45.0,34.0,Steam Turbine,ST,RFO,3.4,501,98278.0,7.0,8.0
+192,Port Jefferson GT 02,48.0,10.0,8.0,Combustion Turbine,CT,NG,0.8,957,3067.9,4.0,5.0
+193,Port Jefferson GT 03,49.0,11.0,8.166667,Combustion Turbine,CT,NG,0.8166667000000001,774,4000.0,4.0,5.0
+194,Pouch,48.0,4.0,8.0,Combustion Turbine,CT,NG,0.8,190,2633.36,2.0,3.0
+195,Ravenswood 01,18.6,0.0,3.1,Combustion Turbine,CT,NG,0.31,191,2520.42,2.0,3.0
+196,Ravenswood 10,25.0,0.0,4.166667,Jet Engine,GT,KER,0.41666670000000006,233,0.0,2.0,3.0
+197,Ravenswood 11,25.0,0.0,4.166667,Jet Engine,GT,KER,0.41666670000000006,233,0.0,2.0,3.0
+198,Ravenswood CC 04,286.0,142.0,47.666667,Combined Cycle,CC,NG,4.7666667,198,19448.0,4.0,6.0
+199,Ravenswood ST 01,380.0,1.0,63.333333,Steam Turbine,ST,RFO,6.3333333000000005,239,4000.0,7.0,8.0
+200,Ravenswood ST 02,1000.0,3.0,166.666667,Steam Turbine,ST,RFO,16.6666667,239,4000.0,7.0,8.0
+201,Ravenswood ST 03,392.0,1.0,65.333333,Steam Turbine,ST,RFO,6.5333333,239,4000.0,7.0,8.0
+202,Rensselaer,84.0,12.0,14.0,Combined Cycle,CC,NG,1.4,730,65110.74,4.0,6.0
+203,Roseton 1,622.0,30.3,103.666667,Steam Turbine,ST,RFO,10.3666667,419,3102.76,7.0,8.0
+204,Roseton 2,635.0,30.8,105.833333,Steam Turbine,ST,RFO,10.5833333,419,3102.76,7.0,8.0
+205,S Hampton 1,11.5,0.0,1.916667,Combustion Turbine,CT,DFO,0.1916667,498,0.0,3.0,5.0
+206,Saranac Energy,268.0,20.0,44.666667,Combined Cycle,CC,NG,4.466666699999999,680,6994.0,4.0,6.0
+207,Selkirk-I,143.0,0.0,23.833333,Combined Cycle,CC,NG,2.3833333,680,6994.0,4.0,6.0
+208,Selkirk-II,304.0,54.6,50.666667,Combined Cycle,CC,NG,5.0666667,198,19448.0,4.0,6.0
+209,Shoemaker GT,37.0,0.0,6.166667,Jet Engine,GT,NG,0.6166667,862,1949.75,3.0,5.0
+210,Shoreham 1,52.9,0.0,8.816667,Combustion Turbine,CT,DFO,0.8816667,498,0.0,3.0,5.0
+211,Shoreham 2,18.6,0.0,3.1,Jet Engine,GT,DFO,0.31,243,0.0,2.0,2.0
+212,Shoreham GT3,47.0,0.0,7.833333,Combustion Turbine,CT,DFO,0.7833333,498,0.0,3.0,5.0
+213,Shoreham GT4,49.0,0.0,8.166667,Combustion Turbine,CT,DFO,0.8166667000000001,498,0.0,3.0,5.0
+214,Somerset,731.0,80.4,53.916667,Steam Turbine,ST,COAL,5.3916667,445,0.0,9.0,15.0
+215,South Cairo,21.6,0.0,3.6,Combustion Turbine,CT,KER,0.36,191,2520.42,2.0,3.0
+216,Southold 1,14.0,0.0,2.333333,Combustion Turbine,CT,DFO,0.23333330000000002,498,0.0,3.0,5.0
+217,St. Elizabeth Medical Center,0.6,0.0,0.1,Internal Combustion,IC,NG,0.01,702,0.0,,
+218,Sterling,43.0,15.0,3.75,Combined Cycle,CC,NG,0.375,198,19448.0,4.0,6.0
+219,Stony Brook   (BTM:NG),46.0,30.0,4.083333,Combustion Turbine,CT,NG,0.40833329999999995,197,0.0,4.0,5.0
+220,Syracuse,102.0,14.0,6.833333,Combined Cycle,CC,NG,0.6833332999999999,198,19448.0,4.0,6.0
+221,Vernon Blvd 2,43.0,18.5,5.333333,Combustion Turbine,CT,NG,0.5333333,197,0.0,4.0,5.0
+222,Vernon Blvd 3,42.0,15.0,5.583333,Combustion Turbine,CT,NG,0.5583332999999999,197,0.0,4.0,5.0
+223,Wading River 1,102.0,9.0,12.583333,Combustion Turbine,CT,DFO,1.2583332999999999,498,0.0,3.0,5.0
+224,Wading River 2,94.0,7.8,13.5,Combustion Turbine,CT,DFO,1.35,498,0.0,3.0,5.0
+225,Wading River 3,94.0,4.0,13.333333,Combustion Turbine,CT,DFO,1.3333333,498,0.0,3.0,5.0
+226,West Babylon 4,65.0,3.0,8.083333,Combustion Turbine,CT,DFO,0.8083332999999999,498,0.0,3.0,5.0
+227,Nuclear_B_0,581.7,0.0,58.17,Nuclear,ST,NUC,5.817,584,0.0,168.0,168.0
+228,Nuclear_C_0,854.5,0.0,85.45,Nuclear,ST,NUC,8.545,584,0.0,168.0,168.0
+229,Nuclear_C_1,629.0,0.0,62.9,Nuclear,ST,NUC,6.29,584,0.0,168.0,168.0
+230,Nuclear_C_2,1299.0,0.0,129.9,Nuclear,ST,NUC,12.99,584,0.0,168.0,168.0
+231,Nuclear_H_0,1025.9,0.0,102.59,Nuclear,ST,NUC,10.259,584,0.0,168.0,168.0
+232,Nuclear_H_1,1039.9,0.0,103.99,Nuclear,ST,NUC,10.399,584,0.0,168.0,168.0

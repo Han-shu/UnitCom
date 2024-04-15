@@ -82,25 +82,3 @@ function _thermal_type(pm, fuel, pmax)
         return "GSNONR"
     end 
 end
-
-function _thermal_start_up_cost(pm, pmax)
-    if pm == PrimeMovers.CC
-        if pmax <= 200
-            return 0
-        else
-            return 50*pmax
-        end
-    elseif pm == PrimeMovers.IC
-        if pmax >= 4
-            return 0
-        else
-            return 3.3*pmax
-        end
-    elseif pm == PrimeMovers.ST
-        return 60*pmax
-    elseif pm == PrimeMovers.GT
-        return 50*pmax
-    elseif pm == PrimeMovers.CT
-        return 20*pmax
-    end
-end

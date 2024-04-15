@@ -81,6 +81,7 @@ df_gen = CSV.read(joinpath(data_dir, "gen_2019.csv"), DataFrame, header = gen_he
 df_gencost = CSV.read(joinpath(data_dir, "gencost_2019.csv"), DataFrame, header = gencost_header)
 df_geninfo = CSV.read(joinpath(data_dir, "geninfo.csv"), DataFrame)
 df_genprop = CSV.read(joinpath(data_dir, "gen_prop.csv"), DataFrame)
+df_nygen = CSV.read(joinpath(data_dir, "NY_gen.csv"), DataFrame)
 for (gen_id, gen) in enumerate(eachrow(df_gen))
     if gen_id > 233 #1-227: Thermal, 228-233: Nuclear
         break
@@ -90,7 +91,7 @@ for (gen_id, gen) in enumerate(eachrow(df_gen))
     else
         fuel = ThermalFuels.NUCLEAR
     end
-    genprop = df_genprop[gen_id, :]
+    genprop = df_nygen[gen_id, :]
     gen_cost = df_gencost[gen_id, :]
     bus = get_bus(system, 1)
     name = genprop.GEN_NAME
@@ -98,12 +99,11 @@ for (gen_id, gen) in enumerate(eachrow(df_gen))
     pmin = gen.PMIN
     ramp_rate = gen.RAMP_10
     pm = map_UnitType[genprop.GEN_FUEL]
-    #TODO ThreePartCost(variable, fixed, start_up, shut_down)
+    # ThreePartCost(variable, fixed, start_up, shut_down)
     if fuel == ThermalFuels.NUCLEAR
-        cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, 1e4, 1e6)
+        cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.StartUpCost, genprop.StartUpCost*100)
     else
-        start_up_cost = _thermal_start_up_cost(pm, pmax)
-        cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, start_up_cost, 0.2*start_up_cost)
+        cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.StartUpCost, 0.0)
     end
     type = _thermal_type(pm, fuel, pmax)
     uptime, downtime = duration_lims[type][:up], duration_lims[type][:down]

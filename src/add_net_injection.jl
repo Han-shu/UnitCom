@@ -17,7 +17,8 @@ function _add_net_injection!(model::JuMP.Model, sys::System)::Nothing
 
     for load in loads
         if length(scenarios) == 1
-            load_matrix = mean(get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps)), dims = 2)
+            load_matrix = mean(get_time_series_values(Scenarios, load, "load", start_time = start_time, 
+                                                        len = length(time_steps)), dims = 2)
         else
             load_matrix = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
         end
