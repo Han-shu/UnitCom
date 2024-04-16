@@ -11,17 +11,17 @@ scenario_count = 10
 total_elapsed_time = 0.0
 
 # 1. Run rolling horizon without solution from beginning
-init_value, solution = init_rolling_uc(system)
+# init_value, solution = init_rolling_uc(system)
 
 # 2. Run rolling horizon with solution from previous time point
-# solution_file = joinpath(result_dir, "solution2.json")
-# init_value, solution = init_rolling_uc(system; solution_file = solution_file)
+solution_file = joinpath(result_dir, "UC_solution20240416.json")
+init_value, solution = init_rolling_uc(system; solution_file = solution_file)
 
 if length(solution["Time"]) > 0
     initial_time = DateTime(String(solution["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
 end
 
-for i in 1:30#8712
+for i in 1:600
     global total_elapsed_time, init_value, solution
     start_time = initial_time + Dates.Hour(i-1)
     if start_time >= DateTime(2019, 12, 31, 0)
@@ -40,4 +40,4 @@ end
 @info "Total elapsed time: $total_elapsed_time seconds"
 
 # # save the solution
-# write_json(joinpath(result_dir, "solution.json"), solution)
+write_json(joinpath(result_dir, "UC_solution20240416.json"), solution)
