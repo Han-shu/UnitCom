@@ -15,25 +15,50 @@ function _add_reserve_requirement_eq!(model::JuMP.Model, sys::System)::Nothing
     penalty = model[:param].reserve_short_penalty
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
-    @variable(model, reserve_spin10_short[s in scenarios, t in time_steps] >= 0)
-    @variable(model, reserve_10_short[s in scenarios, t in time_steps] >= 0)
-    @variable(model, reserve_30_short[s in scenarios, t in time_steps] >= 0)
 
+    penalty_spin10 = penalty["spin10"]
+    penalty_res10 = penalty["res10"]
+    penalty_res30 = penalty["res30"]
+    @variable(model, reserve_spin10_short[s in scenarios, t in time_steps, k in 1:length(penalty_spin10)] >= 0)
+    @variable(model, reserve_10_short[s in scenarios, t in time_steps, k in 1:length(penalty_res10)] >= 0)
+    @variable(model, reserve_30_short[s in scenarios, t in time_steps, k in 1:length(penalty_res30)] >= 0)
+
+    for k in eachindex(penalty_spin10)
+        @constraint(model, reserve_spin10_short[s in scenarios, t in time_steps, k] <= penalty_spin10[k].MW)
+        add_to_expression!(model[:obj], sum(reserve_spin10_short[s,t,k] for s in scenarios, t in time_steps), 
+                            1/length(scenarios)*penalty_spin10[k].price)
+    end
+    for k in eachindex(penalty_res10)
+        @constraint(model, reserve_10_short[s in scenarios, t in time_steps, k] <= penalty_res10[k].MW)
+        add_to_expression!(model[:obj], sum(reserve_10_short[s,t,k] for s in scenarios, t in time_steps), 
+                            1/length(scenarios)*penalty_res10[k].price)
+    end
+    for k in eachindex(penalty_res30)
+        if k == 2
+            @constraint(model, reserve_30_short[s in scenarios, t in time_steps, k] <= SENY_reserve[t%24])
+        elseif k == length(penalty_res30)
+            @constraint(model, reserve_30_short[s in scenarios, t in time_steps, k] <= (reserve_requirements["res30"][t%24] - SENY_reserve[t%24] - 2320))
+        else
+            @constraint(model, reserve_30_short[s in scenarios, t in time_steps, k] <= penalty_res30[k].MW)
+        end
+        add_to_expression!(model[:obj], sum(reserve_30_short[s,t,k] for s in scenarios, t in time_steps), 
+                            1/length(scenarios)*penalty_res30[k].price)
+    end
+    # reserve requirement constraints
     @constraint(model, eq_reserve_spin10[s in scenarios, t in time_steps], 
         sum(model[:spin_10][g,s,t] for g in thermal_gen_names) + 
-        sum(model[:res_10][b,s,t] for b in storage_names) + reserve_spin10_short[s,t] >= reserve_requirements["spin10"])
+        sum(model[:res_10][b,s,t] for b in storage_names) + reserve_spin10_short[s,t] 
+        >= reserve_requirements["spin10"][t%24])
     
     @constraint(model, eq_reserve_10[s in scenarios, t in time_steps], 
         sum(model[:spin_10][g,s,t] + model[:Nspin_10][g,s,t] for g in thermal_gen_names) + 
-        sum(model[:res_10][b,s,t] for b in storage_names) + reserve_10_short[s,t] >= reserve_requirements["res10"])
+        sum(model[:res_10][b,s,t] for b in storage_names) + reserve_10_short[s,t] 
+        >= reserve_requirements["res10"][t%24])
     
     @constraint(model, eq_reserve_30[s in scenarios, t in time_steps],
         sum(model[:spin_30][g,s,t] + model[:Nspin_30][g,s,t] for g in thermal_gen_names) + 
-        sum(model[:res_30][b,s,t] for b in storage_names) + reserve_30_short[s,t] >= reserve_requirements["res30"])
+        sum(model[:res_30][b,s,t] for b in storage_names) + reserve_30_short[s,t] 
+        >= reserve_requirements["res30"][t%24])
     
-    add_to_expression!(model[:obj], sum(reserve_spin10_short[s,t] for s in scenarios, t in time_steps), 1/length(scenarios)*penalty["spin10"])
-    add_to_expression!(model[:obj], sum(reserve_10_short[s,t] for s in scenarios, t in time_steps), 1/length(scenarios)*penalty["res10"])
-    add_to_expression!(model[:obj], sum(reserve_30_short[s,t] for s in scenarios, t in time_steps), 1/length(scenarios)*penalty["res30"])
-
     return
 end

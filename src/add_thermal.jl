@@ -92,7 +92,7 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
         @constraint(model, pg[g,s,t] + spin_10[g,s,t] + spin_30[g,s,t] <= pg_lim[g].max*ug[g,t])
     end
 
-    # ramping constraints
+    # ramping constraints and reserve constraints
     for g in thermal_gen_names, s in scenarios, t in time_steps
         if t == 1
             @constraint(model, pg[g,s,1] - Pg_t0[g] + spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g])

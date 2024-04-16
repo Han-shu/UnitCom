@@ -1,5 +1,13 @@
 # UnitCom
 
+# Limitations
+- Reserve requirement is constant for all time points
+- All thermal generators and batteries are assumed to be eligible to provide reserve
+- Reserve is provided by only thermal generators and batteries
+- Variable cost of thermal generators is assumed to be constant
+- No minimum run time and notification time
+- No hydro power plants (or modeling by static dispatch)
+
 # April 11 - 17 TODO
 - ~~Run rolling horizon with solution from previous time point~~
 - ~~Investigate the infeasibility at DateTime(2019,1,1,13)~~
@@ -12,10 +20,10 @@
 
 # Model TODO
 - ~~Deterministic version~~
-- Add reserve as current implementations in NYISO
-    - 10 min spinning 
-    - 10 min non-synchronized 
-    - 30 min reserve (spinning + non-synchronized)
+- ~~Add reserve as current implementations in NYISO~~
+    - ~~10 min spinning ~~
+    - ~~10 min non-synchronized ~~
+    - ~~30 min reserve (spinning + non-synchronized)~~
 - New reserve product in NYISO, 60 min, 4 hour notice
 - Add hydro power plants: historical data as fixed dispatch
 
@@ -39,34 +47,4 @@
 - ~~Time series data (wind, solar, load)~~
 
 
-```
-mutable struct ThreePartCost <: OperationalCost
-    variable::VariableCost
-    fixed::Float64
-    start_up::Float64
-    shut_down::Float64
-end
-```
 
-
-```
-device = PSY.ThermalStandard(
-        name=name,
-        available=true,
-        status=true,
-        bus=bus,
-        active_power=0.0,
-        reactive_power=0.0,
-        rating=pmax / base_power,
-        prime_mover_type=pm,
-        fuel=fuel,
-        active_power_limits=PSY.MinMax((pmin, pmax)),
-        reactive_power_limits=nothing,
-        ramp_limits=(up=ramp_rate, down=ramp_rate),
-        time_limits=(up=1.0, down=1.0),
-        operation_cost=cost,
-        base_power=base_power,
-        time_at_status=999.0,
-        ext=Dict{String,Any}(),
-    )
-```

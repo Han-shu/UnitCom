@@ -1,3 +1,8 @@
+mutable struct PriceMW
+    price
+    MW
+end
+
 mutable struct Parameters
     time_steps::UnitRange{Int}
     scenarios::UnitRange{Int}

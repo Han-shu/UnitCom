@@ -4,7 +4,11 @@ include("NYGrid/add_ts.jl")
 include("src/stochastic_ed.jl")
 include("src/stochastic_uc.jl")
 include("src/get_solution.jl")
-
+scenario_count = 10
+horizon = 24
+VOLL=5000
+start_time = DateTime(2019,1,1,0)
+parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, reserve_requirement_by_hour, reserve_short_penalty)
 
 ## ED test
 model = ed_model(system, Gurobi.Optimizer, VOLL = 1000, start_time = DateTime(2019, 1, 1, 0))

@@ -10,12 +10,12 @@ horizon = 36
 scenario_count = 1
 total_elapsed_time = 0.0
 
-# Run rolling horizon with solution from previous time point
+# 1. Run rolling horizon without solution from beginning
+init_value, solution = init_rolling_uc(system)
+
+# 2. Run rolling horizon with solution from previous time point
 # solution_file = joinpath(result_dir, "solution2.json")
 # init_value, solution = init_rolling_uc(system; solution_file = solution_file)
-
-# Run rolling horizon without solution from previous time point
-init_value, solution = init_rolling_uc(system)
 
 if length(solution["Time"]) > 0
     initial_time = DateTime(String(solution["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
