@@ -12,8 +12,8 @@ function ed_model(sys::System, optimizer; VOLL = 1000, start_time = DateTime(Dat
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe,RenewableGen, system)
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_periods] >= 0)
-    @variable(model, spin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
-    @variable(model, spin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, spin_10[g in thermal_gen_names, s in scenarios, t in time_periods] >= 0)
+    @variable(model, spin_30[g in thermal_gen_names, s in scenarios, t in time_periods] >= 0)
 
     @variable(model, curtailment[s in scenarios, t in time_periods] >= 0)
 
@@ -50,9 +50,10 @@ function ed_model(sys::System, optimizer; VOLL = 1000, start_time = DateTime(Dat
 
     @variable(model, res_10_shortfall[s in scenarios, t in time_periods] >= 0)
     @variable(model, res_30_shortfall[s in scenarios, t in time_periods] >= 0)
-    @constraint(model, sum(spin_10[g,s,t] for g in thermal_gen_names, s in scenarios, t in time_periods) + res_10_shortfall[s,t] >= 2630)
-    @constraint(model, sum(spin_30[g,s,t] for g in thermal_gen_names, s in scenarios, t in time_periods) + res_30_shortfall[s,t]>= 5500)
-
+    for s in scenarios, t in time_periods
+        @constraint(model, sum(spin_10[g,s,t] for g in thermal_gen_names) + res_10_shortfall[s,t] >= 2630)
+        @constraint(model, sum(spin_30[g,s,t] for g in thermal_gen_names) + res_30_shortfall[s,t]>= 5500)
+    end
     add_to_expression!(model[:obj], (1/length(scenarios))*sum(curtailment[s,t] for s in scenarios, t in time_periods), VOLL)
     add_to_expression!(model[:obj], (1/length(scenarios))*sum(res_10_shortfall[s,t] for s in scenarios, t in time_periods), 500)
     add_to_expression!(model[:obj], (1/length(scenarios))*sum(res_30_shortfall[s,t] for s in scenarios, t in time_periods), 100)

@@ -24,22 +24,24 @@ function _add_reserve_requirement_eq!(model::JuMP.Model, sys::System)::Nothing
     @variable(model, reserve_30_short[s in scenarios, t in time_steps, k in 1:length(penalty_res30)] >= 0)
 
     for k in eachindex(penalty_spin10)
-        @constraint(model, reserve_spin10_short[s in scenarios, t in time_steps, k] <= penalty_spin10[k].MW)
+        @constraint(model, [s in scenarios, t in time_steps], reserve_spin10_short[s,t,k] <= penalty_spin10[k].MW)
         add_to_expression!(model[:obj], sum(reserve_spin10_short[s,t,k] for s in scenarios, t in time_steps), 
                             1/length(scenarios)*penalty_spin10[k].price)
     end
     for k in eachindex(penalty_res10)
-        @constraint(model, reserve_10_short[s in scenarios, t in time_steps, k] <= penalty_res10[k].MW)
+        @constraint(model, [s in scenarios, t in time_steps], reserve_10_short[s,t,k] <= penalty_res10[k].MW)
         add_to_expression!(model[:obj], sum(reserve_10_short[s,t,k] for s in scenarios, t in time_steps), 
                             1/length(scenarios)*penalty_res10[k].price)
     end
     for k in eachindex(penalty_res30)
-        if k == 2
-            @constraint(model, reserve_30_short[s in scenarios, t in time_steps, k] <= SENY_reserve[t%24])
-        elseif k == length(penalty_res30)
-            @constraint(model, reserve_30_short[s in scenarios, t in time_steps, k] <= (reserve_requirements["res30"][t%24] - SENY_reserve[t%24] - 2320))
-        else
-            @constraint(model, reserve_30_short[s in scenarios, t in time_steps, k] <= penalty_res30[k].MW)
+        for s in scenarios, t in time_steps
+            if k == 2
+                @constraint(model, reserve_30_short[s,t,k] <= SENY_reserve[(t-1)%24+1])
+            elseif k == length(penalty_res30)
+                @constraint(model, reserve_30_short[s,t,k] <= (reserve_requirements["res30"][(t-1)%24+1] - SENY_reserve[(t-1)%24+1] - 2320))
+            else
+                @constraint(model,  reserve_30_short[s,t,k] <= penalty_res30[k].MW)
+            end
         end
         add_to_expression!(model[:obj], sum(reserve_30_short[s,t,k] for s in scenarios, t in time_steps), 
                             1/length(scenarios)*penalty_res30[k].price)
@@ -47,18 +49,18 @@ function _add_reserve_requirement_eq!(model::JuMP.Model, sys::System)::Nothing
     # reserve requirement constraints
     @constraint(model, eq_reserve_spin10[s in scenarios, t in time_steps], 
         sum(model[:spin_10][g,s,t] for g in thermal_gen_names) + 
-        sum(model[:res_10][b,s,t] for b in storage_names) + reserve_spin10_short[s,t] 
-        >= reserve_requirements["spin10"][t%24])
+        sum(model[:res_10][b,s,t] for b in storage_names) + sum(reserve_spin10_short[s,t,k] for k in 1:length(penalty_spin10))
+        >= reserve_requirements["spin10"][(t-1)%24+1])
     
     @constraint(model, eq_reserve_10[s in scenarios, t in time_steps], 
         sum(model[:spin_10][g,s,t] + model[:Nspin_10][g,s,t] for g in thermal_gen_names) + 
-        sum(model[:res_10][b,s,t] for b in storage_names) + reserve_10_short[s,t] 
-        >= reserve_requirements["res10"][t%24])
+        sum(model[:res_10][b,s,t] for b in storage_names) + sum(reserve_10_short[s,t,k] for k in 1:length(penalty_res10)) 
+        >= reserve_requirements["res10"][(t-1)%24+1])
     
     @constraint(model, eq_reserve_30[s in scenarios, t in time_steps],
         sum(model[:spin_30][g,s,t] + model[:Nspin_30][g,s,t] for g in thermal_gen_names) + 
-        sum(model[:res_30][b,s,t] for b in storage_names) + reserve_30_short[s,t] 
-        >= reserve_requirements["res30"][t%24])
+        sum(model[:res_30][b,s,t] for b in storage_names) + sum(reserve_30_short[s,t,k] for k in 1:length(penalty_res30)) 
+        >= reserve_requirements["res30"][(t-1)%24+1])
     
     return
 end

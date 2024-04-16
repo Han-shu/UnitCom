@@ -7,7 +7,7 @@ include("src/functions.jl")
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 initial_time = Dates.DateTime(2019, 1, 1)
 horizon = 36
-scenario_count = 1
+scenario_count = 10
 total_elapsed_time = 0.0
 
 # 1. Run rolling horizon without solution from beginning
@@ -40,4 +40,4 @@ end
 @info "Total elapsed time: $total_elapsed_time seconds"
 
 # # save the solution
-# write_json(joinpath(result_dir, "solution2.json"), solution)
+# write_json(joinpath(result_dir, "solution.json"), solution)
