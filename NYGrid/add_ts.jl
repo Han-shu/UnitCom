@@ -2,29 +2,13 @@ using PowerSystems
 using JSON3, Dates, HDF5, Statistics
 
 ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO"
-# ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/idx_hour"
 solar_file = joinpath(ts_dir, "solar_scenarios.h5")
 wind_file = joinpath(ts_dir, "wind_scenarios.h5")
 load_file = joinpath(ts_dir, "load_scenarios.h5")
 
-thermal_gen_names = get_name.(get_components(ThermalGen, system))
-renewable_gen_names = get_name.(get_components(RenewableGen, system))
-load_names = get_name.(get_components(StaticLoad, system))
-thermal_gens = collect(get_components(ThermalGen, system))
 loads = collect(get_components(StaticLoad, system))
-renewables = collect(get_components(RenewableGen, system))
-
-wind_gens = get_components(
-            x -> x.prime_mover_type == PrimeMovers.WT,
-            RenewableGen,
-            system,
-        )
-
-solar_gens = get_components(
-    x -> x.prime_mover_type == PrimeMovers.PVe,
-    RenewableGen,
-    system,
-)
+wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
+solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, system)
 
 
 initial_time = Dates.DateTime(2019, 1, 1)

@@ -5,9 +5,6 @@ using TimeSeries
 
 sys = System("/Users/hanshu/Desktop/Price_formation/Data/Doubleday_data/DA_sys_31_scenarios.json")
 
-
-# gen1 = get_component(ThermalGen, system, "Solitude")
-# PowerSystems.get_active_power(gen1)
 counts = get_time_series_counts(system)
 get_time_series_resolution(system)
 has_time_series(loads[1])
@@ -16,6 +13,7 @@ has_time_series(loads[1], Scenarios)
 has_time_series(loads[1], Deterministic)
 get_time_series_container(loads[1])
 
+loads = collect(get_components(StaticLoad, system))
 get_time_series_array(Scenarios, loads[1], "load", start_time = DateTime("2019-01-06T00:00:00"), len = 48)
 
 get_time_series_values(Scenarios, loads[1], "load", start_time = DateTime("2019-01-06T00:00:00"), len = 48)

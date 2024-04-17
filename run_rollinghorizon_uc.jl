@@ -16,23 +16,23 @@ total_elapsed_time = 0.0
 solution_file = joinpath(result_dir, "$(model_name)_solution_$(today).json")
 if !isfile(solution_file)
 # 1. Run rolling horizon without solution from beginning
+    @info "Running rolling horizon $(model_name) from beginning"  
     init_value, solution = init_rolling_uc(system)
 else
 # 2. Run rolling horizon with solution from previous time point
     init_value, solution = init_rolling_uc(system; solution_file = solution_file)
-end
-
-if length(solution["Time"]) > 0
     initial_time = DateTime(String(solution["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
+    @info "Running rolling horizon $(model_name) with solution from $(solution_file) starting from $(initial_time)"
 end
 
-for i in 1:1000
+
+for i in 1:100
     global total_elapsed_time, init_value, solution
     start_time = initial_time + Dates.Hour(i-1)
-    if start_time >= DateTime(2019, 12, 31, 0)
+    if start_time >= DateTime(2019, 12, 30, 1)
         break
     end
-    @info "Running rolling horizon UC for $(start_time)"
+    @info "Running rolling horizon $(model_name) for $(start_time)"
     elapsed_time = @elapsed begin
         model = stochastic_uc(system, Gurobi.Optimizer, init_value = init_value, 
                     start_time = start_time, scenario_count = scenario_count, horizon = horizon)
@@ -40,7 +40,7 @@ for i in 1:1000
             init_value = _get_init_value(system, model)  
             solution = get_solution_uc_t(system, model, solution)
         catch e
-            @warn "Error in solving UC for $(start_time): $e"
+            @warn "Error in solving $(model_name) for $(start_time): $e"
             break
         end
     end
