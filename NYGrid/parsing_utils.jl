@@ -301,6 +301,7 @@ function _add_thermal(
     uptime,
     downtime,
 )
+    base_power = get_base_power(sys)
     device = PSY.ThermalStandard(
         name=name,
         available=true,
