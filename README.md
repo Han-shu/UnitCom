@@ -28,9 +28,9 @@
 - Replicate Jacob's policy and results
     - ~~SLAC~~
     - ~~DLAC-AVG~~
-    - DLAC-NLB-\theta
+    - ~~DLAC-NLB-\theta~~
     - DLAC-RT-\theta
-    - Need qunatile estimates for uncertainty
+- ~~Add qunatile estimates time series data~~
 
 # Model TODO
 - ~~Deterministic version~~
