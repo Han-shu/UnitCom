@@ -1,9 +1,8 @@
 # UnitCom
 
 # Limitations
-- Reserve requirement is constant for all time points
 - All thermal generators and batteries are assumed to be eligible to provide reserve
-- Reserve is provided by only thermal generators and batteries
+- Reserve is provided by thermal generators and batteries only
 - Variable cost of thermal generators is assumed to be constant
 - No minimum run time and notification time
 - No hydro power plants (or modeling by static dispatch)
