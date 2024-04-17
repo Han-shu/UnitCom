@@ -14,14 +14,14 @@ total_elapsed_time = 0.0
 # init_value, solution = init_rolling_uc(system)
 
 # 2. Run rolling horizon with solution from previous time point
-solution_file = joinpath(result_dir, "UC_solution20240416.json")
+solution_file = joinpath(result_dir, "UC_solution20240416_2.json")
 init_value, solution = init_rolling_uc(system; solution_file = solution_file)
 
 if length(solution["Time"]) > 0
     initial_time = DateTime(String(solution["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
 end
 
-for i in 1:600
+for i in 1:100
     global total_elapsed_time, init_value, solution
     start_time = initial_time + Dates.Hour(i-1)
     if start_time >= DateTime(2019, 12, 31, 0)
@@ -31,8 +31,13 @@ for i in 1:600
     elapsed_time = @elapsed begin
         model = stochastic_uc(system, Gurobi.Optimizer, init_value = init_value, 
                     start_time = start_time, scenario_count = scenario_count, horizon = horizon)
-        init_value = _get_init_value(system, model)  
-        solution = get_solution_uc_t(system, model, solution)
+        try
+            init_value = _get_init_value(system, model)  
+            solution = get_solution_uc_t(system, model, solution)
+        catch e
+            @warn "Error in solving UC for $(start_time): $e"
+            break
+        end
     end
     @info "Running UC for $(start_time) takes: $elapsed_time seconds"
     total_elapsed_time += elapsed_time
@@ -40,4 +45,4 @@ end
 @info "Total elapsed time: $total_elapsed_time seconds"
 
 # # save the solution
-write_json(joinpath(result_dir, "UC_solution20240416.json"), solution)
+write_json(joinpath(result_dir, "UC_solution20240416_2.json"), solution)
