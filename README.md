@@ -7,6 +7,14 @@
 - No minimum run time and notification time
 - No hydro power plants (or modeling by static dispatch)
 
+# April 18 - 23 TODO
+- Obtain qunatile estimates for uncertainty
+- Replicate Jacob's policy
+    - DLAC-NLB-\theta
+    - DLAC-RT-\theta
+- NYISO new reserve product
+    - 60 min, 4 hour reserves product
+
 # April 11 - 17 TODO
 - ~~Run rolling horizon with solution from previous time point~~
 - ~~Investigate the infeasibility at DateTime(2019,1,1,13)~~
@@ -17,6 +25,11 @@
     - ~~reserve shortfall penalty~~
     - ~~reserve variables for thermal gen and battery~~
 - Replicate Jacob's policy and results
+    - ~~SLAC~~
+    - ~~DLAC-AVG~~
+    - ~~DLAC-NLB-\theta~~
+    - DLAC-RT-\theta
+- ~~Add qunatile estimates time series data~~
 
 # Model TODO
 - ~~Deterministic version~~

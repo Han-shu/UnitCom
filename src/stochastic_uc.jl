@@ -15,7 +15,7 @@ include("../NYGrid/manual_data_entries.jl")
 function stochastic_uc(
     sys::System, optimizer; 
     start_time = DateTime(2019,1,1,0), scenario_count = 10, horizon = 24, 
-    VOLL=5000, use_must_run=false, init_value=nothing
+    VOLL=5000, use_must_run=false, init_value=nothing, theta=nothing,
     )
     
     model = Model(optimizer)
@@ -24,15 +24,15 @@ function stochastic_uc(
     model[:param] = parameters
 
     if isnothing(init_value)
-        init_value = _get_init_value(sys)
+        init_value = _get_init_value(sys, theta)
     end
     model[:init_value] = init_value
 
-    _add_net_injection!(model, sys)
+    _add_net_injection!(model, sys; theta = theta)
     
     _add_thermal_generators!(model, sys, use_must_run)
     
-    _add_renewables!(model, sys)
+    _add_renewables!(model, sys; theta = theta)
 
     # Storage
     has_storage = false

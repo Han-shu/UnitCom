@@ -1,7 +1,7 @@
-function _get_init_value(sys::System)::InitValue
+function _get_init_value(sys::System, theta::Union{Nothing, Int64})::InitValue
     storage_names = PSY.get_name.(get_components(GenericBattery, sys))
     thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
-    Pg_t0, ug_t0 = _init_fr_ed_model(sys)
+    Pg_t0, ug_t0 = _init_fr_ed_model(sys, theta)
     eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, system, b)) for b in storage_names)
     history_wg = Dict(g => Vector{Int}() for g in thermal_gen_names)
     history_vg = Dict(g => Vector{Int}() for g in thermal_gen_names)
@@ -34,8 +34,9 @@ function _get_init_value(sys::System, solution::OrderedDict)::InitValue
     return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
 end
 
-function _init_fr_ed_model(system::System)
-    model = ed_model(system, Gurobi.Optimizer, start_time = DateTime(Date(2019, 1, 1)))
+function _init_fr_ed_model(system::System, theta::Union{Nothing, Int64})
+    @info "Obtain initial conditions by running an ED model"
+    model = ed_model(system, Gurobi.Optimizer, theta = theta, start_time = DateTime(Date(2019, 1, 1)))
     thermal_gen_names = get_name.(get_components(ThermalGen, system))
     Pg_t0 = Dict()
     ug_t0 = Dict()
@@ -52,9 +53,9 @@ function _init_fr_ed_model(system::System)
 end
 
 
-function init_rolling_uc(sys::System; solution_file = nothing)
+function init_rolling_uc(sys::System; theta::Union{Nothing, Int64} = nothing, solution_file = nothing)
     if isnothing(solution_file)
-        init_value = _get_init_value(sys)
+        init_value = _get_init_value(sys, theta)
         solution = _initiate_solution_uc_t(sys)
     else     
         solution = read_json(solution_file)
