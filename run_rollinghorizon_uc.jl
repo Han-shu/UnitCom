@@ -4,24 +4,29 @@ include("src/stochastic_uc.jl")
 include("src/get_solution.jl")
 include("src/functions.jl")
 
+# set scenario count 1 for deterministic, 10 for stochastic
+scenario_count = 1
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 initial_time = Dates.DateTime(2019, 1, 1)
 horizon = 36
-scenario_count = 10
+model_name = scenario_count == 1 ? "DLAUC" : "SLAUC"
+today = Dates.today()
 total_elapsed_time = 0.0
 
+solution_file = joinpath(result_dir, "$(model_name)_solution_$(today).json")
+if !isfile(solution_file)
 # 1. Run rolling horizon without solution from beginning
-# init_value, solution = init_rolling_uc(system)
-
+    init_value, solution = init_rolling_uc(system)
+else
 # 2. Run rolling horizon with solution from previous time point
-solution_file = joinpath(result_dir, "UC_solution20240416_2.json")
-init_value, solution = init_rolling_uc(system; solution_file = solution_file)
+    init_value, solution = init_rolling_uc(system; solution_file = solution_file)
+end
 
 if length(solution["Time"]) > 0
     initial_time = DateTime(String(solution["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
 end
 
-for i in 1:100
+for i in 1:1000
     global total_elapsed_time, init_value, solution
     start_time = initial_time + Dates.Hour(i-1)
     if start_time >= DateTime(2019, 12, 31, 0)
@@ -45,4 +50,4 @@ end
 @info "Total elapsed time: $total_elapsed_time seconds"
 
 # # save the solution
-write_json(joinpath(result_dir, "UC_solution20240416_2.json"), solution)
+write_json(solution_file, solution)
