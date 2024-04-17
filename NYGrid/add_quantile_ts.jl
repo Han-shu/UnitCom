@@ -27,7 +27,6 @@ function _construct_fcst_data(fcst_quantiles::Matrix{Float64}, base_power::Float
 end
 
 function add_quantiles_time_series!(system::System)::Nothing
-    @info "Adding quantile time series data"
     ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/ARPAE_NYISO"
     solar_fcst_file = joinpath(ts_dir, "BA_Existing_solar_intra-hour_fcst_2019.h5")
     wind_fcst_file = joinpath(ts_dir, "BA_Existing_wind_intra-hour_fcst_2019.h5")

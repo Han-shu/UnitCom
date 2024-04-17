@@ -15,7 +15,6 @@ function _construct_fcst_data(file::AbstractString, base_power::Float64, initial
 end
 
 function add_scenarios_time_series!(system::System)::Nothing
-    @info "Adding scenarios time series data"
     ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO"
     solar_file = joinpath(ts_dir, "solar_scenarios.h5")
     wind_file = joinpath(ts_dir, "wind_scenarios.h5")
