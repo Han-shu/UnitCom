@@ -35,13 +35,14 @@ if !isfile(solution_file)
     init_value, solution = init_rolling_uc(system; theta = theta_value)
 else
 # 2. Run rolling horizon with solution from previous time point
+    @info "Find solution from $(solution_file)"
     init_value, solution = init_rolling_uc(system; solution_file = solution_file)
     initial_time = DateTime(String(solution["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
-    @info "Running rolling horizon $(model_name) with solution from $(solution_file) starting from $(initial_time)"
+    @info "Continue running rolling horizon $(model_name) starting from $(initial_time)"
 end
 
 
-for i in 1:100
+for i in 1:500
     global total_elapsed_time, init_value, solution
     start_time = initial_time + Dates.Hour(i-1)
     if start_time >= DateTime(2019, 12, 30, 1)

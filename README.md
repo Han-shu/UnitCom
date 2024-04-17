@@ -9,10 +9,10 @@
 - No hydro power plants (or modeling by static dispatch)
 
 # April 18 - 23 TODO
-- Obtain qunatile estimates for uncertainty
 - Replicate Jacob's policy
     - DLAC-NLB-\theta
     - DLAC-RT-\theta
+- Other policies ??? Discuss with Jacob
 - NYISO new reserve product
     - 60 min, 4 hour reserves product
 
