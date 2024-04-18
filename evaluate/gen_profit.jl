@@ -27,7 +27,7 @@ function compute_gen_profit(sys::System, solution)::OrderedDict
         LMP = solution["LMP"]
         profit = 0.0
         for t in eachindex(pg)
-            profit += (LMP[t]*pg[t] - pg[t]^2*variable_cost[g][1] + pg[t]*variable_cost[g][2])
+            profit += (LMP[t]*pg[t] - pg[t]*variable_cost[g])
         end
         profit -= sum(ug[t]*fixed_cost[g] + vg[t]*startup_cost[g] + wg[t]*shutdown_cost[g] for t in eachindex(pg))
         thermal_gen_profits[g] = profit

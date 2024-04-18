@@ -9,7 +9,7 @@ include("src/functions.jl")
 # DLAC-AVG: theta = nothing, scenario_count = 1
 # SLAC: theta = nothing, scenario_count = 10
 
-theta = 40 # nothing or set between 1 ~ 49 (Int)
+theta = 50 # nothing or set between 1 ~ 49 (Int)
 scenario_count = 1
 horizon = 36
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"

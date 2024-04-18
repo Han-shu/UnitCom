@@ -23,7 +23,10 @@ function _add_stroage!(sys::System, model::JuMP.Model)::Nothing
     # Constraints
     # net injection
     @constraint(model, battery_charge[b in storage_names, s in scenarios, t in time_steps], 
-                    kb_charge[b,s,t] + res_10[b,s,t] + res_30[b,s,t] <= kb_charge_max[b])
+                    kb_charge[b,s,t] <= kb_charge_max[b])
+
+    @constraint(model, battery_charge[b in storage_names, s in scenarios, t in time_steps], 
+                    kb_discharge[b,s,t] + res_10[b,s,t] + res_30[b,s,t] <= kb_discharge_max[b])
 
     expr_net_injection = model[:expr_net_injection]
     for s in scenarios, t in time_steps
