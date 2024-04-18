@@ -9,7 +9,7 @@
 
 # April 18 - 23 TODO
 - Replicate Jacob's policy
-    - DLAC-NLB-\theta
+    - ~~DLAC-NLB-\theta~~
     - DLAC-RT-\theta
 - Other policies ??? Discuss with Jacob
 - NYISO new reserve product

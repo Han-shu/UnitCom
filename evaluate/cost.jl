@@ -1,4 +1,5 @@
 # compute the total production cost at time t 
+# binary var from UC and op var from ED
 function compute_cost_t(model::JuMP.Model, sys::System)::Float64
     VOLL = model[:param].VOLL
     penalty = model[:param].reserve_short_penalty
@@ -43,7 +44,7 @@ function compute_charge_t(model::JuMP.Model, sys::System)::Float64
     price_res10 = _get_price(model, :eq_reserve_res10)
     price_res30 = _get_price(model, :eq_reserve_res30)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
-    storage_names = get_name.(get_components(GenericBattery, system))
+    storage_names = get_name.(get_components(GenericBattery, sys))
 
     energy_charge_t = sum(LMP*value(model[:pg][g,1,1]) for g in thermal_gen_names) +
                     sum(LMP*value(model[:kb_discharge][b,1,1]) for b in storage_names)
@@ -60,7 +61,7 @@ function compute_charge_t(model::JuMP.Model, sys::System)::Float64
     return charge_t
 end
 
-function compute_gen_profits(model::JuMP.Model, sys::System)::OrderedDict
+function compute_gen_profits_t_t(model::JuMP.Model, sys::System)::OrderedDict
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     fixed_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
     shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
@@ -71,7 +72,7 @@ function compute_gen_profits(model::JuMP.Model, sys::System)::OrderedDict
     price_spin10 = _get_price(model, :eq_reserve_spin10)
     price_res10 = _get_price(model, :eq_reserve_res10)
     price_res30 = _get_price(model, :eq_reserve_res30)
-    gen_profits = OrderedDict()
+    gen_profits_t = OrderedDict()
     
     for g in thermal_gen_names
         ug = value(model[:ug][g,1])
@@ -83,7 +84,7 @@ function compute_gen_profits(model::JuMP.Model, sys::System)::OrderedDict
                 price_res10*(value(model[:spin_10][g,1,1])+value(model[:Nspin_10][g,1,1])) + 
                 price_res30*(value(model[:spin_10][g,1,1]) + value(model[:Nspin_30][g,1,1]))) 
         profit -= (pg*variable_cost[g] + ug*fixed_cost[g] + vg*startup_cost[g] + wg*shutdown_cost[g])
-        gen_profits[g] = profit
+        gen_profits_t[g] = profit
     end
 
     storage_names = get_name.(get_components(GenericBattery, sys))
@@ -91,8 +92,8 @@ function compute_gen_profits(model::JuMP.Model, sys::System)::OrderedDict
         profit = (LMP*(value(model[:kb_discharge][b,1,1])-value(model[:kb_charge][b,1,1])) + 
                 (price_res10+price_spin10)*value(model[:res_10][b,1,1]) + 
                 price_res30*value(model[:res_30][b,1,1]))
-        gen_profits[b] = profit
+        gen_profits_t[b] = profit
     end
 
-    return gen_profits
+    return gen_profits_t
 end
