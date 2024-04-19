@@ -8,6 +8,8 @@
 - No hydro power plants (or modeling by static dispatch)
 
 # April 18 - 23 TODO
+- Add stochastic 5 min ED model (1h horizon)
+- Add 5min ED data
 - Replicate Jacob's policy
     - ~~DLAC-NLB-\theta~~
     - DLAC-RT-\theta

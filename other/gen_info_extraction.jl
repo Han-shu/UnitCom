@@ -130,3 +130,39 @@ eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, syst
 η = Dict(b => get_efficiency(get_component(GenericBattery, system, b)) for b in storage_names)
 kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
 kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
+
+
+using DataStructures, PowerSystemCaseBuilder, InfrastructureSystems, PowerSystems
+const PSB = PowerSystemCaseBuilder
+const IS = InfrastructureSystems
+initial_time = DateTime(2020, 1, 1, 0)
+polynomial_cost = repeat([(999.0, 1.0)], 24)
+data_polynomial = SortedDict(initial_time => polynomial_cost)
+sys = PSB.build_system(PSITestSystems, "test_RTS_GMLC_sys")
+generators = collect(get_components(ThermalStandard, sys))
+generator = get_component(ThermalStandard, sys, get_name(generators[1]))
+# market_bid = MarketBidCost(nothing)
+# set_operation_cost!(generator, market_bid)
+# forecast = IS.Deterministic("variable_cost", data_polynomial, Hour(1))
+data = TimeArray(range(initial_time, step = Hour(1), length = 24), ones(24))
+forecast = IS.SingleTimeSeries("variable_cost", data)
+set_variable_cost!(sys, generator, forecast)
+
+get_variable_cost(generator, market_bid)
+
+
+initial_time = Dates.DateTime("2020-01-01")
+resolution = Dates.Hour(1)
+name = "test"
+horizon = 24
+pwl_cost = repeat([repeat([(999.0, 1.0)], 5)], 24)
+data_pwl = SortedDict(initial_time => pwl_cost)
+sys = PSB.build_system(PSITestSystems, "test_RTS_GMLC_sys")
+generators = collect(get_components(ThermalStandard, sys))
+generator = get_component(ThermalStandard, sys, get_name(generators[1]))
+market_bid = MarketBidCost(nothing)
+set_operation_cost!(generator, market_bid)
+forecast = IS.Deterministic("variable_cost", data_pwl, resolution)
+set_variable_cost!(sys, generator, forecast)
+
+cost_forecast = get_variable_cost(generator, market_bid; start_time = initial_time)
