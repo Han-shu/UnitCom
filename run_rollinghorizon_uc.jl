@@ -1,5 +1,5 @@
 include("NYGrid/build_ny_system.jl") # function to build the NYGrid system
-include("NYGrid/add_ts.jl") # function to add scenario time series data
+include("NYGrid/add_scenarios_ts.jl") # function to add scenario time series data
 include("NYGrid/add_quantile_ts.jl") # function to add quantile time series data
 include("src/stochastic_uc.jl")
 include("src/get_solution.jl")

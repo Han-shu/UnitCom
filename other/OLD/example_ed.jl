@@ -1,4 +1,4 @@
-function ed_model(sys::System, optimizer)
+function stochastic_ed(sys::System, optimizer)
     ed_m = Model(optimizer)
     time_period = 1:24
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
@@ -32,4 +32,4 @@ function ed_model(sys::System, optimizer)
 end
 
 pjmsys = build_system(PSISystems, "c_sys5_pjm")
-results = ed_model(pjmsys, Gurobi.Optimizer)
+results = stochastic_ed(pjmsys, Gurobi.Optimizer)

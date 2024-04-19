@@ -1,6 +1,6 @@
 using Test
 include("NYGrid/build_ny_system.jl")
-include("NYGrid/add_ts.jl")
+include("NYGrid/add_scenarios_ts.jl")
 include("src/stochastic_ed.jl")
 include("src/stochastic_uc.jl")
 include("src/get_solution.jl")
@@ -11,7 +11,7 @@ start_time = DateTime(2019,1,1,0)
 parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, reserve_requirement_by_hour, reserve_short_penalty)
 
 ## ED test
-model = ed_model(system, Gurobi.Optimizer, VOLL = 1000, start_time = DateTime(2019, 1, 1, 0))
+model = stochastic_ed(system, Gurobi.Optimizer, VOLL = 1000, start_time = DateTime(2019, 1, 1, 0))
 # access variable values
 LMP_matrix = zeros(10, 24)
 for s in 1:10, t in 1:24

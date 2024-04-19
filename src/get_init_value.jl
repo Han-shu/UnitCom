@@ -36,7 +36,7 @@ end
 
 function _init_fr_ed_model(system::System, theta::Union{Nothing, Int64})
     @info "Obtain initial conditions by running an ED model"
-    model = ed_model(system, Gurobi.Optimizer, theta = theta, start_time = DateTime(Date(2019, 1, 1)))
+    model = stochastic_ed(system, Gurobi.Optimizer, theta = theta, start_time = DateTime(Date(2019, 1, 1)))
     thermal_gen_names = get_name.(get_components(ThermalGen, system))
     Pg_t0 = Dict()
     ug_t0 = Dict()
