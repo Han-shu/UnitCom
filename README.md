@@ -8,8 +8,12 @@
 - No hydro power plants (or modeling by static dispatch)
 
 # April 18 - 23 TODO
-- Add stochastic 5 min ED model (1h horizon)
-- Add 5min ED data
+- Generate time series data for 5 min ED model
+- ~~Add stochastic 5 min ED model (2h horizon)~~
+- Add 5min ED model
+- Connect ED model with UC model
+- Get results from 5 min ED model
+- Calculate policy cost, charge, generator profits
 - Replicate Jacob's policy
     - ~~DLAC-NLB-\theta~~
     - DLAC-RT-\theta

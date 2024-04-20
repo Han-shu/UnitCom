@@ -28,3 +28,10 @@ end
 function _construct_init_value(ug_t0::Dict, Pg_t0::Dict, eb_t0::Dict, history_vg::Dict, history_wg::Dict)
     return InitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
 end
+
+
+mutable struct EDInitValue
+    ug_t0::Dict
+    Pg_t0::Dict
+    eb_t0::Dict
+end
