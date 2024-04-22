@@ -51,7 +51,7 @@ for i in 1:500
         model = stochastic_uc(system, Gurobi.Optimizer; init_value = init_value, theta = theta,
                     start_time = start_time, scenario_count = scenario_count, horizon = horizon)
         try
-            init_value = _get_init_value(system, model)  
+            init_value = _get_init_value_for_UC(system, model)  
             solution = get_solution_uc_t(system, model, solution)
         catch e
             @warn "Error in solving $(model_name) for $(start_time): $e"

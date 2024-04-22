@@ -11,7 +11,15 @@
 - Generate time series data for 5 min ED model
 - ~~Add stochastic 5 min ED model (2h horizon)~~
 - Add 5min ED model
+    - Shrinking horizon or rolling horizon
 - Connect ED model with UC model
+    - pass commitment status from UC to ED
+    - pass generartion dispatch and storage level from ED to UC
+    - fix the first hour commitment of UC from last UC solution
+- Add reserve as current implementations in NYISO
+    - 10 min spinning 
+    - 10 min non-synchronized 
+    - 30 min reserve (spinning + non-synchronized)
 - Get results from 5 min ED model
 - Calculate policy cost, charge, generator profits
 - Replicate Jacob's policy

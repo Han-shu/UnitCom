@@ -10,6 +10,7 @@ include("add_thermal.jl")
 include("add_storage.jl")
 include("add_system_eqs.jl")
 include("compute_conflict.jl")
+include("fix.jl")
 include("../NYGrid/manual_data_entries.jl")
 
 function stochastic_uc(
@@ -24,7 +25,7 @@ function stochastic_uc(
     model[:param] = parameters
 
     if isnothing(init_value)
-        init_value = _get_init_value(sys, theta)
+        init_value = _get_init_value_for_UC(sys, theta)
     end
     model[:init_value] = init_value
 
@@ -32,6 +33,8 @@ function stochastic_uc(
     
     _add_thermal_generators!(model, sys, use_must_run)
     
+    _fixed_lookahead_commitment!(model, sys; fix_len = 1)
+
     _add_renewables!(model, sys; theta = theta)
 
     # Storage

@@ -36,9 +36,9 @@ start_time = DateTime(2019,1,1)
 UC_init_value, solution = init_rolling_uc(UCsys; theta = theta)
 uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
                     start_time = start_time, scenario_count = scenario_count, horizon = uc_horizon)
-UC_init_value = _get_init_value(system, model)  
+UC_init_value = _get_init_value_for_UC(system, model)  
 solution = get_solution_uc_t(system, model, solution)
-ED_init_value = _get_init_value(system, model)
+ED_init_value = _get_init_value_for_UC(system, model)
 ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; init_value = ED_init_value, theta = theta, start_time = start_time, horizon = ed_horizon)
 
 
