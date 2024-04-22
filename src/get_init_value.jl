@@ -1,11 +1,3 @@
-function _get_init_value_for_UC(sys::System, theta::Union{Nothing, Int64})::UCInitValue
-    thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
-    ug_t0, Pg_t0, eb_t0 = _init_fr_ed_model(sys; theta = theta)
-    history_wg = Dict(g => Vector{Int}() for g in thermal_gen_names)
-    history_vg = Dict(g => Vector{Int}() for g in thermal_gen_names)
-    return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_wg, history_vg)
-end
-
 function _get_init_value_for_UC(sys::System; 
         ed_model::Union{JuMP.Model, Nothing}, 
         uc_model::Union{JuMP.Model, Nothing}, 
@@ -32,18 +24,6 @@ function _get_init_value_for_UC(sys::System;
     end
 end
 
-function _get_init_value_for_UC(sys::System, uc_model::JuMP.Model, ED_init_value::EDInitValue)::UCInitValue
-    history_wg = uc_model[:init_value].history_wg
-    history_vg = uc_model[:init_value].history_vg
-    thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
-    ug_t0 = Dict(g => [value(uc_model[:ug][g,t]) for t in 1:2] for g in thermal_gen_names)
-    Pg_t0, eb_t0 = ED_init_value.Pg_t0, ED_init_value.eb_t0
-    for g in thermal_gen_names
-        push!(history_vg[g], Int(round(value(uc_model[:vg][g,1]), digits = 0)))
-        push!(history_wg[g], Int(round(value(uc_model[:wg][g,1]), digits = 0)))
-    end
-    return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
-end
 
 #TODO
 function _get_init_value_for_UC(sys::System, solution::OrderedDict)::UCInitValue
@@ -78,6 +58,34 @@ function _init_fr_ed_model(sys::System; theta::Union{Nothing, Int64} = nothing, 
 end
 
 
+function _get_binding_value_from_ED(sys::System, ed_model::JuMP.Model)
+    storage_names = PSY.get_name.(get_components(GenericBattery, sys))
+    thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
+    Pg_t0 = Dict(g => value(ed_model[:pg][g,1,1]) for g in thermal_gen_names)
+    eb_t0 = Dict(b => value(ed_model[:eb][b,1,1]) for b in storage_names)
+    return Pg_t0, eb_t0
+end
+
+function _get_init_value_for_ED(sys::System, ug_t0::Dict; ed_model::Union{Nothing,JuMP.Model} = nothing, UC_init_value = nothing)::EDInitValue
+    if isnothing(ed_model)
+        @assert !isnothing(UC_init_value)
+        Pg_t0 = UC_init_value.Pg_t0
+        eb_t0 = UC_init_value.eb_t0
+        return EDInitValue(ug_t0, Pg_t0, eb_t0)
+    else
+        @assert !isnothing(ug_t0)
+        Pg_t0, eb_t0 = _get_binding_value_from_ED(sys, ed_model)
+        return EDInitValue(ug_t0, Pg_t0, eb_t0)
+    end
+end
+
+
+function _get_commitment_status_for_ED(uc_model::JuMP.Model, thermal_gen_names; CoverHour = 2)::Dict
+    ug_t0 = Dict(g => [value(uc_model[:ug][g,t]) for t in 1:CoverHour] for g in thermal_gen_names)
+    return ug_t0
+end
+
+
 function init_rolling_uc(sys::System; theta::Union{Nothing, Int64} = nothing, solution_file = nothing)
     if isnothing(solution_file)
         init_value = _get_init_value_for_UC(sys, theta)
@@ -87,38 +95,4 @@ function init_rolling_uc(sys::System; theta::Union{Nothing, Int64} = nothing, so
         init_value = _get_init_value_for_UC(sys, solution)
     end
     return init_value, solution
-end
-
-function _get_binding_value_from_ED(sys::System, ed_model::JuMP.Model)
-    storage_names = PSY.get_name.(get_components(GenericBattery, sys))
-    thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
-    Pg_t0 = Dict(g => value(ed_model[:pg][g,1,1]) for g in thermal_gen_names)
-    eb_t0 = Dict(b => value(ed_model[:eb][b,1,1]) for b in storage_names)
-    return Pg_t0, eb_t0
-end
-
-function _get_init_value_for_ED(sys::System, ug_t0::Dict; ed_model::Union{Nothing,JuMP.Model} = nothing)::EDInitValue
-    if isnothing(ed_model)
-        storage_names = PSY.get_name.(get_components(GenericBattery, sys))
-        _, Pg_t0, eb_t0 = _init_fr_ed_model(sys)
-        return EDInitValue(ug_t0, Pg_t0, eb_t0)
-    else
-        @assert !isnothing(ug_t0)
-        Pg_t0, eb_t0 = _get_binding_value_from_ED(sys, ed_model)
-        return EDInitValue(ug_t0, Pg_t0, eb_t0)
-    end
-end
-
-# function _get_init_value_for_ED(sys::System; CoverHour::Int=2)::EDInitValue
-#     thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
-#     storage_names = PSY.get_name.(get_components(GenericBattery, sys))
-#     ug_t0 = Dict(g => repeat([1], CoverHour) for g in thermal_gen_names)
-#     Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
-#     eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
-#     return EDInitValue(ug_t0, Pg_t0, eb_t0)
-# end
-
-function _get_commitment_status_for_ED(uc_model::JuMP.Model, thermal_gen_names; CoverHour = 2)::Dict
-    ug_t0 = Dict(g => [value(uc_model[:ug][g,t]) for t in 1:CoverHour] for g in thermal_gen_names)
-    return ug_t0
 end

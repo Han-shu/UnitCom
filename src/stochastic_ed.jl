@@ -15,11 +15,13 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     min_step = minute(model[:param].start_time)/5
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
+    init_flag = false
 
     if isnothing(init_value)
         ug = Dict(g => repeat([1], 2) for g in thermal_gen_names)
         Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
         eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
+        init_flag = true
     else
         ug = init_value.ug_t0 # commitment status
         Pg_t0 = init_value.Pg_t0
@@ -28,7 +30,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     # Thermal generators
     pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
     variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
-    @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps])
     @variable(model, spin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
     @variable(model, spin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
     @variable(model, Nspin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
@@ -41,25 +43,27 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     end
 
     # ramping constraints and reserve constraints
-    get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
-    get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
-    ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g))*60 for g in thermal_gen_names)
-    ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g))*60 for g in thermal_gen_names)
-    for g in thermal_gen_names, s in scenarios, t in time_steps
-        i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
-        if t == 1
-            @constraint(model, pg[g,s,1] - Pg_t0[g] + spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g]*ug[g][i]/12)
-            @constraint(model, Pg_t0[g] - pg[g,s,1]  <= ramp_dn[g]*ug[g][i]/12)
-        else
-            @constraint(model, pg[g,s,t] - pg[g,s,t-1] + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g][i]/12)
-            @constraint(model, pg[g,s,t-1] - pg[g,s,t] <= ramp_dn[g]*ug[g][i]/12)
+    if !init_flag
+        get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
+        get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
+        ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+        ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+        for g in thermal_gen_names, s in scenarios, t in time_steps
+            i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
+            if t == 1
+                @constraint(model, pg[g,s,1] - Pg_t0[g] + spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g]*ug[g][i]/12)
+                @constraint(model, Pg_t0[g] - pg[g,s,1]  <= ramp_dn[g]*ug[g][i]/12)
+            else
+                @constraint(model, pg[g,s,t] - pg[g,s,t-1] + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g][i]/12)
+                @constraint(model, pg[g,s,t-1] - pg[g,s,t] <= ramp_dn[g]*ug[g][i]/12)
+            end
+            @constraint(model, spin_10[g,s,t] <= ramp_up[g]*ug[g][i]/6)
+            @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g][i]/2)
+            @constraint(model, Nspin_10[g,s,t] <= ramp_up[g]*(1-ug[g][i])/6)
+            @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_up[g]*(1-ug[g][i])/2)
+            @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g][i])
+            @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g][i]))
         end
-        @constraint(model, spin_10[g,s,t] <= ramp_up[g]*ug[g][i]/6)
-        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g][i]/2)
-        @constraint(model, Nspin_10[g,s,t] <= ramp_up[g]*(1-ug[g][i])/6)
-        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_up[g]*(1-ug[g][i])/2)
-        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g][i])
-        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g][i]))
     end
 
     # Storage
@@ -77,46 +81,42 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
 
     @constraint(model, battery_discharge[b in storage_names, s in scenarios, t in time_steps], 
                     kb_discharge[b,s,t] + res_10[b,s,t] + res_30[b,s,t] <= kb_discharge_max[b])
-    
-    eq_storage_energy = _init(model, :eq_storage_energy)
-    for b in storage_names, s in scenarios, t in time_steps
-        if t == 1
-            eq_storage_energy[b,s,1] = @constraint(model,
-                eb[b,s,1] == eb_t0[b] + η[b].in * kb_charge[b,s,1] - (1/η[b].out) * kb_discharge[b,s,1])
-        else
-            eq_storage_energy[b, t] = @constraint(model,
-                eb[b,s,t] == eb[b,s,t-1] + η[b].in * kb_charge[b,s,t] - (1/η[b].out) * kb_discharge[b,s,t])
-        end
-    end
+
+    @constraint(model, eq_storage_energy[b in storage_names, s in scenarios, t in time_steps],
+        eb[b,s,t] == (t == 1 ? eb_t0[b] : eb[b,s,t-1]) + η[b].in * kb_charge[b,s,t] - (1/η[b].out) * kb_discharge[b,s,t])
+
 
     # net load = load - wind - solar
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys)
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe,RenewableGen, sys)                
-    net_load = zeros(length(time_steps), length(scenarios))
+    load = collect(get_components(StaticLoad, sys))[1]
     if isnothing(theta)
-        for g in solar_gens
-            net_load -= get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps))
-        end
-        for g in wind_gens
-            net_load -= get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))
-        end
-        for load in get_components(StaticLoad, sys)
-            net_load += get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
-        end
+        forecast_solar = Dict(get_name(g) =>
+            get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps)) 
+            for g in solar_gens)
+        forecast_wind = Dict(get_name(g) =>
+            get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))
+            for g in wind_gens)
+        forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
     else
-        for g in solar_gens
-            net_load -= get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps))[:, theta]
-        end
-        for g in wind_gens
-            net_load -= get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))[:, theta]
-        end
-        for load in get_components(StaticLoad, sys)
-            net_load += get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))[:, 100-theta]
-        end
+        forecast_solar = Dict(get_name(g) =>
+            get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps))[:, theta]
+            for g in solar_gens)
+        forecast_wind = Dict(get_name(g) =>
+        get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))[:, theta]
+            for g in wind_gens)
+        forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))[:, 100-theta]          
     end
-    net_load = max.(net_load, 0)
+    
+    @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps] >= 0)
+    @constraint(model, solar_constraint[g in solar_gen_names, s in scenarios, t in time_steps], pS[g,s,t] <= forecast_solar[g][t,s])
+    @constraint(model, wind_constraint[g in wind_gen_names, s in scenarios, t in time_steps], pW[g,s,t] <= forecast_wind[g][t,s])
+
     @variable(model, curtailment[s in scenarios, t in time_steps] >= 0)
-    @constraint(model, eq_pb[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + sum(kb_discharge[b,s,t] - kb_charge[b,s,t] for b in storage_names) + curtailment[s,t] == net_load[t,s])
+    @constraint(model, eq_pb[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + 
+            sum(kb_discharge[b,s,t] - kb_charge[b,s,t] for b in storage_names) + curtailment[s,t] + 
+            sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
 
     if variable_cost[thermal_gen_names[1]] isa Float64
         add_to_expression!(model[:obj], (1/length(scenarios))*sum(
@@ -132,6 +132,12 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     @objective(model, Min, model[:obj])
 
     optimize!(model)
+
+    model_status = JuMP.primal_status(model)
+    if model_status != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
+        print_conflict(model; write_iis = true, iis_path = "/Users/hanshu/Desktop/Price_formation/Result")
+    end
+
     return model
 end
 

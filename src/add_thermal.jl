@@ -11,8 +11,6 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
 
     if typeof(get_component(ThermalGen, sys, thermal_gen_names[1])) == ThermalMultiStart
         # use cold startup cost
-        # categories_startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
-        # startup_cost = Dict(g => sum(categories_startup_cost[g])/length(categories_startup_cost[g]) for g in thermal_gen_names)
         startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalMultiStart, sys, g)))[:cold] for g in thermal_gen_names)
     else
         startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalStandard, sys, g))) for g in thermal_gen_names)
@@ -20,8 +18,8 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
 
     get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
     get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
-    ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g))*60 for g in thermal_gen_names)
-    ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g))*60 for g in thermal_gen_names)
+    ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
 
     # initial condition
     ug_t0 = model[:init_value].ug_t0
@@ -39,7 +37,7 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
     @variable(model, wg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
  
     # power generation variables
-    @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps])
     # reserve variables
     @variable(model, spin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
     @variable(model, Nspin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
