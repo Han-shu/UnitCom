@@ -27,7 +27,9 @@ get_base_power(system)
 
 PSI.get_active_power_limits(thermal_gens[3])
 
-thermal_gen_names = get_name.(get_components(ThermalGen, system))
+thermal_gen_names = get_name.(get_components(ThermalGen, UCsys))
+typeof(get_component(ThermalGen, UCsys, thermal_gen_names[1])) == ThermalStandard
+
 fuel = Dict(g => get_fuel(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
 pm = Dict(g => get_prime_mover_type(get_component(ThermalGen, system, g)) for g in thermal_gen_names)
 all_fuel = unique(get_fuel(get_component(ThermalGen, system, g)) for g in thermal_gen_names)

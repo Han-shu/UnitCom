@@ -17,7 +17,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     storage_names = get_name.(get_components(GenericBattery, sys))
 
     if isnothing(init_value)
-        ug = Dict(g => 1 for g in thermal_gen_names)
+        ug = Dict(g => repeat([1], 2) for g in thermal_gen_names)
         Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
         eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
     else
@@ -31,32 +31,35 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
     @variable(model, spin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
     @variable(model, spin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, Nspin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, Nspin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
 
     for g in thermal_gen_names, s in scenarios, t in time_steps
-        @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g,i])
-        @constraint(model, pg[g,s,t] + spin_10[g,s,t] + spin_30[g,s,t] <= pg_lim[g].max*ug[g,i])
+        i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
+        @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g][i])
+        @constraint(model, pg[g,s,t] + spin_10[g,s,t] + spin_30[g,s,t] <= pg_lim[g].max*ug[g][i])
     end
 
     # ramping constraints and reserve constraints
     get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
     get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
-    ramp_up = Dict(g => get_rmp_up_limit(get_component(thermal_type, sys, g))*60 for g in thermal_gen_names)
-    ramp_dn = Dict(g => get_rmp_dn_limit(get_component(thermal_type, sys, g))*60 for g in thermal_gen_names)
+    ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g))*60 for g in thermal_gen_names)
+    ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g))*60 for g in thermal_gen_names)
     for g in thermal_gen_names, s in scenarios, t in time_steps
         i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
         if t == 1
-            @constraint(model, pg[g,s,1] - Pg_t0[g] + spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g]*ug[g,i]/12)
-            @constraint(model, Pg_t0[g] - pg[g,s,1]  <= ramp_dn[g]*ug[g,i]/12)
+            @constraint(model, pg[g,s,1] - Pg_t0[g] + spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g]*ug[g][i]/12)
+            @constraint(model, Pg_t0[g] - pg[g,s,1]  <= ramp_dn[g]*ug[g][i]/12)
         else
-            @constraint(model, pg[g,s,t] - pg[g,s,t-1] + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g,i]/12)
-            @constraint(model, pg[g,s,t-1] - pg[g,s,t] <= ramp_dn[g]*ug[g,i]/12)
+            @constraint(model, pg[g,s,t] - pg[g,s,t-1] + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g][i]/12)
+            @constraint(model, pg[g,s,t-1] - pg[g,s,t] <= ramp_dn[g]*ug[g][i]/12)
         end
-        @constraint(model, spin_10[g,s,t] <= ramp_up[g]*ug[g,i]/6)
-        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g,i]/2)
-        @constraint(model, Nspin_10[g,s,t] <= ramp_up[g]*(1-ug[g,i])/6)
-        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_up[g]*(1-ug[g,i])/2)
-        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g,i])
-        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g,i]))
+        @constraint(model, spin_10[g,s,t] <= ramp_up[g]*ug[g][i]/6)
+        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g][i]/2)
+        @constraint(model, Nspin_10[g,s,t] <= ramp_up[g]*(1-ug[g][i])/6)
+        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_up[g]*(1-ug[g][i])/2)
+        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g][i])
+        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g][i]))
     end
 
     # Storage

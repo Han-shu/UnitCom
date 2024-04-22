@@ -24,7 +24,7 @@ if !isnothing(theta)
     add_quantiles_time_series!(system)
 else
     @info "Adding scenarios time series data"
-    add_scenarios_time_series!(system)
+    add_scenarios_time_series_UC!(system)
 end
 
 if !isfile(solution_file)

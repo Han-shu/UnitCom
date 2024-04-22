@@ -1,43 +1,34 @@
 function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)::Nothing
     scenarios = model[:param].scenarios
     time_steps = model[:param].time_steps
-
     expr_net_injection = model[:expr_net_injection]
 
-    # get the struct type of thermal generator: ThermalStandard or ThermalMultiStart
-    thermal_struct_type = Set()
-    for g in get_components(ThermalGen, system)
-        push!(thermal_struct_type, typeof(g))
-    end
-    @assert length(thermal_struct_type) == 1
-    thermal_type = first(thermal_struct_type)
+    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+    pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    fixed_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
+    shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
+    variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
 
-    thermal_gen_names = get_name.(get_components(thermal_type, sys))
-    pg_lim = Dict(g => get_active_power_limits(get_component(thermal_type, sys, g)) for g in thermal_gen_names)
-    fixed_cost = Dict(g => get_fixed(get_operation_cost(get_component(thermal_type, sys, g))) for g in thermal_gen_names)
-    shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(thermal_type, sys, g))) for g in thermal_gen_names)
-    variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(thermal_type, sys, g)))) for g in thermal_gen_names)
-
-    if thermal_type == ThermalMultiStart
-        # use the average of hot/warm/cold startup cost
-        #TODO 
-        categories_startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalMultiStart, sys, g))) for g in thermal_gen_names)
-        startup_cost = Dict(g => sum(categories_startup_cost[g])/length(categories_startup_cost[g]) for g in thermal_gen_names)
+    if typeof(get_component(ThermalGen, sys, thermal_gen_names[1])) == ThermalMultiStart
+        # use cold startup cost
+        # categories_startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
+        # startup_cost = Dict(g => sum(categories_startup_cost[g])/length(categories_startup_cost[g]) for g in thermal_gen_names)
+        startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalMultiStart, sys, g)))[:cold] for g in thermal_gen_names)
     else
         startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalStandard, sys, g))) for g in thermal_gen_names)
     end
 
     get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
     get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
-    ramp_up = Dict(g => get_rmp_up_limit(get_component(thermal_type, sys, g))*60 for g in thermal_gen_names)
-    ramp_dn = Dict(g => get_rmp_dn_limit(get_component(thermal_type, sys, g))*60 for g in thermal_gen_names)
+    ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g))*60 for g in thermal_gen_names)
+    ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g))*60 for g in thermal_gen_names)
 
     # initial condition
     ug_t0 = model[:init_value].ug_t0
     Pg_t0 = model[:init_value].Pg_t0
 
     if use_must_run
-        must_run_gen_names = get_name.(get_components(x -> PSY.get_must_run(x), thermal_type, sys))
+        must_run_gen_names = get_name.(get_components(x -> PSY.get_must_run(x), ThermalGen, sys))
     end
 
     # -----------------------------------------------------------------------------------------  
@@ -55,7 +46,7 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
     @variable(model, spin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
     @variable(model, Nspin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
 
-    # if thermal_type == ThermalMultiStart
+    # if ThermalGen == ThermalGen
     #     segprod = _init(model, :segprod)
     #     eq_segprod_limit = _init(model, :eq_segprod_limit)
     #     for g in thermal_gen_names
@@ -72,7 +63,7 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
     # Commitment status constraints
     for g in thermal_gen_names, t in time_steps
         if t == 1
-            @constraint(model, ug[g,1] - ug_t0[g] == vg[g,1] - wg[g,1])
+            @constraint(model, ug[g,1] - ug_t0[g][1] == vg[g,1] - wg[g,1])
         else
             @constraint(model, ug[g,t] - ug[g,t-1] == vg[g,t] - wg[g,t])
         end
@@ -113,61 +104,61 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
     end
 
     # Up and down time constraints
-    if thermal_type == ThermalMultiStart
-        history_vg = model[:init_value].history_vg
-        history_wg = model[:init_value].history_wg
-        time_up_t0 = Dict(g => ug_t0[g] * get_time_at_status(get_component(ThermalMultiStart, system, g)) for g in thermal_gen_names)
-        time_down_t0 = Dict(g => (1 - ug_t0[g])*get_time_at_status(get_component(ThermalMultiStart, system, g)) for g in thermal_gen_names)
-        eq_uptime = _init(model, :eq_uptime)
-        eq_downtime = _init(model, :eq_downtime)
-        for g in thermal_gen_names, t in time_steps
-            time_limits = get_time_limits(get_component(ThermalMultiStart, sys, g))
-            prev_len = length(history_vg[g])
-            lhs_on = AffExpr(0)
+    history_vg = model[:init_value].history_vg
+    history_wg = model[:init_value].history_wg
+    time_up_t0 = Dict(g => ug_t0[g][1] * get_time_at_status(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    time_down_t0 = Dict(g => (1 - ug_t0[g][1])*get_time_at_status(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    eq_uptime = _init(model, :eq_uptime)
+    eq_downtime = _init(model, :eq_downtime)
+    for g in thermal_gen_names, t in time_steps
+        time_limits = get_time_limits(get_component(ThermalGen, sys, g))
+        prev_len = length(history_vg[g])
+        lhs_on = AffExpr(0)
 
-            if t - time_limits[:up] + 1 >= 1
-                for i in UnitRange{Int}(Int(t - time_limits[:up] + 1), t)
+        if t - time_limits[:up] + 1 >= 1
+            for i in UnitRange{Int}(Int(t - time_limits[:up] + 1), t)
+                add_to_expression!(lhs_on, vg[g,i])
+            end
+        else
+            if prev_len >= floor(Int, time_limits[:up]-t) + 1 
+                for i in UnitRange{Int}(1, t)
                     add_to_expression!(lhs_on, vg[g,i])
                 end
+                for i in UnitRange{Int}(0, floor(Int, time_limits[:up]-t))
+                    add_to_expression!(lhs_on, history_vg[g][end-i])
+                end
+            elseif t <= max(0, time_limits[:up] - time_up_t0[g]) && time_up_t0[g] > 0
+                add_to_expression!(lhs_on, 1)
             else
-                if prev_len >= floor(Int, time_limits[:up]-t) + 1 
-                    for i in UnitRange{Int}(1, t)
-                        add_to_expression!(lhs_on, vg[g,i])
-                    end
-                    for i in UnitRange{Int}(0, floor(Int, time_limits[:up]-t))
-                        add_to_expression!(lhs_on, history_vg[g][end-i])
-                    end
-                elseif t <= max(0, time_limits[:up] - time_up_t0[g]) && time_up_t0[g] > 0
-                    add_to_expression!(lhs_on, 1)
-                else
-                    continue
-                end
+                continue
             end
-            eq_uptime[g,t] = @constraint(model, lhs_on - ug[g,t] <= 0.0)
-
-            lhs_off = AffExpr(0)
-            if t - time_limits[:down] + 1 >= 1
-                for i in UnitRange{Int}(Int(t - time_limits[:down] + 1), t)
-                    add_to_expression!(lhs_off, vg[g,i])
-                end
-            else
-                if prev_len >= floor(Int, time_limits[:down]-t) + 1 
-                    for i in UnitRange{Int}(1, t)
-                        add_to_expression!(lhs_off, wg[g,i])
-                    end
-                    for i in UnitRange{Int}(0, floor(Int, time_limits[:down]-t))
-                        add_to_expression!(lhs_off, history_wg[g][end-i])
-                    end
-                elseif t <= max(0, time_limits[:down] - time_down_t0[g]) && time_down_t0[g] > 0
-                    add_to_expression!(lhs_off, 1)
-                else
-                    continue
-                end
-            end
-            eq_downtime[g,t] = @constraint(model, lhs_off + ug[g,t] <= 1.0)
         end
+        eq_uptime[g,t] = @constraint(model, lhs_on - ug[g,t] <= 0.0)
+
+        lhs_off = AffExpr(0)
+        if t - time_limits[:down] + 1 >= 1
+            for i in UnitRange{Int}(Int(t - time_limits[:down] + 1), t)
+                add_to_expression!(lhs_off, vg[g,i])
+            end
+        else
+            if prev_len >= floor(Int, time_limits[:down]-t) + 1 
+                for i in UnitRange{Int}(1, t)
+                    add_to_expression!(lhs_off, wg[g,i])
+                end
+                for i in UnitRange{Int}(0, floor(Int, time_limits[:down]-t))
+                    add_to_expression!(lhs_off, history_wg[g][end-i])
+                end
+            elseif t <= max(0, time_limits[:down] - time_down_t0[g]) && time_down_t0[g] > 0
+                add_to_expression!(lhs_off, 1)
+            else
+                continue
+            end
+        end
+        eq_downtime[g,t] = @constraint(model, lhs_off + ug[g,t] <= 1.0)
+
     end
 
+    # Add variable cost to objective function
     if isa(variable_cost[thermal_gen_names[1]], Float64)
         add_to_expression!(model[:obj], sum(
                    pg[g,s,t]*variable_cost[g]
@@ -177,11 +168,10 @@ function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)
                     pg[g,s,t]^2*variable_cost[g][1] + pg[g,s,t]*variable_cost[g][2]
                     for g in thermal_gen_names, s in scenarios, t in time_steps), 1/length(scenarios))
     else
-        add_to_expression!(model[:obj], sum(
-                    pg[g,s,t]^2*variable_cost[g][2][1] + pg[g,s,t]*variable_cost[g][2][2]
-                    for g in thermal_gen_names, s in scenarios, t in time_steps), 1/length(scenarios))
+        error("Different variable cost type other than Float64 or Tuple")
     end   
     
+    # Add fixed, startup, shutdown to objective function
     add_to_expression!(model[:obj], sum(
                    ug[g,t]*fixed_cost[g] + vg[g,t]*startup_cost[g] + 
                    wg[g,t]*shutdown_cost[g] for g in thermal_gen_names, t in time_steps))

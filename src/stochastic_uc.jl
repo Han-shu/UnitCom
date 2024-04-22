@@ -33,7 +33,7 @@ function stochastic_uc(
     
     _add_thermal_generators!(model, sys, use_must_run)
     
-    _fixed_lookahead_commitment!(model, sys; fix_len = 1)
+    _fix_lookahead_commitment!(sys, model; fix_len = 1)
 
     _add_renewables!(model, sys; theta = theta)
 

@@ -6,11 +6,11 @@ function _add_stroage!(sys::System, model::JuMP.Model)::Nothing
     
     # get parameters
     eb_t0 = model[:init_value].eb_t0
-    storage_names = PSY.get_name.(get_components(PSY.GenericBattery, system))
-    eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, system, b)) for b in storage_names)
-    η = Dict(b => get_efficiency(get_component(GenericBattery, system, b)) for b in storage_names)
-    kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
-    kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, system, b))[:max] for b in storage_names)
+    storage_names = PSY.get_name.(get_components(PSY.GenericBattery, sys))
+    eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, sys, b)) for b in storage_names)
+    η = Dict(b => get_efficiency(get_component(GenericBattery, sys, b)) for b in storage_names)
+    kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, sys, b))[:max] for b in storage_names)
+    kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, sys, b))[:max] for b in storage_names)
 
     # Variables
     @variable(model, kb_charge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_charge_max[b])

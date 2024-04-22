@@ -17,7 +17,7 @@ function  _read_fcst_quantiles(filename::AbstractString; issolar = false)::Matri
     return transpose(new_matrix)
 end
 
-function _construct_fcst_data(fcst_quantiles::Matrix{Float64}, base_power::Float64, initial_time::DateTime)::Dict{Dates.DateTime, Matrix{Float64}}
+function _construct_fcst_data_UC(fcst_quantiles::Matrix{Float64}, base_power::Float64, initial_time::DateTime)::Dict{Dates.DateTime, Matrix{Float64}}
     data = Dict{Dates.DateTime, Matrix{Float64}}()
     for ix in 1:8713
         curr_time = initial_time + Hour(ix - 1)
@@ -45,7 +45,7 @@ function add_quantiles_time_series!(system::System)::Nothing
     scenario_count = 99
     base_power = PSY.get_base_power(system)
 
-    solar_data = _construct_fcst_data(solar_fcst_quantiles, base_power, initial_time)
+    solar_data = _construct_fcst_data_UC(solar_fcst_quantiles, base_power, initial_time)
     scenario_forecast_data = Scenarios(
         name = "solar_power",
         resolution = da_resolution,
@@ -56,7 +56,7 @@ function add_quantiles_time_series!(system::System)::Nothing
     add_time_series!(system, solar_gens, scenario_forecast_data)
 
 
-    wind_data = _construct_fcst_data(wind_fcst_quantiles, base_power, initial_time)
+    wind_data = _construct_fcst_data_UC(wind_fcst_quantiles, base_power, initial_time)
     scenario_forecast_data = Scenarios(
         name = "wind_power",
         resolution = da_resolution,
@@ -67,7 +67,7 @@ function add_quantiles_time_series!(system::System)::Nothing
     add_time_series!(system, wind_gens, scenario_forecast_data)
 
 
-    load_data = _construct_fcst_data(load_fcst_quantiles, base_power, initial_time)
+    load_data = _construct_fcst_data_UC(load_fcst_quantiles, base_power, initial_time)
     scenario_forecast_data = Scenarios(
         name = "load",
         resolution = da_resolution,
