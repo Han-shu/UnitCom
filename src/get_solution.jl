@@ -1,4 +1,6 @@
-function init_solution_ed(sys::Systemn)::OrderedDict
+include("../evaluate/cost.jl")
+
+function init_solution_ed(sys::System)::OrderedDict
     sol = OrderedDict()
     sol["Spin 10min price"] = []
     sol["Reserve 10min price"] = []
@@ -15,11 +17,11 @@ end
 
 function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
     push!(sol["Spin 10min price"], _get_price(model, :eq_reserve_spin10))
-    push!(sol["Reserve 10min price"], _get_price(model, :eq_reserve_res10))
-    push!(sol["Reserve 30min price"], _get_price(model, :eq_reserve_res30))
-    push!(sol["LMP"], _get_price(model, :eq_reserve_res30))
-    push!(sol["operation_cost"], compute_cost_t(sys, model))
-    push!(sol["charge_consumers"], compute_charge_t(sys, model))
+    push!(sol["Reserve 10min price"], _get_price(model, :eq_reserve_10))
+    push!(sol["Reserve 30min price"], _get_price(model, :eq_reserve_30))
+    push!(sol["LMP"], _get_price(model, :eq_power_balance))
+    push!(sol["operation_cost"], _compute_ed_cost(sys, model))
+    push!(sol["charge_consumers"], _compute_ed_charge(sys, model))
     sol["gen_profits"], sol["storage_profits"] = compute_gen_profits_t(sys, model, sol["gen_profits"], sol["storage_profits"])
     return sol 
 end
@@ -37,7 +39,7 @@ function _get_price(model::JuMP.Model, key::Symbol)::Float64
 end
 
 
-function ini_solution_uc(sys::System)::OrderedDict
+function init_solution_uc(sys::System)::OrderedDict
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     sol = OrderedDict()

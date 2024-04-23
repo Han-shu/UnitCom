@@ -1,4 +1,4 @@
-function _add_thermal_generators!(model::Model, sys::System, use_must_run::Bool)::Nothing
+function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)::Nothing
     scenarios = model[:param].scenarios
     time_steps = model[:param].time_steps
     expr_net_injection = model[:expr_net_injection]

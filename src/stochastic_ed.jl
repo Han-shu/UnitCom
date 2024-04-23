@@ -116,7 +116,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     @constraint(model, wind_constraint[g in wind_gen_names, s in scenarios, t in time_steps], pW[g,s,t] <= forecast_wind[g][t,s])
 
     @variable(model, curtailment[s in scenarios, t in time_steps] >= 0)
-    @constraint(model, eq_pb[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + 
+    @constraint(model, eq_power_balance[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + 
             sum(kb_discharge[b,s,t] - kb_charge[b,s,t] for b in storage_names) + curtailment[s,t] + 
             sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
 

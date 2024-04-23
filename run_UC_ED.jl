@@ -43,15 +43,18 @@ for t in 1:12 #8760-uc_horizon+1
     one_iter = @elapsed begin
     uc_time = init_time + Hour(1)*(t-1)
     @info "Solving UC model at $(uc_time)"
+    one_uc_time = @elapsed begin
     UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model)  
     uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
                         start_time = uc_time, scenario_count = scenario_count, horizon = uc_horizon)
-
+    end
+    @info "UC model at $(uc_time) is solved in $(one_uc_time) seconds"
     # Get commitment status that will be passed to ED
     ug_t0 = _get_commitment_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
+    one_hour_ed_time = @elapsed begin
     ed_sol = init_solution_ed(EDsys)
     for i in 1:12
-        global ed_sol
+        @info "Running length $(length(ed_sol["LMP"]))"
         ed_time = uc_time + Minute(5*(t-1))
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, ug_t0; ed_model = ed_model, UC_init_value = UC_init_value)
@@ -62,6 +65,8 @@ for t in 1:12 #8760-uc_horizon+1
             break
         end
     end
+    end
+    @info "ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
     uc_sol = get_solution_uc(UCsys, uc_model, ed_sol, uc_sol)
 end
     @info "One iteration takes $(one_iter) seconds"

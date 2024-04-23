@@ -1,6 +1,6 @@
 # compute the total production cost at time t 
 # binary var from UC and op var from ED
-function compute_cost_t(sys::System, model::JuMP.Model)::Float64
+function _compute_ed_cost(sys::System, model::JuMP.Model)::Float64
     VOLL = model[:param].VOLL
     penalty = model[:param].reserve_short_penalty
 
@@ -38,7 +38,7 @@ function _get_price(model::JuMP.Model, key::Symbol)::Float64
 end
 
 # compute the total charges for energy and reserves to buyers of electricity
-function compute_charge_t(sys::System, model::JuMP.Model)::Float64
+function _compute_ed_charge(sys::System, model::JuMP.Model)::Float64
     LMP = _get_price(model, :eq_power_balance)
     price_spin10 = _get_price(model, :eq_reserve_spin10)
     price_res10 = _get_price(model, :eq_reserve_res10)
