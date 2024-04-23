@@ -1,4 +1,4 @@
-function _add_net_injection!(model::JuMP.Model, sys::System; theta::Union{Nothing, Int64} = nothing)::Nothing
+function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothing, Int64} = nothing)::Nothing
     expr_net_injection = _init(model, :expr_net_injection)
 
     scenarios = model[:param].scenarios

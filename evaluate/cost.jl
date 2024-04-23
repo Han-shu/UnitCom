@@ -1,6 +1,6 @@
 # compute the total production cost at time t 
 # binary var from UC and op var from ED
-function compute_cost_t(model::JuMP.Model, sys::System)::Float64
+function compute_cost_t(sys::System, model::JuMP.Model)::Float64
     VOLL = model[:param].VOLL
     penalty = model[:param].reserve_short_penalty
 
@@ -38,7 +38,7 @@ function _get_price(model::JuMP.Model, key::Symbol)::Float64
 end
 
 # compute the total charges for energy and reserves to buyers of electricity
-function compute_charge_t(model::JuMP.Model, sys::System)::Float64
+function compute_charge_t(sys::System, model::JuMP.Model)::Float64
     LMP = _get_price(model, :eq_power_balance)
     price_spin10 = _get_price(model, :eq_reserve_spin10)
     price_res10 = _get_price(model, :eq_reserve_res10)
@@ -61,30 +61,21 @@ function compute_charge_t(model::JuMP.Model, sys::System)::Float64
     return charge_t
 end
 
-function compute_gen_profits_t_t(model::JuMP.Model, sys::System)::OrderedDict
+function compute_gen_profits_t_t(sys::System, model::JuMP.Model, gen_profits, storage_profits)::OrderedDict
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
-    fixed_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
-    shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
     variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
-    startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalStandard, sys, g))) for g in thermal_gen_names)
     
     LMP = _get_price(model, :eq_power_balance)
     price_spin10 = _get_price(model, :eq_reserve_spin10)
     price_res10 = _get_price(model, :eq_reserve_res10)
     price_res30 = _get_price(model, :eq_reserve_res30)
-    gen_profits_t = OrderedDict()
     
-    for g in thermal_gen_names
-        ug = value(model[:ug][g,1])
-        vg = value(model[:vg][g,1])
-        wg = value(model[:wg][g,1])
-        
-        profit = (LMP*value(model[:pg][g,1,1]) + 
+    for g in thermal_gen_names        
+        profit = ((LMP-variable_cost[g])*value(model[:pg][g,1,1]) + 
                 price_spin10*value(model[:spin_10][g,1,1]) +
                 price_res10*(value(model[:spin_10][g,1,1])+value(model[:Nspin_10][g,1,1])) + 
                 price_res30*(value(model[:spin_10][g,1,1]) + value(model[:Nspin_30][g,1,1]))) 
-        profit -= (pg*variable_cost[g] + ug*fixed_cost[g] + vg*startup_cost[g] + wg*shutdown_cost[g])
-        gen_profits_t[g] = profit
+        push!(gen_profits[g], profit)
     end
 
     storage_names = get_name.(get_components(GenericBattery, sys))
@@ -92,8 +83,24 @@ function compute_gen_profits_t_t(model::JuMP.Model, sys::System)::OrderedDict
         profit = (LMP*(value(model[:kb_discharge][b,1,1])-value(model[:kb_charge][b,1,1])) + 
                 (price_res10+price_spin10)*value(model[:res_10][b,1,1]) + 
                 price_res30*value(model[:res_30][b,1,1]))
-        gen_profits_t[b] = profit
+        push!(storage_profits[b], profit)
     end
 
-    return gen_profits_t
+    return gen_profits, storage_profits
+end
+
+function minus_uc_integer_cost_thermal_gen(sys::System, model::JuMP.Model, gen_profits_ed::OrderedDict)::OrderedDict
+    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+    fixed_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
+    shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
+    startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalStandard, sys, g))) for g in thermal_gen_names)
+    gen_profits = OrderedDict(g => sum(gen_profits_ed[g]) for g in thermal_gen_names)
+    for g in thermal_gen_names
+        ug = value(model[:ug][g,1])
+        vg = value(model[:vg][g,1])
+        wg = value(model[:wg][g,1])
+        integer_cost = ug*fixed_cost[g] + vg*startup_cost[g] + wg*shutdown_cost[g]
+        gen_profits[g] -= integer_cost
+    end
+    return gen_profits
 end

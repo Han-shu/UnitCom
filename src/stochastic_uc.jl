@@ -29,13 +29,13 @@ function stochastic_uc(
     end
     model[:init_value] = init_value
 
-    _add_net_injection!(model, sys; theta = theta)
+    _add_net_injection!(sys, model; theta = theta)
     
-    _add_thermal_generators!(model, sys, use_must_run)
+    _add_thermal_generators!(sys, model, use_must_run)
     
     _fix_lookahead_commitment!(sys, model; fix_len = 1)
 
-    _add_renewables!(model, sys; theta = theta)
+    _add_renewables!(sys, model; theta = theta)
 
     # Storage
     has_storage = false
@@ -46,7 +46,7 @@ function stochastic_uc(
 
     _add_power_balance_eq!(model)
 
-    _add_reserve_requirement_eq!(model, sys)
+    _add_reserve_requirement_eq!(sys, model)
 
     @objective(model, Min, model[:obj])
 

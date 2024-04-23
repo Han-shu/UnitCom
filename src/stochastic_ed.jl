@@ -129,7 +129,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     end
 
     # Reserve requirements
-    _add_reserve_requirement_eq!(model, sys; isED = true)
+    _add_reserve_requirement_eq!(sys, model; isED = true)
 
     @objective(model, Min, model[:obj])
 

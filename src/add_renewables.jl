@@ -1,4 +1,4 @@
-function _add_renewables!(model::JuMP.Model, sys::System; theta::Union{Nothing, Int64} = nothing)::Nothing
+function _add_renewables!(sys::System, model::JuMP.Model; theta::Union{Nothing, Int64} = nothing)::Nothing
     scenarios = model[:param].scenarios
     time_steps = model[:param].time_steps
     start_time = model[:param].start_time
