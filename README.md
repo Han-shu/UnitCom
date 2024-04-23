@@ -10,9 +10,8 @@
 # April 18 - 25 TODO
 - Generate time series data for 5 min ED model
 - ~~Add stochastic 5 min ED model (2h horizon)~~
-- Add 5min ED model
-    - Shrinking horizon or rolling horizon
-- Connect ED model with UC model
+- ~~Add 5min rolling horizon ED model~~
+- ~~Connect ED model with UC model~~
     - pass commitment status from UC to ED
     - pass generartion dispatch and storage level from ED to UC
     - fix the first hour commitment of UC from last UC solution
