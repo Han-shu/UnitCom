@@ -22,7 +22,15 @@ function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::Orde
     push!(sol["LMP"], _get_price(model, :eq_power_balance))
     push!(sol["operation_cost"], _compute_ed_cost(sys, model))
     push!(sol["charge_consumers"], _compute_ed_charge(sys, model))
-    sol["gen_profits"], sol["storage_profits"] = compute_gen_profits_t(sys, model, sol["gen_profits"], sol["storage_profits"])
+    gen_profits, storage_profits = _compute_ed_gen_profits(sys, model)
+    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+    storage_names = get_name.(get_components(GenericBattery, sys))
+    for g in thermal_gen_names
+        push!(sol["gen_profits"][g], gen_profits[g])
+    end
+    for b in storage_names
+        push!(sol["storage_profits"][b], storage_profits[b])
+    end
     return sol 
 end
 
@@ -56,13 +64,14 @@ end
 
 function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict)::OrderedDict
     push!(sol["Time"], model[:param].start_time)
-    push!(sol["System operator cost"], sum(ed_sol["operation_cost"]))
+    sys_cost = sum(ed_sol["operation_cost"])
     push!(sol["Charge consumers"], sum(ed_sol["charge_consumers"]))
-    gen_profits = minus_uc_integer_cost_thermal_gen(sys, model, ed_sol["gen_profits"])
+    gen_profits, sys_cost = minus_uc_integer_cost_thermal_gen(sys, model, ed_sol["gen_profits"], sys_cost)
+    push!(sol["System operator cost"], sys_cost)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     for b in storage_names
-        push!(sol["Storage profits"][b], sum(sol["storage_profits"][b]))
+        push!(sol["Storage profits"][b], sum(ed_sol["storage_profits"][b]))
     end
     for g in thermal_gen_names
         push!(sol["Generator profits"][g], gen_profits[g])
