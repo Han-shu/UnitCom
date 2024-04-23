@@ -1,6 +1,6 @@
 using JuMP
 
-function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 24)
+function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 12)
     model = Model(optimizer)
     model[:obj] = QuadExpr()
     if isnothing(theta)
@@ -16,6 +16,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
 
+    # Get initial conditions
     if isnothing(init_value)
         ug = Dict(g => repeat([1], 2) for g in thermal_gen_names)
         Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
@@ -25,6 +26,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
         Pg_t0 = init_value.Pg_t0
         eb_t0 = init_value.eb_t0
     end
+
     # Thermal generators
     pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
     variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
@@ -41,7 +43,6 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
         else
             @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g][i])
         end
-        # @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g][i])
         @constraint(model, pg[g,s,t] + spin_10[g,s,t] + spin_30[g,s,t] <= pg_lim[g].max*ug[g][i])
     end
 
@@ -122,9 +123,6 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     @constraint(model, eq_power_balance[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + 
             sum(kb_discharge[b,s,t] - kb_charge[b,s,t] for b in storage_names) + curtailment[s,t] + 
             sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
-    # @constraint(model, eq_power_balance[s in scenarios, t in time_steps], 
-    #     sum(pg[g,s,t] for g in thermal_gen_names) + curtailment[s,t] + 
-    #     sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
 
     if variable_cost[thermal_gen_names[1]] isa Float64
         add_to_expression!(model[:obj], (1/length(scenarios))*sum(
@@ -137,8 +135,41 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     # Reserve requirements
     _add_reserve_requirement_eq!(sys, model; isED = true)
 
-    add_to_expression!(model[:obj], (1/length(scenarios))*sum(curtailment[s,t]*VOLL for s in scenarios, t in time_steps))
+    add_to_expression!(model[:obj], sum(curtailment[s,t] for s in scenarios, t in time_steps), VOLL*(1/length(scenarios)))
     
+    # Enforce decsion variables for t = 1
+    # Binding thermal variables
+    @variable(model, t_pg[g in thermal_gen_names], lower_bound = 0)
+    @variable(model, t_spin_10[g in thermal_gen_names], lower_bound = 0)
+    @variable(model, t_spin_30[g in thermal_gen_names], lower_bound = 0)
+    @variable(model, t_Nspin_10[g in thermal_gen_names], lower_bound = 0)
+    @variable(model, t_Nspin_30[g in thermal_gen_names], lower_bound = 0)
+    for g in thermal_gen_names, s in scenarios
+        @constraint(model, pg[g,s,1] == t_pg[g])
+        @constraint(model, spin_10[g,s,1] == t_spin_10[g])
+        @constraint(model, spin_30[g,s,1] == t_spin_30[g])
+        @constraint(model, Nspin_10[g,s,1] == t_Nspin_10[g])
+        @constraint(model, Nspin_30[g,s,1] == t_Nspin_30[g])
+    end
+    # Binding storage variables
+    @variable(model, t_kb_charge[b in storage_names], lower_bound = 0, upper_bound = kb_charge_max[b])
+    @variable(model, t_kb_discharge[b in storage_names], lower_bound = 0, upper_bound = kb_discharge_max[b])
+    @variable(model, t_eb[b in storage_names], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
+    @variable(model, t_res_10[b in storage_names], lower_bound = 0)
+    @variable(model, t_res_30[b in storage_names], lower_bound = 0)
+    for b in storage_names, s in scenarios
+        @constraint(model, kb_charge[b,s,1] == t_kb_charge[b])
+        @constraint(model, kb_discharge[b,s,1] == t_kb_discharge[b])
+        @constraint(model, eb[b,s,1] == t_eb[b])
+        @constraint(model, res_10[b,s,1] == t_res_10[b])
+        @constraint(model, res_30[b,s,1] == t_res_30[b])
+    end
+    # Binding renewable variables
+    @variable(model, t_pS[g in solar_gen_names] >= 0)
+    @variable(model, t_pW[g in wind_gen_names] >= 0)
+    @constraint(model, [g in solar_gen_names, s in scenarios], pS[g,s,1] == t_pS[g])
+    @constraint(model, [g in wind_gen_names, s in scenarios], pW[g,s,1] == t_pW[g])
+
     @objective(model, Min, model[:obj])
 
     optimize!(model)

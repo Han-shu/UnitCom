@@ -89,7 +89,7 @@ function minus_uc_integer_cost_thermal_gen(sys::System, model::JuMP.Model, gen_p
     fixed_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
     shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
     startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalStandard, sys, g))) for g in thermal_gen_names)
-    gen_profits = OrderedDict(g => sum(gen_profits_ed[g]) for g in thermal_gen_names)
+    gen_profits = OrderedDict(g => mean(gen_profits_ed[g]) for g in thermal_gen_names)
     for g in thermal_gen_names
         ug = value(model[:ug][g,1])
         vg = value(model[:vg][g,1])

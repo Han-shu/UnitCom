@@ -69,13 +69,18 @@ end
 LMP == zeros(10,12) # LMP is 0 in ED
 
 
-model = stochastic_ed(UCsys, Gurobi.Optimizer, theta = theta, start_time = DateTime(Date(2019, 1, 1)))
-LMP = ones(10,12)
+model = stochastic_ed(EDsys, Gurobi.Optimizer, theta = theta, start_time = DateTime(2019, 1, 1,0,30,0))
+LMP, Pspin10, Pres10, Pres30 = ones(10,12), ones(10,12), ones(10,12), ones(10,12)
 for s in 1:10, t in 1:12
     LMP[s,t] = dual(model[:eq_power_balance][s,t])
+    Pspin10[s,t] = dual(model[:eq_reserve_spin10][s,t])
+    Pres10[s,t] = dual(model[:eq_reserve_10][s,t])
+    Pres30[s,t] = dual(model[:eq_reserve_30][s,t])
 end
 
-LMP == zeros(10,12)
+
+
+
 
 uc_model, ed_model = nothing, nothing
 UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model)  
@@ -96,7 +101,7 @@ println("Number of committed generators at 2: ", num_commit2)
 
 
 ug_t0, Pg_t0, eb_t0 = _init_fr_ed_model(UCsys)
-model = stochastic_ed(UCsys, Gurobi.Optimizer, start_time = DateTime(Date(2019, 1, 1)))
+model = stochastic_ed(EDsys, Gurobi.Optimizer, start_time = DateTime(2019, 1, 1, 0, 5, 0))
 gen_pg = OrderedDict(g => ones(10,24) for g in thermal_gen_names)
 for g in thermal_gen_names
     for s in 1:10, t in 1:24

@@ -64,14 +64,14 @@ end
 
 function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict)::OrderedDict
     push!(sol["Time"], model[:param].start_time)
-    sys_cost = sum(ed_sol["operation_cost"])
-    push!(sol["Charge consumers"], sum(ed_sol["charge_consumers"]))
+    sys_cost = mean(ed_sol["operation_cost"])
+    push!(sol["Charge consumers"], mean(ed_sol["charge_consumers"]))
     gen_profits, sys_cost = minus_uc_integer_cost_thermal_gen(sys, model, ed_sol["gen_profits"], sys_cost)
     push!(sol["System operator cost"], sys_cost)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     for b in storage_names
-        push!(sol["Storage profits"][b], sum(ed_sol["storage_profits"][b]))
+        push!(sol["Storage profits"][b], mean(ed_sol["storage_profits"][b]))
     end
     for g in thermal_gen_names
         push!(sol["Generator profits"][g], gen_profits[g])

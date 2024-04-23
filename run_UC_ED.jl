@@ -56,7 +56,7 @@ for t in 1:12 #8760-uc_horizon+1
     ed_sol = init_solution_ed(EDsys)
     for i in 1:12
         @info "Running length $(length(ed_sol["LMP"]))"
-        ed_time = uc_time + Minute(5*(t-1))
+        ed_time = uc_time + Minute(5*(i-1))
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, ug_t0; ed_model = ed_model, UC_init_value = UC_init_value)
         ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; init_value = ED_init_value, theta = theta, start_time = ed_time, horizon = ed_horizon)
@@ -66,7 +66,7 @@ for t in 1:12 #8760-uc_horizon+1
             break
         end
     end
-    ed_sol_file = joinpath(result_dir, "ED_sol_$(ed_time).json")
+    ed_sol_file = joinpath(result_dir, "ED_sol_$(uc_time).json")
     write_json(ed_sol_file, ed_sol)
     end
     @info "ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"

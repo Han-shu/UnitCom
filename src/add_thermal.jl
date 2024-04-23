@@ -33,8 +33,10 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     # Variables 
     # -----------------------------------------------------------------------------------------
     @variable(model, ug[g in thermal_gen_names, t in time_steps], binary = true)
-    @variable(model, vg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
-    @variable(model, wg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
+    @variable(model, vg[g in thermal_gen_names, t in time_steps], binary = true)
+    @variable(model, wg[g in thermal_gen_names, t in time_steps], binary = true)
+    # @variable(model, vg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
+    # @variable(model, wg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
  
     # power generation variables
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps])
