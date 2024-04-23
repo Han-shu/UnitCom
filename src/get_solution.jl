@@ -65,3 +65,13 @@ function get_integer_solution(model::JuMP.Model, thermal_gen_names::Vector)::Ord
     sol["wg"] = OrderedDict(g => [value(model[:wg][g,t]) for t in time_steps] for g in thermal_gen_names)
     return sol
 end
+
+function get_solution_uc(sys::System, model)
+    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+    time_steps = model[:param].time_steps
+    sol = OrderedDict()
+    sol["ug"] = OrderedDict(g => [value(model[:ug][g,t]) for t in time_steps] for g in thermal_gen_names)
+    sol["vg"] = OrderedDict(g => [value(model[:vg][g,t]) for t in time_steps] for g in thermal_gen_names)
+    sol["wg"] = OrderedDict(g => [value(model[:wg][g,t]) for t in time_steps] for g in thermal_gen_names)
+    return sol
+end
