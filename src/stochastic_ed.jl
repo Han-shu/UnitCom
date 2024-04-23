@@ -1,12 +1,12 @@
 using JuMP
 
-function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = nothing, VOLL = 1000, start_time = DateTime(Date(2019, 1, 1)), horizon = 24)
+function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 24)
     model = Model(optimizer)
     model[:obj] = QuadExpr()
     if isnothing(theta)
-        scenario_count = 10
-    else
-        scenario_count = 1
+        scenario_count = 10 # stochastic, 10 scenarios
+    else 
+        scenario_count = 1 # deterministic, theta quantile
     end
     parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, reserve_requirement_by_hour, reserve_short_penalty)
     model[:param] = parameters
@@ -15,13 +15,11 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     min_step = minute(model[:param].start_time)/5
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
-    init_flag = false
 
     if isnothing(init_value)
         ug = Dict(g => repeat([1], 2) for g in thermal_gen_names)
         Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
         eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
-        init_flag = true
     else
         ug = init_value.ug_t0 # commitment status
         Pg_t0 = init_value.Pg_t0
@@ -38,16 +36,21 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
 
     for g in thermal_gen_names, s in scenarios, t in time_steps
         i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
-        @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g][i])
+        if isnothing(init_value)
+            @constraint(model, pg[g,s,t] >= 0)
+        else
+            @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g][i])
+        end
+        # @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g][i])
         @constraint(model, pg[g,s,t] + spin_10[g,s,t] + spin_30[g,s,t] <= pg_lim[g].max*ug[g][i])
     end
 
     # ramping constraints and reserve constraints
-    if !init_flag
-        get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
-        get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
-        ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
-        ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
+    get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
+    ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    if !isnothing(init_value)
         for g in thermal_gen_names, s in scenarios, t in time_steps
             i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
             if t == 1
@@ -119,6 +122,9 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     @constraint(model, eq_power_balance[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + 
             sum(kb_discharge[b,s,t] - kb_charge[b,s,t] for b in storage_names) + curtailment[s,t] + 
             sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
+    # @constraint(model, eq_power_balance[s in scenarios, t in time_steps], 
+    #     sum(pg[g,s,t] for g in thermal_gen_names) + curtailment[s,t] + 
+    #     sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
 
     if variable_cost[thermal_gen_names[1]] isa Float64
         add_to_expression!(model[:obj], (1/length(scenarios))*sum(
@@ -131,6 +137,8 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     # Reserve requirements
     _add_reserve_requirement_eq!(sys, model; isED = true)
 
+    add_to_expression!(model[:obj], (1/length(scenarios))*sum(curtailment[s,t]*VOLL for s in scenarios, t in time_steps))
+    
     @objective(model, Min, model[:obj])
 
     optimize!(model)

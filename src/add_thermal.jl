@@ -44,27 +44,9 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     @variable(model, spin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
     @variable(model, Nspin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
 
-    # if ThermalGen == ThermalGen
-    #     segprod = _init(model, :segprod)
-    #     eq_segprod_limit = _init(model, :eq_segprod_limit)
-    #     for g in thermal_gen_names
-    #         K = length(variable_cost[g])
-    #         for k in 1:K
-    #             segprod[g,t,k] = @variable(model, lower_bound = 0, upper_bound = variable_cost[g][k][1]*ug[g,t])
-    #             eq_segprod_limit[g,t,k] = @constraint(model, segprod[g,t,k] <= variable_cost[g][k][1]*ug[g,t])
-    #             add_to_expression!(model[:obj], segprod[g,t,k], variable_cost[g][k][2])
-    #         end
-    #         @constraint(model, pg[g,t] == sum(segprod[g,t,k] for k in 1:K))
-    #     end
-    # end
-
     # Commitment status constraints
     for g in thermal_gen_names, t in time_steps
-        if t == 1
-            @constraint(model, ug[g,1] - ug_t0[g][1] == vg[g,1] - wg[g,1])
-        else
-            @constraint(model, ug[g,t] - ug[g,t-1] == vg[g,t] - wg[g,t])
-        end
+        @constraint(model, ug[g,t] - (t==1 ? ug_t0[g][1] : ug[g,t-1]) == vg[g,t] - wg[g,t])
     end
 
     # must run generators 
@@ -82,19 +64,14 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
 
     # ramping constraints and reserve constraints
     for g in thermal_gen_names, s in scenarios, t in time_steps
-        if t == 1
-            @constraint(model, pg[g,s,1] - Pg_t0[g] + spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g]*ug[g,1])
-            @constraint(model, Pg_t0[g] - pg[g,s,1]  <= ramp_dn[g]*ug[g,1])
-        else
-            @constraint(model, pg[g,s,t] - pg[g,s,t-1] + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g,t])
-            @constraint(model, pg[g,s,t-1] - pg[g,s,t] <= ramp_dn[g]*ug[g,t])
-        end
-        @constraint(model, spin_10[g,s,1] <= ramp_up[g]*ug[g,t]/6)
-        @constraint(model, spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g]*ug[g,t]/2)
-        @constraint(model, Nspin_10[g,s,1] <= ramp_up[g]*(1-ug[g,t])/6)
-        @constraint(model, Nspin_10[g,s,1] + Nspin_30[g,s,1] <= ramp_up[g]*(1-ug[g,t])/2)
-        @constraint(model, spin_10[g,s,1] + spin_30[g,s,1] <= (pg_lim[g].max - pg_lim[g].min)*ug[g,t])
-        @constraint(model, Nspin_10[g,s,1] + Nspin_30[g,s,1] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g,t]))
+        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g,t])
+        @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t]  <= ramp_dn[g]*ug[g,t])
+        @constraint(model, spin_10[g,s,t] <= ramp_up[g]*ug[g,t]/6)
+        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g,t]/2)
+        @constraint(model, Nspin_10[g,s,t] <= ramp_up[g]*(1-ug[g,t])/6)
+        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_up[g]*(1-ug[g,t])/2)
+        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g,t])
+        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g,t]))
     end
 
     for s in scenarios, t in time_steps

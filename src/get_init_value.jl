@@ -4,12 +4,14 @@ function _get_init_value_for_UC(sys::System;
         LookAhead::Int = 2
         )::UCInitValue
     thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
-    if isnothing(ed_model)
+    if isnothing(ed_model) && isnothing(uc_model)
         ug_t0, Pg_t0, eb_t0 = _init_fr_ed_model(sys)
         history_wg = Dict(g => Vector{Int}() for g in thermal_gen_names)
         history_vg = Dict(g => Vector{Int}() for g in thermal_gen_names)
         return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_wg, history_vg)
     else
+        @assert !isnothing(uc_model)
+        @assert !isnothing(ed_model)
         history_wg = uc_model[:init_value].history_wg
         history_vg = uc_model[:init_value].history_vg
         thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
@@ -42,6 +44,7 @@ function _init_fr_ed_model(sys::System; theta::Union{Nothing, Int64} = nothing, 
     model = stochastic_ed(sys, Gurobi.Optimizer, theta = theta, start_time = DateTime(Date(2019, 1, 1)))
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
+    pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
     Pg_t0 = Dict()
     ug_t0 = Dict()
     for g in thermal_gen_names

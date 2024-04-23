@@ -32,9 +32,9 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
     end
 
     # Enforce decsion variables for t = 1
-    @variable(model, t_curtailment, lower_bound = 0) 
-    for s in scenarios
-        @constraint(model, curtailment[s,1] == t_curtailment)
-    end
+    # @variable(model, t_curtailment, lower_bound = 0) 
+    # for s in scenarios
+    #     @constraint(model, curtailment[s,1] == t_curtailment)
+    # end
     return
 end

@@ -20,6 +20,7 @@
 - Get results from ED 
     - pg, kb_charge, kb_discharge at t = 1
     - LMP at t = 1
+- Go through the code and make sure everything is correct
 - Calculate policy cost, charge, generator profits
 - Replicate Jacob's policy
     - ~~DLAC-NLB-\theta~~

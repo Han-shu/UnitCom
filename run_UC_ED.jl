@@ -66,6 +66,8 @@ for t in 1:12 #8760-uc_horizon+1
             break
         end
     end
+    ed_sol_file = joinpath(result_dir, "ED_sol_$(ed_time).json")
+    write_json(ed_sol_file, ed_sol)
     end
     @info "ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
     uc_sol = get_solution_uc(UCsys, uc_model, ed_sol, uc_sol)

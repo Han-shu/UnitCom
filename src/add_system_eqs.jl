@@ -67,7 +67,7 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
     return
 end
 
-function _get_offset(isED::Bool, t::Int64, start_time):Int64
+function _get_offset(isED::Bool, t::Int64, start_time::DateTime):Int64
     if isED
         return hour(start_time + (t-1)*Minute(5)) + 1
     else
