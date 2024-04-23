@@ -14,7 +14,8 @@ scenario_count = 10
 uc_horizon = 36
 ed_horizon = 12
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-model_name, solution_file = get_model_file_name(theta = theta, scenario_count = scenario_count, result_dir = result_dir)
+model_name = "UC-ED"
+solution_file = joinpath(result_dir, "$(model_name)_sol_$(Dates.today()).json")
 
 @info "Build NY system for UC"
 UCsys = build_ny_system(base_power = 100)
@@ -72,18 +73,5 @@ end
     @info "One iteration takes $(one_iter) seconds"
 end
 
-
-
-# solution = get_solution_uc_t(system, model, solution)
-
 # # save the solution
-# write_json(solution_file, solution)
-
-# model = stochastic_ed(UCsys, Gurobi.Optimizer, start_time = DateTime(Date(2019, 1, 1)))
-# thermal_gen_names = get_name.(get_components(ThermalGen, UCsys))
-# Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
-# get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
-# get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
-# ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
-# ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
-
+write_json(solution_file, uc_sol)
