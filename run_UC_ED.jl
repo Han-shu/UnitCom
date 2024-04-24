@@ -36,10 +36,13 @@ add_scenarios_time_series_ED!(EDsys)
 init_time = DateTime(2019,1,1)
 uc_model, ed_model = nothing, nothing
 uc_sol = init_solution_uc(UCsys)
-for t in 1:12 #8760-uc_horizon+1
+for t in 1:8760-uc_horizon+1
     global uc_model, ed_model, uc_sol
     if t % 10 == 0
         write_json(solution_file, uc_sol)
+    end
+    if t > 16
+        break
     end
     one_iter = @elapsed begin
     uc_time = init_time + Hour(1)*(t-1)

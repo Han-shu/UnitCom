@@ -69,7 +69,7 @@ end
 LMP == zeros(10,12) # LMP is 0 in ED
 
 
-model = stochastic_ed(EDsys, Gurobi.Optimizer, theta = theta, start_time = DateTime(2019, 1, 1,0,30,0))
+model = stochastic_ed(EDsys, Gurobi.Optimizer, theta = theta, start_time = DateTime(2019, 1, 1,10,20,0))
 LMP, Pspin10, Pres10, Pres30 = ones(10,12), ones(10,12), ones(10,12), ones(10,12)
 for s in 1:10, t in 1:12
     LMP[s,t] = dual(model[:eq_power_balance][s,t])
