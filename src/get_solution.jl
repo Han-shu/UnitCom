@@ -36,13 +36,7 @@ end
 
 
 function _get_price(model::JuMP.Model, key::Symbol)::Float64
-    price = 0.0
-    for s in model[:param].scenarios
-        if abs(dual(model[key][s,1])) > 0.0
-            price = dual(model[key][s,1])
-            break
-        end
-    end
+    price = sum(dual(model[key][s,1]) for s in model[:param].scenarios)
     return price
 end
 
@@ -75,9 +69,9 @@ function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, so
     end
     for g in thermal_gen_names
         push!(sol["Generator profits"][g], gen_profits[g])
-        push!(sol["Commitment status"][g], value(model[:ug][g,2]))
-        push!(sol["Start up"][g], value(model[:vg][g,2]))
-        push!(sol["Shut down"][g], value(model[:wg][g,2]))
+        push!(sol["Commitment status"][g], value(model[:ug][g,1]))
+        push!(sol["Start up"][g], value(model[:vg][g,1]))
+        push!(sol["Shut down"][g], value(model[:wg][g,1]))
     end
     return sol
 end

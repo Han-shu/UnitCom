@@ -36,8 +36,9 @@ add_scenarios_time_series_ED!(EDsys)
 init_time = DateTime(2019,1,1)
 uc_model, ed_model = nothing, nothing
 uc_sol = init_solution_uc(UCsys)
+UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model)  
 for t in 1:8760-uc_horizon+1
-    global uc_model, ed_model, uc_sol
+    global uc_model, ed_model, uc_sol, UC_init_value
     if t % 10 == 0
         write_json(solution_file, uc_sol)
     end

@@ -95,7 +95,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe,RenewableGen, sys) 
     solar_gen_names = get_name.(solar_gens)
     wind_gen_names = get_name.(wind_gens)               
-    load = collect(get_components(StaticLoad, sys))[1]
+    load = first(get_components(StaticLoad, sys))
     if isnothing(theta)
         forecast_solar = Dict(get_name(g) =>
             get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps)) 

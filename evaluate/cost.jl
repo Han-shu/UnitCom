@@ -19,13 +19,7 @@ end
 
 
 function _get_price(model::JuMP.Model, key::Symbol)::Float64
-    price = 0.0
-    for s in model[:param].scenarios
-        if abs(dual(model[key][s,1])) > 0.0
-            price = dual(model[key][s,1])
-            break
-        end
-    end
+    price = sum(dual(model[key][s,1]) for s in model[:param].scenarios)
     return price
 end
 

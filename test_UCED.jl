@@ -33,7 +33,6 @@ uc_time = init_time + Hour(1)*(t-1)
 UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model)  
 uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
                     start_time = uc_time, scenario_count = scenario_count, horizon = uc_horizon)
-@info "UC model at $(uc_time) is solved in $(one_uc_time) seconds"
 # Get commitment status that will be passed to ED
 ug_t0 = _get_commitment_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
 ed_sol = init_solution_ed(EDsys)
@@ -77,6 +76,7 @@ for s in 1:10, t in 1:12
     Pres10[s,t] = dual(model[:eq_reserve_10][s,t])
     Pres30[s,t] = dual(model[:eq_reserve_30][s,t])
 end
+
 
 
 

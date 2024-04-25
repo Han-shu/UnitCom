@@ -55,8 +55,8 @@ kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(Generi
 thermal_gen_names = get_name.(get_components(ThermalGen, UCsys))
 get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
 get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
-ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, UCsys, g))*60 for g in thermal_gen_names)
-ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, UCsys, g))*60 for g in thermal_gen_names)
+ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
+ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
 pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
 
 ug_t0 = Dict(g => PSY.get_status(get_component(ThermalGen, system, g)) for g in thermal_gen_names)

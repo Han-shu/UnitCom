@@ -47,8 +47,8 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
         add_to_expression!(model[:obj], sum(reserve_30_short[s,t,k] for s in scenarios, t in time_steps), 
                             1/length(scenarios)*penalty_res30[k].price)
     end
-    # reserve requirement constraints
     
+    # reserve requirement constraints
     @constraint(model, eq_reserve_spin10[s in scenarios, t in time_steps], 
         sum(model[:spin_10][g,s,t] for g in thermal_gen_names) + 
         sum(model[:res_10][b,s,t] for b in storage_names) + sum(reserve_spin10_short[s,t,k] for k in 1:length(penalty_spin10))
@@ -60,8 +60,8 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
         >= reserve_requirements["res10"][_get_offset(isED,t,start_time)])
     
     @constraint(model, eq_reserve_30[s in scenarios, t in time_steps],
-        sum(model[:spin_30][g,s,t] + model[:Nspin_30][g,s,t] for g in thermal_gen_names) + 
-        sum(model[:res_30][b,s,t] for b in storage_names) + sum(reserve_30_short[s,t,k] for k in 1:length(penalty_res30)) 
+        sum(model[:spin_10][g,s,t] + model[:Nspin_10][g,s,t] + model[:spin_30][g,s,t] + model[:Nspin_30][g,s,t] for g in thermal_gen_names) + 
+        sum(model[:res_10][b,s,t] + model[:res_30][b,s,t] for b in storage_names) + sum(reserve_30_short[s,t,k] for k in 1:length(penalty_res30)) 
         >= reserve_requirements["res30"][_get_offset(isED,t,start_time)])
     
     return
