@@ -119,10 +119,12 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     @constraint(model, solar_constraint[g in solar_gen_names, s in scenarios, t in time_steps], pS[g,s,t] <= forecast_solar[g][t,s])
     @constraint(model, wind_constraint[g in wind_gen_names, s in scenarios, t in time_steps], pW[g,s,t] <= forecast_wind[g][t,s])
 
+    @variable(model, overgeneration[s in scenarios, t in time_steps] >= 0)
     @variable(model, curtailment[s in scenarios, t in time_steps] >= 0)
+    add_to_expression!(model[:obj], sum(overgeneration[s,t] for s in scenarios, t in time_steps), 29.9/length(scenarios))
     @constraint(model, eq_power_balance[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + 
             sum(kb_discharge[b,s,t] - kb_charge[b,s,t] for b in storage_names) + curtailment[s,t] + 
-            sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
+            sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) - overgeneration[s,t] == forecast_load[t,s])
 
     if variable_cost[thermal_gen_names[1]] isa Float64
         add_to_expression!(model[:obj], (1/length(scenarios))*sum(
