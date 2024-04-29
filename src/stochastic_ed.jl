@@ -18,7 +18,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
 
     # Get initial conditions
     if isnothing(init_value)
-        ug = Dict(g => repeat([1], 2) for g in thermal_gen_names)
+        ug = Dict(g => repeat([1], 2) for g in thermal_gen_names) # Assume all thermal generators are on
         Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
         eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
     else
@@ -52,22 +52,21 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
     ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
     if !isnothing(init_value)
-        for g in thermal_gen_names, s in scenarios, t in time_steps
-            i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
-            if t == 1
-                @constraint(model, pg[g,s,1] - Pg_t0[g] + spin_10[g,s,1] + spin_30[g,s,1] <= ramp_up[g]*ug[g][i]/12)
-                @constraint(model, Pg_t0[g] - pg[g,s,1]  <= ramp_dn[g]*ug[g][i]/12)
-            else
-                @constraint(model, pg[g,s,t] - pg[g,s,t-1] + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g][i]/12)
-                @constraint(model, pg[g,s,t-1] - pg[g,s,t] <= ramp_dn[g]*ug[g][i]/12)
-            end
-            @constraint(model, spin_10[g,s,t] <= ramp_up[g]*ug[g][i]/6)
-            @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g][i]/2)
-            @constraint(model, Nspin_10[g,s,t] <= ramp_up[g]*(1-ug[g][i])/6)
-            @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_up[g]*(1-ug[g][i])/2)
-            @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g][i])
-            @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g][i]))
-        end
+    for g in thermal_gen_names, s in scenarios, t in time_steps
+        i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
+        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t]/2 + spin_30[g,s,t]/6 <= ramp_up[g]*ug[g][i]/12)
+        @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t] <= ramp_dn[g]*ug[g][i]/12)
+    end
+    end
+
+    for g in thermal_gen_names, s in scenarios, t in time_steps
+        i = Int(div(min_step+t-1, 12)+1)
+        @constraint(model, spin_10[g,s,t] <= ramp_up[g]*ug[g][i]/6)
+        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g][i]/2)
+        @constraint(model, Nspin_10[g,s,t] <= ramp_up[g]*(1-ug[g][i])/6)
+        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_up[g]*(1-ug[g][i])/2)
+        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g][i])
+        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g][i]))
     end
 
     # Storage
@@ -77,14 +76,14 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, sys, b))[:max] for b in storage_names)
     kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, sys, b))[:max] for b in storage_names)
 
-    @variable(model, kb_charge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_charge_max[b])
-    @variable(model, kb_discharge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b])
+    @variable(model, kb_charge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_charge_max[b]/12) # 5 min charge
+    @variable(model, kb_discharge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b]/12) # 5 min discharge
     @variable(model, eb[b in storage_names, s in scenarios, t in time_steps], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
-    @variable(model, res_10[b in storage_names, s in scenarios, t in time_steps] >= 0)
-    @variable(model, res_30[b in storage_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, res_10[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b]/6)
+    @variable(model, res_30[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b]/2)
 
     @constraint(model, battery_discharge[b in storage_names, s in scenarios, t in time_steps], 
-                    kb_discharge[b,s,t] + res_10[b,s,t] + res_30[b,s,t] <= kb_discharge_max[b])
+                    kb_discharge[b,s,t] + res_10[b,s,t]/2 + res_30[b,s,t]/6 <= kb_discharge_max[b]/12)
 
     @constraint(model, eq_storage_energy[b in storage_names, s in scenarios, t in time_steps],
         eb[b,s,t] == (t == 1 ? eb_t0[b] : eb[b,s,t-1]) + η[b].in * kb_charge[b,s,t] - (1/η[b].out) * kb_discharge[b,s,t])
@@ -119,12 +118,14 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     @constraint(model, solar_constraint[g in solar_gen_names, s in scenarios, t in time_steps], pS[g,s,t] <= forecast_solar[g][t,s])
     @constraint(model, wind_constraint[g in wind_gen_names, s in scenarios, t in time_steps], pW[g,s,t] <= forecast_wind[g][t,s])
 
-    @variable(model, overgeneration[s in scenarios, t in time_steps] >= 0)
     @variable(model, curtailment[s in scenarios, t in time_steps] >= 0)
-    add_to_expression!(model[:obj], sum(overgeneration[s,t] for s in scenarios, t in time_steps), 29.9/length(scenarios))
+
+    # @variable(model, overgeneration[s in scenarios, t in time_steps] >= 0)
+    # add_to_expression!(model[:obj], sum(overgeneration[s,t] for s in scenarios, t in time_steps), 299.9/length(scenarios))
+
     @constraint(model, eq_power_balance[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + 
             sum(kb_discharge[b,s,t] - kb_charge[b,s,t] for b in storage_names) + curtailment[s,t] + 
-            sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) - overgeneration[s,t] == forecast_load[t,s])
+            sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
 
     if variable_cost[thermal_gen_names[1]] isa Float64
         add_to_expression!(model[:obj], (1/length(scenarios))*sum(
@@ -137,6 +138,8 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     # Reserve requirements
     _add_reserve_requirement_eq!(sys, model; isED = true)
 
+    @constraint(model, curtail_upper_bound[s in scenarios, t in time_steps], 
+            curtailment[s,t] <= forecast_load[t,s] - sum(pS[g,s,t] for g in solar_gen_names) - sum(pW[g,s,t] for g in wind_gen_names))
     add_to_expression!(model[:obj], sum(curtailment[s,t] for s in scenarios, t in time_steps), VOLL*(1/length(scenarios)))
     
     # Enforce decsion variables for t = 1
@@ -177,6 +180,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     optimize!(model)
 
     model_status = JuMP.primal_status(model)
+    println("The solution status is ", model_status)
     if model_status != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
         print_conflict(model; write_iis = true, iis_path = "/Users/hanshu/Desktop/Price_formation/Result")
     end

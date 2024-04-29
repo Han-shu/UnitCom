@@ -122,7 +122,7 @@ function _build_battery(sys, ::Type{T}, bus::PSY.Bus, name, energy_capacity, rat
         bus=bus,                           # Assign the bus to the component
         prime_mover_type=PSY.PrimeMovers.BA,    # Set the prime mover to Battery
         initial_energy=energy_capacity / 2,  # Set initial energy level
-        state_of_charge_limits=(min=energy_capacity * 0.1, max=energy_capacity),  # Set state of charge limits
+        state_of_charge_limits=(min=0, max=energy_capacity),  # Set state of charge limits
         rating=rating,                     # Set the rating
         active_power=rating,               # Set active power equal to rating
         input_active_power_limits=(min=0.0, max=rating),  # Set input active power limits

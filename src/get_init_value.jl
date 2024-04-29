@@ -1,7 +1,6 @@
 function _get_init_value_for_UC(sys::System; 
         ed_model::Union{JuMP.Model, Nothing}, 
         uc_model::Union{JuMP.Model, Nothing}, 
-        LookAhead::Int = 2
         )::UCInitValue
     thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
     if isnothing(ed_model) && isnothing(uc_model)
@@ -15,7 +14,7 @@ function _get_init_value_for_UC(sys::System;
         history_wg = uc_model[:init_value].history_wg
         history_vg = uc_model[:init_value].history_vg
         thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
-        ug_t0 = Dict(g => [value(uc_model[:ug][g,t]) for t in 1:LookAhead] for g in thermal_gen_names)
+        ug_t0 = Dict(g => value(uc_model[:ug][g,1]) for g in thermal_gen_names)
         #Get Pg_t0 and eb_t0 form ED model
         Pg_t0, eb_t0 = _get_binding_value_from_ED(sys, ed_model)
         for g in thermal_gen_names
@@ -39,7 +38,7 @@ function _get_init_value_for_UC(sys::System, solution::OrderedDict)::UCInitValue
     return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
 end
 
-function _init_fr_ed_model(sys::System; theta::Union{Nothing, Int64} = nothing, LookAhead::Int = 2)
+function _init_fr_ed_model(sys::System; theta::Union{Nothing, Int64} = nothing)
     @info "Obtain initial conditions by running an ED model"
     model = stochastic_ed(sys, Gurobi.Optimizer, theta = theta, start_time = DateTime(Date(2019, 1, 1)))
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
@@ -51,9 +50,9 @@ function _init_fr_ed_model(sys::System; theta::Union{Nothing, Int64} = nothing, 
         val = value(model[:pg][g,1,1])
         Pg_t0[g] = val
         if val > 0
-            ug_t0[g] = repeat([1], LookAhead)
+            ug_t0[g] = 1 #repeat([1], LookAhead)
         else
-            ug_t0[g] = repeat([0], LookAhead)
+            ug_t0[g] = 0 #repeat([0], LookAhead)
         end
     end
     eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
@@ -72,7 +71,9 @@ end
 function _get_init_value_for_ED(sys::System, ug_t0::Dict; ed_model::Union{Nothing,JuMP.Model} = nothing, UC_init_value = nothing)::EDInitValue
     if isnothing(ed_model)
         @assert !isnothing(UC_init_value)
-        Pg_t0 = UC_init_value.Pg_t0
+        thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
+        pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+        Pg_t0 = Dict(g => max(UC_init_value.Pg_t0[g], pg_lim[g].min) for g in thermal_gen_names)
         eb_t0 = UC_init_value.eb_t0
         return EDInitValue(ug_t0, Pg_t0, eb_t0)
     else

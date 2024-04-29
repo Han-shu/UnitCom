@@ -63,15 +63,21 @@ function build_ny_system(; base_power = 100)::System
     add_component!(system, load)
 
     # Add Battery
-    # renewable_config = CSV.read(joinpath(data_dir, "Renewable_config.csv"), DataFrame)
     storage = CSV.read(joinpath(data_dir, "StorageAssignment.csv"), DataFrame, header = ["Bus", "EnergyCapacity"])
-    for (i, ba) in enumerate(eachrow(storage))
-        eff = 0.9
-        energy_capacity = ba.EnergyCapacity / 10000.0
-        rating = energy_capacity * 0.25 # 4 hour battery
-        bus = get_bus(system, 1)
-        _build_battery(system, GenericBattery, bus, "BA_$i", energy_capacity, rating, eff)  # Call build battery function
-    end
+    # Aggregate storage into one 
+    eff = 0.9
+    energy_capacity = sum(storage[:, :EnergyCapacity]) / 1000.0
+    rating = energy_capacity * 0.25 # 4 hour battery
+    bus = get_bus(system, 1)
+    _build_battery(system, GenericBattery, bus, "BA", energy_capacity, rating, eff)  # Call build battery function
+
+    # for (i, ba) in enumerate(eachrow(storage))
+    #     eff = 0.9
+    #     energy_capacity = ba.EnergyCapacity / 10000.0
+    #     rating = energy_capacity * 0.25 # 4 hour battery
+    #     bus = get_bus(system, 1)
+    #     _build_battery(system, GenericBattery, bus, "BA_$i", energy_capacity, rating, eff)  # Call build battery function
+    # end
 
     # Add thermal generators
     gen_header = ["GEN_BUS", "PG", "QG", "QMAX", "QMIN", "VG", "MBASE", "GEN_STATUS", "PMAX", "PMIN", "PC1", "PC2", "QC1MIN", "QC1MAX", "QC2MIN", "QC2MAX", "RAMP_AGC", "RAMP_10", "RAMP_30", "RAMP_Q", "APF"]

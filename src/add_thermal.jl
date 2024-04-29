@@ -33,10 +33,10 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     # Variables 
     # -----------------------------------------------------------------------------------------
     @variable(model, ug[g in thermal_gen_names, t in time_steps], binary = true)
-    @variable(model, vg[g in thermal_gen_names, t in time_steps], binary = true)
-    @variable(model, wg[g in thermal_gen_names, t in time_steps], binary = true)
-    # @variable(model, vg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
-    # @variable(model, wg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
+    # @variable(model, vg[g in thermal_gen_names, t in time_steps], binary = true)
+    # @variable(model, wg[g in thermal_gen_names, t in time_steps], binary = true)
+    @variable(model, vg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
+    @variable(model, wg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
  
     # power generation variables
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps])
@@ -48,7 +48,7 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
 
     # Commitment status constraints
     for g in thermal_gen_names, t in time_steps
-        @constraint(model, ug[g,t] - (t==1 ? ug_t0[g][1] : ug[g,t-1]) == vg[g,t] - wg[g,t])
+        @constraint(model, ug[g,t] - (t==1 ? ug_t0[g] : ug[g,t-1]) == vg[g,t] - wg[g,t])
     end
 
     # must run generators 
@@ -83,8 +83,8 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     # Up and down time constraints
     history_vg = model[:init_value].history_vg
     history_wg = model[:init_value].history_wg
-    time_up_t0 = Dict(g => ug_t0[g][1] * get_time_at_status(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
-    time_down_t0 = Dict(g => (1 - ug_t0[g][1])*get_time_at_status(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    time_up_t0 = Dict(g => ug_t0[g] * get_time_at_status(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    time_down_t0 = Dict(g => (1 - ug_t0[g])*get_time_at_status(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
     eq_uptime = _init(model, :eq_uptime)
     eq_downtime = _init(model, :eq_downtime)
     for g in thermal_gen_names, t in time_steps
@@ -134,7 +134,7 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
         eq_downtime[g,t] = @constraint(model, lhs_off + ug[g,t] <= 1.0)
 
     end
-
+                                                                    
     # Add variable cost to objective function
     if isa(variable_cost[thermal_gen_names[1]], Float64)
         add_to_expression!(model[:obj], sum(

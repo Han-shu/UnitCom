@@ -86,7 +86,7 @@ end
 
 
 function add_scenarios_time_series_ED!(system::System)::Nothing
-    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Min5"
+    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Min5_2"
     solar_file = joinpath(ts_dir, "solar_scenarios.h5")
     wind_file = joinpath(ts_dir, "wind_scenarios.h5")
     load_file = joinpath(ts_dir, "load_scenarios.h5")

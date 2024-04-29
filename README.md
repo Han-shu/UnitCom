@@ -11,15 +11,17 @@
 - Reserve price is always zero
     - All generators are assumed to be eligible to provide reserve
     - No cost to provide reserve 
+- Infeasibility after correcting ramp rate and storage capacity
 - LMP is weird 
     - reaches the upper bound very often
     - negative -4XXX
 
 # April 18 - 25 TODO
 - Draft an email to ask NREL about the data issue
-- Ramp rate correction
+- ~~Ramp rate correction~~
 - Storage energy and power rarting
 - Generate time series data for 5 min ED model
+    - Interpolate the 15 min forecast tp 5 min
 - ~~Add stochastic 5 min ED model (2h horizon)~~
 - ~~Add 5min rolling horizon ED model~~
 - ~~Connect ED model with UC model~~
