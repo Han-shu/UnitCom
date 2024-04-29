@@ -18,13 +18,32 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
 
     # Get initial conditions
     if isnothing(init_value)
+        #TODO initial conditions to run ED model
         ug = Dict(g => repeat([1], 2) for g in thermal_gen_names) # Assume all thermal generators are on
-        Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+        vg = Dict(g => [1, 0] for g in thermal_gen_names) # Assume all thermal generators are started up at t = 1???
+        wg = Dict(g => repeat([0], 2) for g in thermal_gen_names)
+        Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names) # all 0
         eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
     else
-        ug = init_value.ug_t0 # commitment status
+        ug = init_value.ug_t0 # commitment status, 2-element Vector, 1 for on, 0 for off
+        vg = init_value.vg_t0 # startup status, 2-element Vector
+        wg = init_value.wg_t0 # shutdown status, 2-element Vector
         Pg_t0 = init_value.Pg_t0
         eb_t0 = init_value.eb_t0
+    end
+
+    vg_min5 = Dict(g => zeros(horizon) for g in thermal_gen_names)
+    wg_min5 = Dict(g => zeros(horizon) for g in thermal_gen_names)
+
+    minute(model[:param].start_time) == 0 ? idx = 1 : idx = 2
+    for t in time_steps
+        if minute(model[:param].start_time + Minute(5)*(t-1)) == 0
+            for g in thermal_gen_names
+                vg_min5[g][t] = vg[g][idx]
+                wg_min5[g][t] = wg[g][idx]
+            end
+            break
+        end
     end
 
     # Thermal generators
@@ -52,10 +71,11 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
     ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
     if !isnothing(init_value)
+        #TODO startup and shutdown ramping 
     for g in thermal_gen_names, s in scenarios, t in time_steps
         i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
-        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t]/2 + spin_30[g,s,t]/6 <= ramp_up[g]*ug[g][i]/12)
-        @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t] <= ramp_dn[g]*ug[g][i]/12)
+        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t]/2 + spin_30[g,s,t]/6 <= ramp_up[g]*ug[g][i]/12 + pg_lim[g].max*vg_min5[g][t])
+        @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t] <= ramp_dn[g]*ug[g][i]/12 + pg_lim[g].max*wg_min5[g][t])
     end
     end
 

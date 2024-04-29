@@ -34,12 +34,12 @@ UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed
 uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
                     start_time = uc_time, scenario_count = scenario_count, horizon = uc_horizon)
 # Get commitment status that will be passed to ED
-ug_t0 = _get_commitment_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
+uc_status = _get_commitment_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
 ed_sol = init_solution_ed(EDsys)
 i = 1
 ed_time = uc_time + Minute(5*(i-1))
 @info "Solving ED model at $(ed_time)"
-ED_init_value = _get_init_value_for_ED(EDsys, ug_t0; ed_model = ed_model, UC_init_value = UC_init_value)
+ED_init_value = _get_init_value_for_ED(EDsys, uc_status; ed_model = ed_model, UC_init_value = UC_init_value)
 ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; init_value = ED_init_value, theta = theta, start_time = ed_time, horizon = ed_horizon)
 
 for i in 1:12
@@ -117,3 +117,16 @@ for g in thermal_gen_names
         println("$g has non-zero power output")
     end
 end
+
+start_time = DateTime(2019, 1, 1, 0, 0, 0)
+idx = 1
+for t in 1:12
+    if minute(start_time + Minute(5)*(t-1)) == 0
+        println("Time: ", start_time + Minute(5)*(t-1))
+        println("Time index: ", t)
+        println("Index: ", idx)
+        idx += 1
+    end
+end
+
+minute(DateTime(2019, 1, 1, 0, 5, 0)) == 0

@@ -32,6 +32,8 @@ end
 
 mutable struct EDInitValue
     ug_t0::Dict
+    vg_t0::Dict
+    wg_t0::Dict
     Pg_t0::Dict
     eb_t0::Dict
 end

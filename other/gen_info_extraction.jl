@@ -43,7 +43,7 @@ op_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(Therm
 no_load_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, UCsys, g))) for g in thermal_gen_names)
 shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, UCsys, g))) for g in thermal_gen_names)
 startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalGen, UCsys, g))) for g in thermal_gen_names)
-pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
+pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, EDsys, g)) for g in thermal_gen_names)
 
 
 storage_names = PSY.get_name.(get_components(PSY.GenericBattery, UCsys))
@@ -52,12 +52,12 @@ eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, UCsy
 kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, UCsys, b))[:max] for b in storage_names)
 kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, UCsys, b))[:max] for b in storage_names)
 
-thermal_gen_names = get_name.(get_components(ThermalGen, UCsys))
+thermal_gen_names = get_name.(get_components(ThermalGen, EDsys))
 get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
 get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
-ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
-ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
-pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
+ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, EDsys, g)) for g in thermal_gen_names)
+ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, EDsys, g)) for g in thermal_gen_names)
+pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, EDsys, g)) for g in thermal_gen_names)
 
 ug_t0 = Dict(g => PSY.get_status(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)
 Pg_t0 = Dict(g => PSY.get_active_power(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)

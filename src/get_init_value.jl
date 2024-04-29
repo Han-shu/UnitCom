@@ -48,11 +48,13 @@ function _init_fr_ed_model(sys::System; theta::Union{Nothing, Int64} = nothing)
     ug_t0 = Dict()
     for g in thermal_gen_names
         val = value(model[:pg][g,1,1])
-        Pg_t0[g] = val
+        # Pg_t0[g] = val
         if val > 0
             ug_t0[g] = 1 #repeat([1], LookAhead)
+            Pg_t0[g] = max(val, pg_lim[g].min)
         else
             ug_t0[g] = 0 #repeat([0], LookAhead)
+            Pg_t0[g] = 0
         end
     end
     eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
@@ -68,25 +70,30 @@ function _get_binding_value_from_ED(sys::System, ed_model::JuMP.Model)
     return Pg_t0, eb_t0
 end
 
-function _get_init_value_for_ED(sys::System, ug_t0::Dict; ed_model::Union{Nothing,JuMP.Model} = nothing, UC_init_value = nothing)::EDInitValue
+function _get_init_value_for_ED(sys::System, uc_status; ed_model::Union{Nothing,JuMP.Model} = nothing, UC_init_value = nothing)::EDInitValue
+    ug_t0 = uc_status[1]
+    vg_t0 = uc_status[2]
+    wg_t0 = uc_status[3]
     if isnothing(ed_model)
         @assert !isnothing(UC_init_value)
         thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
         pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
-        Pg_t0 = Dict(g => max(UC_init_value.Pg_t0[g], pg_lim[g].min) for g in thermal_gen_names)
+        Pg_t0 = UC_init_value.Pg_t0
         eb_t0 = UC_init_value.eb_t0
-        return EDInitValue(ug_t0, Pg_t0, eb_t0)
+        return EDInitValue(ug_t0, vg_t0, wg_t0,Pg_t0, eb_t0)
     else
         @assert !isnothing(ug_t0)
         Pg_t0, eb_t0 = _get_binding_value_from_ED(sys, ed_model)
-        return EDInitValue(ug_t0, Pg_t0, eb_t0)
+        return EDInitValue(ug_t0, vg_t0, wg_t0, Pg_t0, eb_t0)
     end
 end
 
 
-function _get_commitment_status_for_ED(uc_model::JuMP.Model, thermal_gen_names; CoverHour = 2)::Dict
+function _get_commitment_status_for_ED(uc_model::JuMP.Model, thermal_gen_names; CoverHour = 2)
     ug_t0 = Dict(g => [value(uc_model[:ug][g,t]) for t in 1:CoverHour] for g in thermal_gen_names)
-    return ug_t0
+    vg_t0 = Dict(g => [value(uc_model[:vg][g,t]) for t in 1:CoverHour] for g in thermal_gen_names)
+    wg_t0 = Dict(g => [value(uc_model[:wg][g,t]) for t in 1:CoverHour] for g in thermal_gen_names)
+    return [ug_t0, vg_t0, wg_t0]
 end
 
 
