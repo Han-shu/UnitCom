@@ -7,14 +7,14 @@ include("src/get_solution.jl")
 include("src/functions.jl")
 include("src/get_init_value.jl")
 
-# Rolling horizon UC-ED
+# Rolling horizon UCED
 
 theta = nothing # nothing or set between 1 ~ 49 (Int)
 scenario_count = 10
 uc_horizon = 36
 ed_horizon = 12
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-model_name = "UC-ED"
+model_name = "UCED"
 solution_file = joinpath(result_dir, "$(model_name)_sol_$(Dates.today()).json")
 
 @info "Build NY system for UC"
@@ -84,3 +84,10 @@ end
 
 # # save the solution
 write_json(solution_file, uc_sol)
+
+
+# model_str = string(model)
+# # Write the model to a text file
+# open(joinpath(result_dir, "model_output.txt"), "w") do file
+#     write(file, model_str)
+# end

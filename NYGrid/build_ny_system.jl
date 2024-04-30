@@ -66,7 +66,7 @@ function build_ny_system(; base_power = 100)::System
     storage = CSV.read(joinpath(data_dir, "StorageAssignment.csv"), DataFrame, header = ["Bus", "EnergyCapacity"])
     # Aggregate storage into one 
     eff = 0.9
-    energy_capacity = sum(storage[:, :EnergyCapacity]) / 1000.0
+    energy_capacity = 15 #sum(storage[:, :EnergyCapacity]) / 10000.0
     rating = energy_capacity * 0.25 # 4 hour battery
     bus = get_bus(system, 1)
     _build_battery(system, GenericBattery, bus, "BA", energy_capacity, rating, eff)  # Call build battery function
@@ -102,7 +102,7 @@ function build_ny_system(; base_power = 100)::System
         name = genprop.GEN_NAME
         pmax = gen.PMAX
         pmin = gen.PMIN
-        ramp_rate = gen.RAMP_AGC*60 # or gen.RAMP_30 
+        ramp_rate = gen.RAMP_AGC*45 # or gen.RAMP_30 
         pm = map_UnitType[genprop.GEN_FUEL]
         # ThreePartCost(variable, fixed, start_up, shut_down)
         if fuel == ThermalFuels.NUCLEAR

@@ -46,6 +46,10 @@ function init_solution_uc(sys::System)::OrderedDict
     storage_names = get_name.(get_components(GenericBattery, sys))
     sol = OrderedDict()
     sol["Time"] = []
+    sol["Hourly average LMP"] = []
+    sol["Hourly average price for 10min spinning reserve"] = []
+    sol["Hourly average price for 10min reserve"] = []
+    sol["Hourly average price for 30min reserve"] = []
     sol["System operator cost"] = []
     sol["Charge consumers"] = []
     sol["Generator profits"] = OrderedDict(g => [] for g in thermal_gen_names)
@@ -58,6 +62,10 @@ end
 
 function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict)::OrderedDict
     push!(sol["Time"], model[:param].start_time)
+    push!(sol["Hourly average LMP"], mean(ed_sol["LMP"]))
+    push!(sol["Hourly average price for 10min spinning reserve"], mean(ed_sol["Spin 10min price"]))
+    push!(sol["Hourly average price for 10min reserve"], mean(ed_sol["Reserve 10min price"]))
+    push!(sol["Hourly average price for 30min reserve"], mean(ed_sol["Reserve 30min price"]))
     sys_cost = mean(ed_sol["operation_cost"])
     push!(sol["Charge consumers"], mean(ed_sol["charge_consumers"]))
     gen_profits, sys_cost = minus_uc_integer_cost_thermal_gen(sys, model, ed_sol["gen_profits"], sys_cost)

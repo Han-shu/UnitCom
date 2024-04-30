@@ -16,19 +16,24 @@
     - reaches the upper bound very often
     - negative -4XXX
 
-# April 18 - 25 TODO
+# April 26 - May 6 TODO
 - Draft an email to ask NREL about the data issue
+- Add end of horizon storage value
+- Ramp rate (AGC*60 too high or RAMP_30 negative LMP and infeasibility)
+- Storage capacity (~200 MW or ~2000 MW)
 - ~~Ramp rate correction~~
 - ~~Storage energy and power rating~~
 - ~~Generate time series data for 5 min ED model~~
     - ~~Interpolate the 15 min forecast tp 5 min~~
+
+# April 18 - 25 TODO
 - ~~Add stochastic 5 min ED model (2h horizon)~~
 - ~~Add 5min rolling horizon ED model~~
 - ~~Connect ED model with UC model~~
     - ~~pass commitment status from UC to ED~~
     - ~~pass generartion dispatch and storage level from ED to UC~~
-- Get results from UC
-- Get results from ED 
+- ~~Get results from UC~~
+- ~~Get results from ED~~ 
     - pg, kb_charge, kb_discharge at t = 1
     - LMP at t = 1
 - Go through the code and make sure everything is correct

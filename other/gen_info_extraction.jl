@@ -51,6 +51,7 @@ eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, UCsy
 η = Dict(b => get_efficiency(get_component(GenericBattery, UCsys, b)) for b in storage_names)
 kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, UCsys, b))[:max] for b in storage_names)
 kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, UCsys, b))[:max] for b in storage_names)
+eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, UCsys, b)) for b in storage_names)
 
 thermal_gen_names = get_name.(get_components(ThermalGen, EDsys))
 get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
