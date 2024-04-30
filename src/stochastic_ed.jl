@@ -100,8 +100,10 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     @variable(model, kb_discharge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b]/12) # 5 min discharge
     @variable(model, eb[b in storage_names, s in scenarios, t in time_steps], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
     @variable(model, res_10[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b]/6)
-    @variable(model, res_30[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b]/2)
+    @variable(model, res_30[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0)
 
+    @constraint(model, battery_reserve[b in storage_names, s in scenarios, t in time_steps], 
+                    res_10[b,s,t] + res_30[b,s,t] <= kb_discharge_max[b]/2)
     @constraint(model, battery_discharge[b in storage_names, s in scenarios, t in time_steps], 
                     kb_discharge[b,s,t] + res_10[b,s,t]/2 + res_30[b,s,t]/6 <= kb_discharge_max[b]/12)
 
