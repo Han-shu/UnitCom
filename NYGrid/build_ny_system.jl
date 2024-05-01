@@ -13,7 +13,7 @@ include("manual_data_entries.jl")
 
 function build_ny_system(; base_power = 100)::System
     data_dir = "/Users/hanshu/Desktop/Price_formation/UnitCom/NYGrid/Data"
-    system = PSY.System(base_power)
+    system = PSY.System(base_power; assign_new_uuids = true)
     set_units_base_system!(system, PSY.UnitSystem.NATURAL_UNITS)
 
     # Add single bus

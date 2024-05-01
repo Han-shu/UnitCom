@@ -27,6 +27,7 @@ else
     @info "Adding scenarios time series data for UC"
     add_scenarios_time_series_UC!(UCsys)
 end
+add_scenarios_time_series_ED!(UCsys)
 
 @info "Build NY system for ED"
 EDsys = build_ny_system(base_power = 100)
