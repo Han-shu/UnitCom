@@ -102,7 +102,7 @@ function build_ny_system(; base_power = 100)::System
         name = genprop.GEN_NAME
         pmax = gen.PMAX
         pmin = gen.PMIN
-        ramp_rate = gen.RAMP_AGC*45 # or gen.RAMP_30 
+        ramp_rate = (gen.RAMP_AGC*30 > gen.RAMP_30+1e-2) ? gen.RAMP_30*2 : gen.RAMP_AGC*60
         pm = map_UnitType[genprop.GEN_FUEL]
         # ThreePartCost(variable, fixed, start_up, shut_down)
         if fuel == ThermalFuels.NUCLEAR

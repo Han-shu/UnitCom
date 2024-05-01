@@ -76,13 +76,10 @@ function _get_init_value_for_ED(sys::System, uc_status; ed_model::Union{Nothing,
     wg_t0 = uc_status[3]
     if isnothing(ed_model)
         @assert !isnothing(UC_init_value)
-        thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
-        pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
         Pg_t0 = UC_init_value.Pg_t0
         eb_t0 = UC_init_value.eb_t0
         return EDInitValue(ug_t0, vg_t0, wg_t0,Pg_t0, eb_t0)
     else
-        @assert !isnothing(ug_t0)
         Pg_t0, eb_t0 = _get_binding_value_from_ED(sys, ed_model)
         return EDInitValue(ug_t0, vg_t0, wg_t0, Pg_t0, eb_t0)
     end
