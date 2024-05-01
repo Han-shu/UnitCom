@@ -11,8 +11,8 @@ include("src/get_init_value.jl")
 
 theta = nothing # nothing or set between 1 ~ 49 (Int)
 scenario_count = 10
-uc_horizon = 36
-ed_horizon = 12
+uc_horizon = 36 # 36 hours
+ed_horizon = 12 # 12*5 minutes = 1 hour
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 model_name = "UCED"
 solution_file = joinpath(result_dir, "$(model_name)_sol_$(Dates.today()).json")
