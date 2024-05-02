@@ -105,7 +105,7 @@ function add_scenarios_time_series_ED!(system::System)::Nothing
     scenario_count = 10
 
     scenario_forecast_data = Scenarios(
-        name = "min5_solar_power",
+        name = "solar_power",
         resolution = ha_resolution,
         data = solar_data,
         scenario_count = scenario_count,
@@ -114,7 +114,7 @@ function add_scenarios_time_series_ED!(system::System)::Nothing
     add_time_series!(system, solar_gens, scenario_forecast_data)
 
     scenario_forecast_data = Scenarios(
-        name = "min5_wind_power",
+        name = "wind_power",
         resolution = ha_resolution,
         data = wind_data,
         scenario_count = scenario_count,
@@ -123,7 +123,7 @@ function add_scenarios_time_series_ED!(system::System)::Nothing
     add_time_series!(system, wind_gens, scenario_forecast_data)
 
     scenario_forecast_data = Scenarios(
-        name = "min5_load",
+        name = "load",
         resolution = ha_resolution,
         data = load_data,
         scenario_count = scenario_count,

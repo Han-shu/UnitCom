@@ -2,6 +2,7 @@ include("../evaluate/cost.jl")
 
 function init_solution_ed(sys::System)::OrderedDict
     sol = OrderedDict()
+    sol["Time"] = []
     sol["Spin 10min price"] = []
     sol["Reserve 10min price"] = []
     sol["Reserve 30min price"] = []
@@ -10,12 +11,15 @@ function init_solution_ed(sys::System)::OrderedDict
     sol["charge_consumers"] = []
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
+    sol["Generator energy dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Storage energy"] = OrderedDict(b => [] for b in storage_names)
     sol["gen_profits"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["storage_profits"] = OrderedDict(b => [] for b in storage_names)
     return sol
 end
 
 function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
+    push!(sol["Time"], model[:param].start_time)
     push!(sol["Spin 10min price"], _get_price(model, :eq_reserve_spin10))
     push!(sol["Reserve 10min price"], _get_price(model, :eq_reserve_10))
     push!(sol["Reserve 30min price"], _get_price(model, :eq_reserve_30))
@@ -26,12 +30,29 @@ function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::Orde
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     for g in thermal_gen_names
+        push!(sol["Generator energy dispatch"][g], value(model[:pg][g,1,1]))
         push!(sol["gen_profits"][g], gen_profits[g])
     end
     for b in storage_names
+        push!(sol["Storage energy"][b], value(model[:eb][b,1,1]))
         push!(sol["storage_profits"][b], storage_profits[b])
     end
     return sol 
+end
+
+function merge_ed_solution(ed_sol::OrderedDict, ed_hour_sol::OrderedDict)::OrderedDict
+    for key in keys(ed_hour_sol)
+        if key in ["Generator energy dispatch", "Storage energy", "gen_profits", "storage_profits"]
+            for g in keys(ed_hour_sol[key])
+                push!(ed_sol[key][g], ed_hour_sol[key][g])
+            end
+        elseif key == "Time"
+            push!(ed_sol[key], ed_hour_sol[key][1])
+        else
+            push!(ed_sol[key], ed_hour_sol[key])
+        end
+    end
+    return ed_sol
 end
 
 

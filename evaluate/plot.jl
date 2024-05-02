@@ -27,7 +27,7 @@ println("Max wind difference in 1h: ", max_wind_diff)
 plot(Actual[1:24], label = "Actuals", title = "Actuals", xlabel = "Time", ylabel = "MW")
 
 include("../NYGrid/add_scenarios_ts.jl")
-uc_ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Hour"
+uc_ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Hour_2"
 ed_ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Min5_2"
 
 uc_solar_file = joinpath(uc_ts_dir, "solar_scenarios.h5")
