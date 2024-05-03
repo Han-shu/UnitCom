@@ -35,8 +35,6 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     @variable(model, ug[g in thermal_gen_names, t in time_steps], binary = true) # commitment status
     @variable(model, vg[g in thermal_gen_names, t in time_steps], binary = true) # startup status
     @variable(model, wg[g in thermal_gen_names, t in time_steps], binary = true) # shutdown status
-
-    # @constraint(model, start_up[g in thermal_gen_names, t in time_steps], vg[g,t] + wg[g,t] <= 1)
     # @variable(model, vg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
     # @variable(model, wg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
  
@@ -50,6 +48,7 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
 
     # Commitment status constraints 
     @constraint(model, eq_binary[g in thermal_gen_names, t in time_steps], ug[g,t] - (t==1 ? ug_t0[g] : ug[g,t-1]) == vg[g,t] - wg[g,t])
+    # @constraint(model, eq_binary_2[g in thermal_gen_names, t in time_steps], vg[g,t] + wg[g,t] <= 1)
 
     # must run generators 
     if use_must_run

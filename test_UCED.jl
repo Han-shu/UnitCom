@@ -8,7 +8,7 @@ include("src/functions.jl")
 include("src/get_init_value.jl")
 
 # Open a file in append mode
-log_file = open("repl_log.txt", "a")
+log_file = open(joinpath(result_dir,"repl_log.txt"), "a")
 
 # Redirect standard output and standard error
 redirect_stdout(log_file)
