@@ -22,7 +22,7 @@ function _construct_fcst_data_ED(file::AbstractString, base_power::Float64, init
     num_idx = h5open(file, "r") do file
         return length(read(file))
     end
-    for ix in 1:num_idx
+    for ix in 1:529#num_idx
         curr_time = initial_time + Minute(5)*(ix-1)
         forecast = h5open(file, "r") do file
             return read(file, string(curr_time))
@@ -35,7 +35,7 @@ function _construct_fcst_data_ED(file::AbstractString, base_power::Float64, init
 end
 
 function add_scenarios_time_series_UC!(system::System)::Nothing
-    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Hour"
+    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Hour_2"
     solar_file = joinpath(ts_dir, "solar_scenarios.h5")
     wind_file = joinpath(ts_dir, "wind_scenarios.h5")
     load_file = joinpath(ts_dir, "load_scenarios.h5")
@@ -86,7 +86,7 @@ end
 
 
 function add_scenarios_time_series_ED!(system::System)::Nothing
-    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Min5_2"
+    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Min5_3"
     solar_file = joinpath(ts_dir, "solar_scenarios.h5")
     wind_file = joinpath(ts_dir, "wind_scenarios.h5")
     load_file = joinpath(ts_dir, "load_scenarios.h5")

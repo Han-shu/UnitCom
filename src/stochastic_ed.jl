@@ -160,8 +160,8 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     # Reserve requirements
     _add_reserve_requirement_eq!(sys, model; isED = true)
 
-    @constraint(model, curtail_upper_bound[s in scenarios, t in time_steps], 
-            curtailment[s,t] <= forecast_load[t,s] - sum(pS[g,s,t] for g in solar_gen_names) - sum(pW[g,s,t] for g in wind_gen_names))
+    # @constraint(model, curtail_upper_bound[s in scenarios, t in time_steps], 
+    #         curtailment[s,t] <= forecast_load[t,s] - sum(pS[g,s,t] for g in solar_gen_names) - sum(pW[g,s,t] for g in wind_gen_names))
     add_to_expression!(model[:obj], sum(curtailment[s,t] for s in scenarios, t in time_steps), VOLL*(1/length(scenarios)))
     
     # Enforce decsion variables for t = 1
@@ -171,31 +171,32 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     @variable(model, t_spin_30[g in thermal_gen_names], lower_bound = 0)
     @variable(model, t_Nspin_10[g in thermal_gen_names], lower_bound = 0)
     @variable(model, t_Nspin_30[g in thermal_gen_names], lower_bound = 0)
-    for g in thermal_gen_names, s in scenarios
-        @constraint(model, pg[g,s,1] == t_pg[g])
-        @constraint(model, spin_10[g,s,1] == t_spin_10[g])
-        @constraint(model, spin_30[g,s,1] == t_spin_30[g])
-        @constraint(model, Nspin_10[g,s,1] == t_Nspin_10[g])
-        @constraint(model, Nspin_30[g,s,1] == t_Nspin_30[g])
-    end
+
+    @constraint(model, bind_pg[g in thermal_gen_names, s in scenarios], pg[g,s,1] == t_pg[g])
+    @constraint(model, bind_spin10[g in thermal_gen_names, s in scenarios], spin_10[g,s,1] == t_spin_10[g])
+    @constraint(model, bind_spin30[g in thermal_gen_names, s in scenarios], spin_30[g,s,1] == t_spin_30[g])
+    @constraint(model, bind_Nspin10[g in thermal_gen_names, s in scenarios], Nspin_10[g,s,1] == t_Nspin_10[g])
+    @constraint(model, bind_Nspin30[g in thermal_gen_names, s in scenarios], Nspin_30[g,s,1] == t_Nspin_30[g])
+    
     # Binding storage variables
     @variable(model, t_kb_charge[b in storage_names], lower_bound = 0, upper_bound = kb_charge_max[b])
     @variable(model, t_kb_discharge[b in storage_names], lower_bound = 0, upper_bound = kb_discharge_max[b])
     @variable(model, t_eb[b in storage_names], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
     @variable(model, t_res_10[b in storage_names], lower_bound = 0)
     @variable(model, t_res_30[b in storage_names], lower_bound = 0)
-    for b in storage_names, s in scenarios
-        @constraint(model, kb_charge[b,s,1] == t_kb_charge[b])
-        @constraint(model, kb_discharge[b,s,1] == t_kb_discharge[b])
-        @constraint(model, eb[b,s,1] == t_eb[b])
-        @constraint(model, res_10[b,s,1] == t_res_10[b])
-        @constraint(model, res_30[b,s,1] == t_res_30[b])
-    end
+     
+    @constraint(model, bind_kb_c[b in storage_names, s in scenarios], kb_charge[b,s,1] == t_kb_charge[b])
+    @constraint(model, bind_kb_d[b in storage_names, s in scenarios], kb_discharge[b,s,1] == t_kb_discharge[b])
+    @constraint(model, bind_ed[b in storage_names, s in scenarios], eb[b,s,1] == t_eb[b])
+    @constraint(model, bind_res10[b in storage_names, s in scenarios], res_10[b,s,1] == t_res_10[b])
+    @constraint(model, bind_res30[b in storage_names, s in scenarios], res_30[b,s,1] == t_res_30[b])
+
     # Binding renewable variables
-    @variable(model, t_pS[g in solar_gen_names] >= 0)
-    @variable(model, t_pW[g in wind_gen_names] >= 0)
-    @constraint(model, [g in solar_gen_names, s in scenarios], pS[g,s,1] == t_pS[g])
-    @constraint(model, [g in wind_gen_names, s in scenarios], pW[g,s,1] == t_pW[g])
+    # @variable(model, t_pS[g in solar_gen_names] >= 0)
+    # @variable(model, t_pW[g in wind_gen_names] >= 0)
+
+    # @constraint(model, bind_pS[g in solar_gen_names, s in scenarios], pS[g,s,1] == t_pS[g])
+    # @constraint(model, bind_pW[g in wind_gen_names, s in scenarios], pW[g,s,1] == t_pW[g])
 
     @objective(model, Min, model[:obj])
 

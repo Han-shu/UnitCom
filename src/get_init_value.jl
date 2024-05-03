@@ -30,8 +30,8 @@ function _get_init_value_for_UC(sys::System;
         #Get Pg_t0 and eb_t0 from ED model
         Pg_t0, eb_t0 = _get_binding_value_from_ED(sys, ed_model)
         for g in thermal_gen_names
-            push!(history_vg[g], Int(round(value(uc_model[:vg][g,1]), digits = 0)))
-            push!(history_wg[g], Int(round(value(uc_model[:wg][g,1]), digits = 0)))
+            push!(history_vg[g], value(uc_model[:vg][g,1])) #Int(round(value(uc_model[:vg][g,1]), digits = 0)))
+            push!(history_wg[g], value(uc_model[:wg][g,1])) #Int(round(value(uc_model[:wg][g,1]), digits = 0)))
         end
         return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
     end

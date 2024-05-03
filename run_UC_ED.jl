@@ -55,12 +55,13 @@ end
 # Run rolling horizon UC-ED
 for t in 1:8760-uc_horizon+1
     global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value
+    uc_time = init_time + Hour(1)*(t-1)
+
     if t % 12 == 0
         write_json(uc_sol_file, uc_sol)
         write_json(ed_sol_file, ed_sol)
     end
-    uc_time = init_time + Hour(1)*(t-1)
-    if t > 10 || uc_time > DateTime(2019,12,31,0)
+    if t > 6 || uc_time > DateTime(2019,12,31,0)
         break
     end
     one_iter = @elapsed begin
