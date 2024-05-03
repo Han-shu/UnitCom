@@ -9,9 +9,9 @@ function _get_init_value_for_UC(sys::System;
     if isnothing(ed_model) && isnothing(uc_model) # Initiate from scratch
         @info "Obtain initial conditions by running an ED model"
         ug_t0, Pg_t0, eb_t0 = _init_fr_ed_model(sys)
-        history_wg = Dict(g => Vector{Int}() for g in thermal_gen_names)
         history_vg = Dict(g => Vector{Int}() for g in thermal_gen_names)
-        return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_wg, history_vg)
+        history_wg = Dict(g => Vector{Int}() for g in thermal_gen_names)
+        return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
     elseif length(all_variables(uc_model)) == 0 # Initiate from solution
         @info "Obtain initial conditions from existing solution files"
         ug_t0 = Dict(g => uc_sol["Commitment status"][g][end] for g in thermal_gen_names)
@@ -19,7 +19,7 @@ function _get_init_value_for_UC(sys::System;
         eb_t0 = Dict(b => ed_sol["Storage energy"][b][end][end] for b in storage_names)
         history_wg = Dict(g => uc_sol["Shut down"][g] for g in thermal_gen_names)
         history_vg = Dict(g => uc_sol["Start up"][g] for g in thermal_gen_names)
-        return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_wg, history_vg)
+        return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
     else # Initiate from model
         @info "Obtain initial conditions from existing model"
         @assert length(all_variables(uc_model)) > 0 && length(all_variables(ed_model)) > 0

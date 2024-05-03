@@ -8,6 +8,7 @@ include("src/functions.jl")
 include("src/get_init_value.jl")
 
 # Open a file in append mode
+result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 log_file = open(joinpath(result_dir,"repl_log.txt"), "a")
 
 # Redirect standard output and standard error
@@ -19,7 +20,6 @@ theta = nothing # nothing or set between 1 ~ 49 (Int)
 scenario_count = 10
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
-result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 model_name = "UCED"
 uc_sol_file = joinpath(result_dir, "$(model_name)_sol_$(Dates.today()).json")
 ed_sol_file = joinpath(result_dir, "ED_sol_$(Dates.today()).json")
