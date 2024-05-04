@@ -64,8 +64,8 @@ eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, UCsys, b)) fo
 thermal_gen_names = get_name.(get_components(ThermalGen, EDsys))
 get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
 get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
-ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, EDsys, g)) for g in thermal_gen_names)
-ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, EDsys, g)) for g in thermal_gen_names)
+ramp_10 = Dict(g => get_rmp_up_limit(get_component(ThermalGen, EDsys, g)) for g in thermal_gen_names)
+ramp_30 = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, EDsys, g)) for g in thermal_gen_names)
 pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, EDsys, g)) for g in thermal_gen_names)
 
 ug_t0 = Dict(g => PSY.get_status(get_component(ThermalGen, UCsys, g)) for g in thermal_gen_names)

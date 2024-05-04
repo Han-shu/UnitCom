@@ -68,7 +68,7 @@ for t in 1:8760-uc_horizon+1
         write_json(uc_sol_file, uc_sol)
         write_json(ed_sol_file, ed_sol)
     end
-    if t > 6 || uc_time > DateTime(2019,12,31,0)
+    if t > 6 || uc_time > DateTime(2019,12,29,20)
         break
     end
     one_iter = @elapsed begin

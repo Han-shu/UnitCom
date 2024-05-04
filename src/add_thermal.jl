@@ -18,8 +18,8 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
 
     get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
     get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
-    ramp_up = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
-    ramp_dn = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    ramp_10 = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
+    ramp_30 = Dict(g => get_rmp_dn_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
 
     # initial condition
     ug_t0 = model[:init_value].ug_t0
@@ -65,12 +65,12 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
 
     # ramping constraints and reserve constraints
     for g in thermal_gen_names, s in scenarios, t in time_steps
-        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g,t] + pg_lim[g].min*vg[g,t])
-        @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t]  <= ramp_dn[g]*ug[g,t] + pg_lim[g].min*wg[g,t])
-        @constraint(model, spin_10[g,s,t] <= ramp_up[g]*ug[g,t]/6)
-        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g,t]/2)
-        @constraint(model, Nspin_10[g,s,t] <= ramp_up[g]*(1-ug[g,t])/6)
-        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_up[g]*(1-ug[g,t])/2)
+        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_30[g]*2*ug[g,t] + pg_lim[g].min*vg[g,t])
+        @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t]  <= ramp_30[g]*2*ug[g,t] + pg_lim[g].min*wg[g,t])
+        @constraint(model, spin_10[g,s,t] <= ramp_10[g]*ug[g,t])
+        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_30[g]*ug[g,t])
+        @constraint(model, Nspin_10[g,s,t] <= ramp_10[g]*(1-ug[g,t]))
+        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_30[g]*(1-ug[g,t]))
         @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g,t])
         @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g,t]))
     end

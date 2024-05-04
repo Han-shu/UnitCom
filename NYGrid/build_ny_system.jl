@@ -102,7 +102,8 @@ function build_ny_system(; base_power = 100)::System
         name = genprop.GEN_NAME
         pmax = gen.PMAX
         pmin = gen.PMIN
-        ramp_rate = gen.RAMP_30*2 #gen.RAMP_AGC*60 #min(gen.RAMP_30*2, gen.RAMP_AGC*60)
+        ramp_10 = gen.RAMP_10
+        ramp_30 = gen.RAMP_30 #gen.RAMP_AGC*60 #min(gen.RAMP_30*2, gen.RAMP_AGC*60)
         pm = map_UnitType[genprop.GEN_FUEL]
         # ThreePartCost(variable, fixed, start_up, shut_down)
         if fuel == ThermalFuels.NUCLEAR
@@ -112,7 +113,7 @@ function build_ny_system(; base_power = 100)::System
         end
         type = _thermal_type(pm, fuel, pmax)
         uptime, downtime = duration_lims[type][:up], duration_lims[type][:down]
-        _add_thermal(system, bus; name = name, fuel = fuel, pmin = pmin, pmax = pmax, ramp_rate = ramp_rate, cost = cost, pm = pm, uptime = uptime, downtime = downtime)
+        _add_thermal(system, bus; name = name, fuel = fuel, pmin = pmin, pmax = pmax, ramp_10 = ramp_10, ramp_30 = ramp_30, cost = cost, pm = pm, uptime = uptime, downtime = downtime)
     end
 
     # Add hydro

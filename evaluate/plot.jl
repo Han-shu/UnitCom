@@ -22,25 +22,6 @@ ed_wind_data = _construct_fcst_data_ED(ed_wind_file, base_power, ed_init_time)
 ed_load_data = _construct_fcst_data_ED(ed_load_file, base_power, ed_init_time)
 
 
-    for ix in 1:529#num_idx
-        curr_time = initial_time + Minute(5)*(ix-1)
-        forecast = h5open(file, "r") do file
-            return read(file, string(curr_time))
-        end
-        forecast[1, :] .= mean(forecast[1, :])
-        forecast = max.(forecast, 0)
-        data[curr_time] = forecast./base_power
-    end
-
-ed_x = 0:1/12:2-1/12
-uc_x = 0:1:11
-plot_time = initial_time + Dates.Hour(8)
-plot(ed_x, ed_load_data[plot_time], label = "ED Load", xlabel = "Hour", ylabel = "MW", title = "Load Forecast")
-plot!(uc_x, uc_load_data[plot_time][1:12], label = "UC Load")
-
-ed_load_data[initial_time][1]
-uc_load_data[initial_time][1]
-
 
 initial_time = Dates.DateTime(2019, 1, 1)
 ed_x = 0:1/12:2-1/12
@@ -56,4 +37,3 @@ plot!(uc_x, uc_load_data[initial_time][1:4,:], linestyle = :dashdot, label = "UC
 
 display(p)
 
-ed_load_data[initial_time]
