@@ -65,8 +65,8 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
 
     # ramping constraints and reserve constraints
     for g in thermal_gen_names, s in scenarios, t in time_steps
-        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g,t] + pg_lim[g].max*vg[g,t])
-        @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t]  <= ramp_dn[g]*ug[g,t] + pg_lim[g].max*wg[g,t])
+        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g,t] + pg_lim[g].min*vg[g,t])
+        @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t]  <= ramp_dn[g]*ug[g,t] + pg_lim[g].min*wg[g,t])
         @constraint(model, spin_10[g,s,t] <= ramp_up[g]*ug[g,t]/6)
         @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_up[g]*ug[g,t]/2)
         @constraint(model, Nspin_10[g,s,t] <= ramp_up[g]*(1-ug[g,t])/6)
@@ -93,28 +93,24 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
         lhs_off[g,t] = AffExpr()
 
         if t - time_limits[:up] >= 0
-            lhs_on[g,t] += sum(vg[g,i] for i in UnitRange{Int}(Int(t - time_limits[:up] + 1), t))
+            add_to_expression!(lhs_on[g,t], sum(vg[g,i] for i in UnitRange{Int}(Int(t - time_limits[:up] + 1), t)))
         else
             if prev_len >= ceil(Int, time_limits[:up]-t)  
-                lhs_on[g,t] += sum(vg[g,i] for i in UnitRange{Int}(1, t))
-                lhs_on[g,t] += sum(history_vg[g][end-i] for i in UnitRange{Int}(0, ceil(Int, time_limits[:up]-t)-1))
-            # elseif t <= max(0, time_limits[:up] - time_up_t0[g]) && time_up_t0[g] > 0
-                # add_to_expression!(lhs_on[g,t], 1)
+                add_to_expression!(lhs_on[g,t], sum(vg[g,i] for i in UnitRange{Int}(1, t)))
+                add_to_expression!(lhs_on[g,t], sum(history_vg[g][end-i] for i in UnitRange{Int}(0, ceil(Int, time_limits[:up]-t)-1)))
             else
-                lhs_on[g,t] += sum(vg[g,i] for i in 1:t) + sum(history_vg[g])
+                add_to_expression!(lhs_on[g,t], sum(vg[g,i] for i in 1:t) + sum(history_vg[g]; init=0))
             end
         end
         
         if t-time_limits[:down] >= 0
-            lhs_off[g,t] += sum(wg[g,i] for i in UnitRange{Int}(Int(t-time_limits[:down]+1), t); init = 0)
+            add_to_expression!(lhs_off[g,t], sum(wg[g,i] for i in UnitRange{Int}(Int(t-time_limits[:down]+1), t); init = 0))
         else
             if prev_len >= ceil(Int, time_limits[:down]-t) 
-                lhs_off[g,t] += sum(wg[g,i] for i in UnitRange{Int}(1, t))
-                lhs_off[g,t] += sum(history_wg[g][end-i] for i in UnitRange{Int}(0, ceil(Int, time_limits[:down]-t)-1))
-            # elseif t <= max(0, time_limits[:down] - time_down_t0[g]) && time_down_t0[g] > 0
-                # add_to_expression!(lhs_off[g,t], 1)
+                add_to_expression!(lhs_off[g,t], sum(wg[g,i] for i in UnitRange{Int}(1, t)))
+                add_to_expression!(lhs_off[g,t], sum(history_wg[g][end-i] for i in UnitRange{Int}(0, ceil(Int, time_limits[:down]-t)-1)))
             else
-                lhs_off[g,t] += sum(wg[g,i] for i in 1:t) + sum(history_wg[g])
+                add_to_expression!(lhs_off[g,t], sum(wg[g,i] for i in 1:t) + sum(history_wg[g]; init=0))
             end
         end
     end

@@ -36,19 +36,5 @@ function _add_stroage!(sys::System, model::JuMP.Model)::Nothing
         add_to_expression!(expr_net_injection[s,t], sum(kb_charge[b,s,t] - kb_discharge[b,s,t] for b in storage_names), -1)
     end
 
-    # Enforce decsion variables for t = 1
-    # t_kb_charge = _init(model, :t_kb_charge)
-    # t_kb_discharge = _init(model, :t_kb_discharge)
-    # t_eb = _init(model, :t_eb)
-    # for b in storage_names
-    #     t_kb_charge[b] = @variable(model, lower_bound = 0, upper_bound = kb_charge_max[b])
-    #     t_kb_discharge[b] = @variable(model, lower_bound = 0, upper_bound = kb_discharge_max[b])
-    #     t_eb[b] = @variable(model, lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
-    #     for s in scenarios
-    #         @constraint(model, kb_charge[b,s,1] == t_kb_charge[b])
-    #         @constraint(model, kb_discharge[b,s,1] == t_kb_discharge[b])
-    #         @constraint(model, eb[b,s,1] == t_eb[b])
-    #     end
-    # end
     return 
 end

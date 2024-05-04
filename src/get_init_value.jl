@@ -39,24 +39,30 @@ end
 
 
 function _init_fr_ed_model(sys::System; theta::Union{Nothing, Int64} = nothing)
-    @info "Obtain initial conditions by running an ED model"
+    @info "Running ED model for the first time to get ug_t0"
     model = stochastic_ed(sys, Gurobi.Optimizer, theta = theta, start_time = DateTime(Date(2019, 1, 1)))
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
-    Pg_t0 = Dict()
+    Pg_t00 = Dict()
     ug_t0 = Dict()
     for g in thermal_gen_names
         val = value(model[:pg][g,1,1])
         if val > 0
             ug_t0[g] = 1
-            Pg_t0[g] = max(val, pg_lim[g].min)
+            Pg_t00[g] = max(val, pg_lim[g].min)
         else
             ug_t0[g] = 0
-            Pg_t0[g] = 0
+            Pg_t00[g] = 0
         end
     end
     eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
+    wg_t0 = Dict(g => 0 for g in thermal_gen_names)
+    vg_t0 = Dict(g => 0 for g in thermal_gen_names)
+    ED_init_value = EDInitValue(ug_t0, vg_t0, wg_t0,Pg_t00, eb_t0)
+    @info "Running ED model for the second time to get Pg_t0" 
+    model = stochastic_ed(sys, Gurobi.Optimizer; init_value = ED_init_value, theta = theta, start_time = DateTime(Date(2019, 1, 1)))
+    Pg_t0 = Dict(g => value(model[:pg][g,1,1]) for g in thermal_gen_names)
     return ug_t0, Pg_t0, eb_t0
 end
 

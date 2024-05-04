@@ -19,9 +19,9 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     # Get initial conditions
     if isnothing(init_value)
         #TODO initial conditions to run ED model
-        ug = Dict(g => repeat([1], 2) for g in thermal_gen_names) # Assume all thermal generators are on
-        vg = Dict(g => [1, 0] for g in thermal_gen_names) # Assume all thermal generators are started up at t = 1???
-        wg = Dict(g => repeat([0], 2) for g in thermal_gen_names)
+        ug = Dict(g => [1, 1] for g in thermal_gen_names) # Assume all thermal generators are on
+        vg = Dict(g => [0, 0] for g in thermal_gen_names) # Assume all thermal generators are started up before
+        wg = Dict(g => [0, 0] for g in thermal_gen_names)
         Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names) # all 0
         eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
     else
@@ -166,11 +166,11 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     
     # Enforce decsion variables for t = 1
     # Binding thermal variables
-    @variable(model, t_pg[g in thermal_gen_names], lower_bound = 0)
-    @variable(model, t_spin_10[g in thermal_gen_names], lower_bound = 0)
-    @variable(model, t_spin_30[g in thermal_gen_names], lower_bound = 0)
-    @variable(model, t_Nspin_10[g in thermal_gen_names], lower_bound = 0)
-    @variable(model, t_Nspin_30[g in thermal_gen_names], lower_bound = 0)
+    @variable(model, t_pg[g in thermal_gen_names])
+    @variable(model, t_spin_10[g in thermal_gen_names])
+    @variable(model, t_spin_30[g in thermal_gen_names])
+    @variable(model, t_Nspin_10[g in thermal_gen_names])
+    @variable(model, t_Nspin_30[g in thermal_gen_names])
 
     @constraint(model, bind_pg[g in thermal_gen_names, s in scenarios], pg[g,s,1] == t_pg[g])
     @constraint(model, bind_spin10[g in thermal_gen_names, s in scenarios], spin_10[g,s,1] == t_spin_10[g])
@@ -182,8 +182,8 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     @variable(model, t_kb_charge[b in storage_names], lower_bound = 0, upper_bound = kb_charge_max[b])
     @variable(model, t_kb_discharge[b in storage_names], lower_bound = 0, upper_bound = kb_discharge_max[b])
     @variable(model, t_eb[b in storage_names], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
-    @variable(model, t_res_10[b in storage_names], lower_bound = 0)
-    @variable(model, t_res_30[b in storage_names], lower_bound = 0)
+    @variable(model, t_res_10[b in storage_names])
+    @variable(model, t_res_30[b in storage_names])
      
     @constraint(model, bind_kb_c[b in storage_names, s in scenarios], kb_charge[b,s,1] == t_kb_charge[b])
     @constraint(model, bind_kb_d[b in storage_names, s in scenarios], kb_discharge[b,s,1] == t_kb_discharge[b])

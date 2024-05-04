@@ -45,6 +45,12 @@ op_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(Therm
 no_load_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, UCsys, g))) for g in thermal_gen_names)
 shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, UCsys, g))) for g in thermal_gen_names)
 startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalGen, UCsys, g))) for g in thermal_gen_names)
+
+for g in thermal_gen_names
+    if startup_cost[g] <= 0.1
+        println(g)
+    end
+end
 pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, EDsys, g)) for g in thermal_gen_names)
 
 

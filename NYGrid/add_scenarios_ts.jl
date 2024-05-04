@@ -22,12 +22,12 @@ function _construct_fcst_data_ED(file::AbstractString, base_power::Float64, init
     num_idx = h5open(file, "r") do file
         return length(read(file))
     end
-    for ix in 1:529#num_idx
+    for ix in 1:num_idx
         curr_time = initial_time + Minute(5)*(ix-1)
         forecast = h5open(file, "r") do file
             return read(file, string(curr_time))
         end
-        forecast[1, :] .= mean(forecast[1, :])
+        # forecast[1, :] .= mean(forecast[1, :])
         forecast = max.(forecast, 0)
         data[curr_time] = forecast./base_power
     end
@@ -35,7 +35,7 @@ function _construct_fcst_data_ED(file::AbstractString, base_power::Float64, init
 end
 
 function add_scenarios_time_series_UC!(system::System)::Nothing
-    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Hour_2"
+    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Hour_siva"
     solar_file = joinpath(ts_dir, "solar_scenarios.h5")
     wind_file = joinpath(ts_dir, "wind_scenarios.h5")
     load_file = joinpath(ts_dir, "load_scenarios.h5")
@@ -44,7 +44,7 @@ function add_scenarios_time_series_UC!(system::System)::Nothing
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, system)
 
-    initial_time = Dates.DateTime(2019, 1, 1)
+    initial_time = Dates.DateTime(2018, 12, 31, 20)
     da_resolution = Dates.Hour(1)
     scenario_count = 10
     base_power = PSY.get_base_power(system)
@@ -86,16 +86,16 @@ end
 
 
 function add_scenarios_time_series_ED!(system::System)::Nothing
-    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Min5_3"
+    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Min5_siva"
     solar_file = joinpath(ts_dir, "solar_scenarios.h5")
     wind_file = joinpath(ts_dir, "wind_scenarios.h5")
     load_file = joinpath(ts_dir, "load_scenarios.h5")
 
     base_power = PSY.get_base_power(system)
-    initial_time = Dates.DateTime(2019, 1, 1)
-    solar_data = _construct_fcst_data_ED(solar_file, base_power, initial_time)
-    wind_data = _construct_fcst_data_ED(wind_file, base_power, initial_time)
-    load_data = _construct_fcst_data_ED(load_file, base_power, initial_time)
+    ed_init_time = Dates.DateTime(2018, 12, 31, 20)
+    solar_data = _construct_fcst_data_ED(solar_file, base_power, ed_init_time)
+    wind_data = _construct_fcst_data_ED(wind_file, base_power, ed_init_time)
+    load_data = _construct_fcst_data_ED(load_file, base_power, ed_init_time)
     
     loads = collect(get_components(StaticLoad, system))
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)

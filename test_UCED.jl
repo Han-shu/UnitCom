@@ -60,10 +60,59 @@ else
 end
 
 # Run rolling horizon UC-ED
-uc_time = init_time + Hour(1)*(1-1)
-UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model, uc_sol = uc_sol, ed_sol = ed_sol)  
-uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
-                start_time = uc_time, scenario_count = scenario_count, horizon = uc_horizon)
+for t in 1:8760-uc_horizon+1
+    global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value
+    uc_time = init_time + Hour(1)*(t-1)
+
+    if t % 12 == 0
+        write_json(uc_sol_file, uc_sol)
+        write_json(ed_sol_file, ed_sol)
+    end
+    if t > 6 || uc_time > DateTime(2019,12,31,0)
+        break
+    end
+    one_iter = @elapsed begin
+    @info "Solving UC model at $(uc_time)"
+    one_uc_time = @elapsed begin
+    UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model, uc_sol = uc_sol, ed_sol = ed_sol)  
+    uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
+                        start_time = uc_time, scenario_count = scenario_count, horizon = uc_horizon)
+    end
+    @info "UC model at $(uc_time) is solved in $(one_uc_time) seconds"
+    # Get commitment status that will be passed to ED
+    uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
+    one_hour_ed_time = @elapsed begin
+    ed_hour_sol = init_solution_ed(EDsys)
+    for i in 1:12
+        @info "Running length $(length(ed_hour_sol["LMP"]))"
+        ed_time = uc_time + Minute(5*(i-1))
+        @info "Solving ED model at $(ed_time)"
+        ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
+        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; init_value = ED_init_value, theta = theta, start_time = ed_time, horizon = ed_horizon)
+        ed_hour_sol = get_solution_ed(EDsys, ed_model, ed_hour_sol)
+        if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
+            @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"
+            break
+        end
+    end
+
+    if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
+        break
+    end
+    end
+    @info "ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
+    uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol)
+    @info "UC solution is updated"
+    ed_sol = merge_ed_solution(ed_sol, ed_hour_sol)
+    @info "ED solution is merged"
+end
+    @info "One iteration takes $(one_iter) seconds"
+end
+
+# uc_time = init_time + Hour(1)*(1-1)
+# UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model, uc_sol = uc_sol, ed_sol = ed_sol)  
+# uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
+#                 start_time = uc_time, scenario_count = scenario_count, horizon = uc_horizon)
 
 # # Restore standard output and error
 redirect_stdout()

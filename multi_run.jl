@@ -13,9 +13,10 @@ scenario_count = 10
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-model_name = "UCED"
+model_name = "multiUCED"
+ed_model_name = "multiED"
 uc_sol_file = joinpath(result_dir, "$(model_name)_sol_$(Dates.today()).json")
-ed_sol_file = joinpath(result_dir, "ED_sol_$(Dates.today()).json")
+ed_sol_file = joinpath(result_dir, "$(ed_model_name)_sol_$(Dates.today()).json")
 
 # Build NY system for UC and ED
 @info "Build NY system for UC"
@@ -53,7 +54,7 @@ else
 end
 
 # Run rolling horizon UC-ED
-for t in 1:8760-uc_horizon+1
+Threads.@threads for t in 1:8760-uc_horizon+1
     global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value
     uc_time = init_time + Hour(1)*(t-1)
 
@@ -61,7 +62,7 @@ for t in 1:8760-uc_horizon+1
         write_json(uc_sol_file, uc_sol)
         write_json(ed_sol_file, ed_sol)
     end
-    if t > 3 || uc_time > DateTime(2019,12,29,20)
+    if t > 6 || uc_time > DateTime(2019,12,31,0)
         break
     end
     one_iter = @elapsed begin
@@ -106,10 +107,3 @@ end
 @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
 write_json(uc_sol_file, uc_sol)
 write_json(ed_sol_file, ed_sol)
-
-
-# model_str = string(model)
-# # Write the model to a text file
-# open(joinpath(result_dir, "model_output.txt"), "w") do file
-#     write(file, model_str)
-# end
