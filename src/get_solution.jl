@@ -9,6 +9,7 @@ function init_solution_ed(sys::System)::OrderedDict
     sol["LMP"] = []
     sol["operation_cost"] = []
     sol["charge_consumers"] = []
+    sol["Net load"] = []
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     sol["Generator energy dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
@@ -26,6 +27,7 @@ function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::Orde
     push!(sol["LMP"], _get_price(model, :eq_power_balance))
     push!(sol["operation_cost"], _compute_ed_cost(sys, model))
     push!(sol["charge_consumers"], _compute_ed_charge(sys, model))
+    push!(sol["Net load"], _compute_ed_net_load(sys, model))
     gen_profits, storage_profits = _compute_ed_gen_profits(sys, model)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
@@ -38,6 +40,15 @@ function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::Orde
         push!(sol["storage_profits"][b], storage_profits[b])
     end
     return sol 
+end
+
+function _compute_ed_net_load(sys::System, model::JuMP.Model)::Float64
+    forecast_load = model[:forecast_load]
+    solar_gen_names = get_name.(get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys))
+    wind_gen_names = get_name.(get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys))
+    net_load = forecast_load[1,1]
+    net_load = net_load - sum(value(model[:pS][g,1,1]) for g in solar_gen_names) - sum(value(model[:pW][g,1,1]) for g in wind_gen_names)
+    return net_load
 end
 
 function merge_ed_solution(ed_sol::OrderedDict, ed_hour_sol::OrderedDict)::OrderedDict

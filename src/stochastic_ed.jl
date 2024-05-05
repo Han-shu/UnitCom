@@ -135,6 +135,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
         forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))[:, 100-theta]          
     end
     
+    model[:forecast_load] = forecast_load
     @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps] >= 0)
     @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps] >= 0)
     @constraint(model, solar_constraint[g in solar_gen_names, s in scenarios, t in time_steps], pS[g,s,t] <= forecast_solar[g][t,s])
