@@ -21,7 +21,7 @@ system = build_ny_system(base_power = 100)
 # add time series data
 if !isnothing(theta)
     @info "Adding quantile time series data"
-    add_quantiles_time_series!(system)
+    add_quantiles_time_series_UC!(system)
 else
     @info "Adding scenarios time series data"
     add_scenarios_time_series_UC!(system)

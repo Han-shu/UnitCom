@@ -8,7 +8,7 @@ include("src/functions.jl")
 include("src/get_init_value.jl")
 
 # Set parameters
-theta = nothing # nothing or set between 1 ~ 49 (Int)
+theta = 45 # nothing or set between 1 ~ 49 (Int)
 scenario_count = 1
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
@@ -18,19 +18,21 @@ model_name, uc_sol_file, ed_sol_file = get_UCED_model_file_name(theta = theta, s
 # Build NY system for UC and ED
 @info "Build NY system for UC"
 UCsys = build_ny_system(base_power = 100)
+@info "Build NY system for ED"
+EDsys = build_ny_system(base_power = 100)
 # Add time series data
 if !isnothing(theta)
     @info "Adding quantile time series data for UC"
-    add_quantiles_time_series!(UCsys)
+    add_quantiles_time_series_UC!(UCsys)
+    @info "Adding quantile time series data for ED"
+    add_quantiles_time_series_ED!(EDsys)
 else
     @info "Adding scenarios time series data for UC"
     add_scenarios_time_series_UC!(UCsys)
+    @info "Adding scenarios time series data for ED"
+    add_scenarios_time_series_ED!(EDsys)
 end
 
-@info "Build NY system for ED"
-EDsys = build_ny_system(base_power = 100)
-@info "Adding scenarios time series data for ED"
-add_scenarios_time_series_ED!(EDsys)
 
 # Initialize the solution
 if !isfile(uc_sol_file)

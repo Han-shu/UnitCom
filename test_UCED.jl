@@ -30,7 +30,7 @@ UCsys = build_ny_system(base_power = 100)
 # Add time series data
 if !isnothing(theta)
     @info "Adding quantile time series data for UC"
-    add_quantiles_time_series!(UCsys)
+    add_quantiles_time_series_UC!(UCsys)
 else
     @info "Adding scenarios time series data for UC"
     add_scenarios_time_series_UC!(UCsys)

@@ -8,19 +8,22 @@
 - No hydro power plants (or modeling by static dispatch)
 
 # Problems
-- Reserve price is always zero
-    - All generators are assumed to be eligible to provide reserve
-    - No cost to provide reserve 
-- ~~Infeasibility after correcting ramp rate and storage capacity~~
-- ~~LMP is weird~~
-    - reaches the upper bound very often
-    - negative -4XXX
+- UC infeasibility if starting from existing solution files
+
+# May 6 - May 13 TODO
+- Update UC data
+- Add hydro power plants
+- Generate quantile data or use the existing 10 scenario
+- Run deterministic version of UCED
+    - Average 
+    - NLB
+- Turn Mac into a server
 
 # April 26 - May 6 TODO
-- Draft an email to ask NREL about the data issue
+- ~~Draft an email to ask NREL about the data issue~~
 - Add end of horizon storage value
-- Ramp rate (AGC*60 too high or RAMP_30 negative LMP and infeasibility)
-- Storage capacity (~200 MW or ~2000 MW)
+- ~~Ramp rate (AGC*60 too high or RAMP_30 negative LMP and infeasibility)~~
+- ~~Storage capacity (~200 MW or ~2000 MW)~~
 - ~~Ramp rate correction~~
 - ~~Storage energy and power rating~~
 - ~~Generate time series data for 5 min ED model~~
