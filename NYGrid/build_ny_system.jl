@@ -123,9 +123,10 @@ function build_ny_system(; base_power = 100)::System
         name = hy.GEN_NAME
         pmax = hy.PMAX
         pmin = hy.PMIN
-        ramp_rate = hy.RAMP_10
+        ramp_10 = hy.RAMP_10
+        ramp_30 = hy.RAMP_30
         cost = TwoPartCost(VariableCost(0.0), 0.0)
-        _add_hydro(system, bus; name = name, pmin = pmin, pmax = pmax, ramp_rate = ramp_rate, cost = cost)
+        _add_hydro(system, bus; name = name, pmin = pmin, pmax = pmax, ramp_10 = ramp_10, ramp_30 = ramp_30, cost = cost)
     end
 
     return system

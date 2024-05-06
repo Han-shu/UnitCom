@@ -262,7 +262,8 @@ function _add_hydro(
     name::AbstractString,
     pmin::Float64,
     pmax::Float64, 
-    ramp_rate::Float64, 
+    ramp_10::Float64, 
+    ramp_30::Float64, 
     cost::PSY.OperationalCost,
     )
     base_power = get_base_power(sys)
@@ -274,9 +275,9 @@ function _add_hydro(
         reactive_power = 0.0,
         rating = pmax / base_power,
         prime_mover_type = PSY.PrimeMovers.HY,
-        active_power_limits = PSY.MinMax((pmin, pmax)),
+        active_power_limits = PSY.MinMax((pmin/base_power, pmax/base_power)),
         reactive_power_limits=nothing,
-        ramp_limits = (up=ramp_rate, down=ramp_rate), 
+        ramp_limits = (up=ramp_10/base_power, down=ramp_30/base_power), 
         time_limits = nothing,
         base_power = base_power,
         operation_cost = cost,
