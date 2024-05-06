@@ -13,3 +13,12 @@ plot!(x, DLAC_40_solution["LMP"][1:x_end], label = "DLAC-NLB-40")
 plot!(x, DLAC_45_solution["LMP"][1:x_end], label = "DLAC-NLB-45")
 plot!(x, DLAC_50_solution["LMP"][1:x_end], label = "DLAC-NLB-50")
 xticks!(0:24:x_end)
+
+result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+uc_sol_file = joinpath(result_dir, "UCED_sol_$(Dates.today()).json")
+ed_sol_file = joinpath(result_dir, "ED_sol_$(Dates.today()).json")
+uc_sol = read_json(uc_sol_file)
+ed_sol = read_json(ed_sol_file)
+LMP = uc_sol["Hourly average LMP"]
+x= range(1, length(LMP), step = 1)
+plot(x, LMP, label = "UCED", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", ylims=[0,100], guidefontsize=12, tickfontsize=8, legendfontsize=11)#, legend = :outertopright)
