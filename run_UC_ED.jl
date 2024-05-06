@@ -9,13 +9,11 @@ include("src/get_init_value.jl")
 
 # Set parameters
 theta = nothing # nothing or set between 1 ~ 49 (Int)
-scenario_count = 10
+scenario_count = 1
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-model_name = "UCED"
-uc_sol_file = joinpath(result_dir, "$(model_name)_sol_$(Dates.today()).json")
-ed_sol_file = joinpath(result_dir, "ED_sol_$(Dates.today()).json")
+model_name, uc_sol_file, ed_sol_file = get_UCED_model_file_name(theta = theta, scenario_count = scenario_count, result_dir = result_dir)
 
 # Build NY system for UC and ED
 @info "Build NY system for UC"
@@ -38,7 +36,7 @@ add_scenarios_time_series_ED!(EDsys)
 if !isfile(uc_sol_file)
 # 1. Run rolling horizon without solution from beginning
     @info "Running rolling horizon $(model_name) from beginning"  
-    init_time = DateTime(2019,1,1)
+    init_time = DateTime(2018,12,31,20)
     uc_model, ed_model = nothing, nothing
     uc_sol = init_solution_uc(UCsys)
     ed_sol = init_solution_ed(EDsys)
@@ -53,7 +51,7 @@ else
 end
 
 # Run rolling horizon UC-ED
-for t in 1:8760-uc_horizon+1
+for t in 1:8760
     global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value
     uc_time = init_time + Hour(1)*(t-1)
 
@@ -61,7 +59,7 @@ for t in 1:8760-uc_horizon+1
         write_json(uc_sol_file, uc_sol)
         write_json(ed_sol_file, ed_sol)
     end
-    if t > 100 || uc_time > DateTime(2019,12,29,20)
+    if t > 360 || uc_time > DateTime(2019,12,29,20)
         break
     end
     one_iter = @elapsed begin
@@ -82,7 +80,7 @@ for t in 1:8760-uc_horizon+1
         ed_time = uc_time + Minute(5*(i-1))
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
-        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; init_value = ED_init_value, theta = theta, start_time = ed_time, horizon = ed_horizon)
+        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; init_value = ED_init_value, scenario_count = scenario_count, theta = theta, start_time = ed_time, horizon = ed_horizon)
         ed_hour_sol = get_solution_ed(EDsys, ed_model, ed_hour_sol)
         if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
             @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"

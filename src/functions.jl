@@ -29,3 +29,15 @@ function get_model_file_name(; theta::Union{Nothing, Int64} = nothing, scenario_
     solution_file = joinpath(result_dir, "$(model_name)_sol_$(Dates.today()).json")
     return model_name, solution_file    
 end
+
+function get_UCED_model_file_name(; theta::Union{Nothing, Int64} = nothing, scenario_count::Int64, result_dir::AbstractString)
+    if !isnothing(theta)
+        @assert scenario_count == 1 "Define theta for DLAC-NLB but scenario_count != 1"
+        model_name = "NLB-$(theta)-UCED"
+    else
+        model_name = scenario_count == 1 ? "AVG-UCED" : "S-UCED"
+    end
+    uc_sol_file = joinpath(result_dir, "$(model_name)_$(Dates.today()).json")
+    ed_sol_file = joinpath(result_dir, "ED_$(model_name)_$(Dates.today()).json")
+    return model_name, uc_sol_file, ed_sol_file 
+end

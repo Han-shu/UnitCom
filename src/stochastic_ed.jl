@@ -1,13 +1,8 @@
 using JuMP
 
-function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 12)
+function stochastic_ed(sys::System, optimizer; init_value = nothing, scenario_count = 10, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 12)
     model = Model(optimizer)
     model[:obj] = QuadExpr()
-    if isnothing(theta)
-        scenario_count = 10 # stochastic, 10 scenarios
-    else 
-        scenario_count = 1 # deterministic, theta quantile
-    end
     parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, reserve_requirement_by_hour, reserve_short_penalty)
     model[:param] = parameters
     time_steps = model[:param].time_steps
@@ -18,7 +13,6 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
 
     # Get initial conditions
     if isnothing(init_value)
-        #TODO initial conditions to run ED model
         ug = Dict(g => [1, 1] for g in thermal_gen_names) # Assume all thermal generators are on
         vg = Dict(g => [0, 0] for g in thermal_gen_names) # Assume all thermal generators are started up before
         wg = Dict(g => [0, 0] for g in thermal_gen_names)
@@ -118,13 +112,23 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, theta = not
     wind_gen_names = get_name.(wind_gens)               
     load = first(get_components(StaticLoad, sys))
     if isnothing(theta)
-        forecast_solar = Dict(get_name(g) =>
-            get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps)) 
-            for g in solar_gens)
-        forecast_wind = Dict(get_name(g) =>
-            get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))
-            for g in wind_gens)
-        forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
+        if length(scenarios) == 1
+            forecast_solar = Dict(get_name(g) => 
+                mean(get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps)), dims = 2)
+                for g in solar_gens)
+            forecast_wind = Dict(get_name(g) =>
+                mean(get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps)), dims = 2)
+                for g in wind_gens)
+            forecast_load = mean(get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps)), dims = 2)
+        else
+            forecast_solar = Dict(get_name(g) =>
+                get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps)) 
+                for g in solar_gens)
+            forecast_wind = Dict(get_name(g) =>
+                get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))
+                for g in wind_gens)
+            forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
+        end
     else
         forecast_solar = Dict(get_name(g) =>
             get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps))[:, theta]
