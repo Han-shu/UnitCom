@@ -120,3 +120,10 @@ redirect_stderr()
 
 # Close the log file
 close(log_file)
+
+test = []
+for i in 1:10
+    push!(test, i)
+    println(test)
+    println(test[end])
+end

@@ -75,6 +75,7 @@ for t in 1:8760-uc_horizon+1
     # Get commitment status that will be passed to ED
     uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
     one_hour_ed_time = @elapsed begin
+    # initiate empty OrderedDict ed_hour_sol
     ed_hour_sol = init_solution_ed(EDsys)
     for i in 1:12
         @info "Running length $(length(ed_hour_sol["LMP"]))"

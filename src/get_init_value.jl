@@ -11,7 +11,7 @@ function _get_init_value_for_UC(sys::System;
         ug_t0, Pg_t0, eb_t0 = _init_fr_ed_model(sys)
         history_vg = Dict(g => Vector{Int}() for g in thermal_gen_names)
         history_wg = Dict(g => Vector{Int}() for g in thermal_gen_names)
-        return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
+        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
     elseif length(all_variables(uc_model)) > 0 && length(all_variables(ed_model)) > 0 # Initiate from model
         @info "Obtain initial conditions from existing model"
         history_wg = uc_model[:init_value].history_wg
@@ -24,7 +24,7 @@ function _get_init_value_for_UC(sys::System;
             push!(history_vg[g], value(uc_model[:vg][g,1])) #Int(round(value(uc_model[:vg][g,1]), digits = 0)))
             push!(history_wg[g], value(uc_model[:wg][g,1])) #Int(round(value(uc_model[:wg][g,1]), digits = 0)))
         end
-        return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
+        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
     elseif length(all_variables(uc_model)) == 0 # Initiate from solution
         @info "Obtain initial conditions from existing solution files"
         ug_t0 = Dict(g => uc_sol["Commitment status"][g][end] for g in thermal_gen_names)
@@ -32,7 +32,7 @@ function _get_init_value_for_UC(sys::System;
         eb_t0 = Dict(b => ed_sol["Storage energy"][b][end][end] for b in storage_names)
         history_wg = Dict(g => uc_sol["Shut down"][g] for g in thermal_gen_names)
         history_vg = Dict(g => uc_sol["Start up"][g] for g in thermal_gen_names)
-        return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
+        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
     else
         error("The initial value is not properly set")
         return nothing
@@ -90,9 +90,8 @@ function _get_init_value_for_ED(sys::System, uc_status::Vector;
     else
         Pg_t0 = UC_init_value.Pg_t0
         eb_t0 = UC_init_value.eb_t0
-        return EDInitValue(ug_t0, vg_t0, wg_t0,Pg_t0, eb_t0)
+        return EDInitValue(ug_t0, vg_t0, wg_t0, Pg_t0, eb_t0)
     end
-    return EDInitValue(ug_t0, vg_t0, wg_t0,Pg_t0, eb_t0)
 end
 
 
@@ -125,5 +124,5 @@ function _get_init_value_for_UC(sys::System, solution::OrderedDict)::UCInitValue
     ug_t0 = Dict(g => solution["Commitment status"][g][end] for g in thermal_gen_names)
     Pg_t0 = Dict(g => solution["Generator energy dispatch"][g][end] for g in thermal_gen_names)
     eb_t0 = Dict(b => solution["Batter energy"][b][end] for b in storage_names)
-    return _construct_init_value(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
+    return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
 end
