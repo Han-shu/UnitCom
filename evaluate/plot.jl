@@ -1,8 +1,8 @@
 using Plots
 
 include("../NYGrid/add_scenarios_ts.jl")
-uc_ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Hour_siva"
-ed_ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Min5_siva"
+uc_ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Hour"
+ed_ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Min5"
 
 uc_solar_file = joinpath(uc_ts_dir, "solar_scenarios.h5")
 uc_wind_file = joinpath(uc_ts_dir, "wind_scenarios.h5")

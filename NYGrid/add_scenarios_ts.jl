@@ -35,7 +35,7 @@ function _construct_fcst_data_ED(file::AbstractString, base_power::Float64, init
 end
 
 function add_scenarios_time_series_UC!(system::System)::Nothing
-    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Hour_siva"
+    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Hour"
     solar_file = joinpath(ts_dir, "solar_scenarios.h5")
     wind_file = joinpath(ts_dir, "wind_scenarios.h5")
     load_file = joinpath(ts_dir, "load_scenarios.h5")
@@ -86,7 +86,7 @@ end
 
 
 function add_scenarios_time_series_ED!(system::System)::Nothing
-    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO/Min5_siva"
+    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Min5"
     solar_file = joinpath(ts_dir, "solar_scenarios.h5")
     wind_file = joinpath(ts_dir, "wind_scenarios.h5")
     load_file = joinpath(ts_dir, "load_scenarios.h5")
@@ -132,3 +132,23 @@ function add_scenarios_time_series_ED!(system::System)::Nothing
     add_time_series!(system, loads, scenario_forecast_data)
     return nothing
 end
+
+
+function add_time_series_hydro_UC!(system::System)::Nothing
+    hydro_file = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid/genmax_profile_2018.csv"
+    hydro_gens = get_components(x -> x.prime_mover_type == PrimeMovers.HY, RenewableGen, system)
+    df_ts_genmax = CSV.read(hydro_file, DataFrame)
+    dates = range(DateTime(2018, 1, 1, 0), step=Dates.Hour(1), length=size(df_ts_genmax, 1))
+    for gen_id in 234:243
+        data = TimeArray(dates, df_ts_genmax[!, "Gen$(gen_id)"])
+        ts_genmax = SingleTimeSeries("hydro_max_power", data)
+        add_time_series!(sys, get_component(ThermalStandard, sys, df_genprop[gen_id, "GEN_NAME"]), ts_genmax)
+    end
+    return nothing
+end
+
+
+hydro_file = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid/genmax_profile_2018.csv"
+hydro_gens = get_components(HydroDispatch, UCsys)
+hydro_gens = get_components(x -> x.prime_mover_type == PrimeMovers.HY, RenewableGen, system)
+df_ts_genmax = CSV.read(hydro_file, DataFrame)

@@ -12,7 +12,7 @@ include("parsing_utils.jl")
 include("manual_data_entries.jl")
 
 function build_ny_system(; base_power = 100)::System
-    data_dir = "/Users/hanshu/Desktop/Price_formation/UnitCom/NYGrid/Data"
+    data_dir = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid"
     system = PSY.System(base_power)
     set_units_base_system!(system, PSY.UnitSystem.NATURAL_UNITS)
 
