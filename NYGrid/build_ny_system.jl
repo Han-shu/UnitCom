@@ -103,7 +103,7 @@ function build_ny_system(; base_power = 100)::System
         pmax = gen.PMAX
         pmin = gen.PMIN
         ramp_10 = gen.RAMP_10
-        ramp_30 = gen.RAMP_30 #gen.RAMP_AGC*60 #min(gen.RAMP_30*2, gen.RAMP_AGC*60)
+        ramp_30 = gen.RAMP_30
         pm = map_UnitType[genprop.GEN_FUEL]
         # ThreePartCost(variable, fixed, start_up, shut_down)
         if fuel == ThermalFuels.NUCLEAR

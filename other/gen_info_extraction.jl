@@ -178,3 +178,7 @@ forecast = IS.Deterministic("variable_cost", data_pwl, resolution)
 set_variable_cost!(sys, generator, forecast)
 
 cost_forecast = get_variable_cost(generator, market_bid; start_time = initial_time)
+
+
+# Hydro 
+hydro = collect(get_components(HydroDispatch, UCsys))
