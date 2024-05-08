@@ -136,7 +136,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, scenario_co
         forecast_wind = Dict(get_name(g) =>
         get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))[:, theta]
             for g in wind_gens)
-        forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))[:, 100-theta]          
+        forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))[:, theta]          
     end
     
     model[:forecast_load] = forecast_load

@@ -1,4 +1,4 @@
-using Plots, JuMP, OrderedDict
+using Plots, JuMP
 
 include("../src/functions.jl")
 DLAC_solution = read_json(joinpath(result_dir, "DLAC_sol_2024-04-17.json"))
@@ -67,3 +67,23 @@ plot(hour_x, S_UCED_LMP, label = "S-UCED", xlabel = "Hour", ylabel = "Price (\$/
 # plot!(hour_x, AVG_UCED_LMP, label = "AVG-UCED")
 plot(hour_x, NLB45_UCED_LMP, label = "NLB-45-UCED")
 
+
+ED_NLB9_UCED_file = joinpath(result_dir, "ED_NLB-9-UCED_2024-05-08.json")
+ED_NLB9_UCED_sol = read_json(ED_NLB9_UCED_file)
+ED_NLB9_UCED_LMP = []
+for i in ED_NLB9_UCED_sol["LMP"]
+    append!(ED_NLB9_UCED_LMP, i)
+end
+NLB9_UCED_file = joinpath(result_dir, "NLB-9-UCED_2024-05-08.json")
+NLB9_UCED_sol = read_json(NLB9_UCED_file)
+NLB9_UCED_LMP = NLB9_UCED_sol["Hourly average LMP"]
+min5_x= range(1/12, length(NLB9_UCED_LMP), step = 1/12)
+plot(min5_x, ED_NLB9_UCED_LMP, label = "ED_NLB-9-UCED", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)
+hour_x= range(1, length(NLB9_UCED_LMP), step = 1)
+plot!(hour_x, NLB9_UCED_LMP, label = "NLB-9-UCED")
+ylims!(0, 100)
+
+
+# plot(hour_x, AVG_UCED_LMP, label = "AVG-UCED")
+plot(hour_x, NLB9_UCED_LMP, label = "NLB-9-UCED")
+plot!(hour_x, NLB45_UCED_LMP, label = "NLB-45-UCED")

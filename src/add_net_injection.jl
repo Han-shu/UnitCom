@@ -24,7 +24,7 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
                 load_matrix = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
             end
         else
-            load_matrix = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))[:, 100-theta]
+            load_matrix = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))[:, theta]
         end
         for s in scenarios, t in time_steps
             add_to_expression!(expr_net_injection[s,t], load_matrix[t,s], -1.0)

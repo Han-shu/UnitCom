@@ -5,18 +5,19 @@
 - Reserve is provided by thermal generators and batteries only
 - Variable cost of thermal generators is assumed to be constant
 - No minimum run time and notification time
-- No hydro power plants (or modeling by static dispatch)
+- Hydro power plants are modeled by SingleTimeSeries historical dispatch
 
 # Problems
 - UC infeasibility if starting from existing solution files
 
 # May 6 - May 13 TODO
+- Add residual values for storage
 - ~~Update UC data~~
 - ~~Add hydro power plants~~
     - ~~clean NYISO publised data~~
     - ~~Subtract from load~~
-- Quantile data 
-    - rank existing 10 scenario data
+- ~~Quantile data~~
+    - ~~rank existing 10 scenario data~~
     - ~~replace the binding time with actual historical data~~
 - Run deterministic version of UCED
     - Average 

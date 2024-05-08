@@ -1,6 +1,7 @@
 include("NYGrid/build_ny_system.jl") # function to build the NYGrid system
 include("NYGrid/add_scenarios_ts.jl") # function to add scenario time series data
 include("NYGrid/add_quantile_ts.jl") # function to add quantile time series data
+include("NYGrid/rank_scenarios_ts.jl") # function to add quantile time series data
 include("src/stochastic_uc.jl")
 include("src/stochastic_ed.jl")
 include("src/get_solution.jl")
@@ -8,7 +9,7 @@ include("src/functions.jl")
 include("src/get_init_value.jl")
 
 # Set parameters
-theta = 45 # nothing or set between 1 ~ 49 (Int)
+theta = 9 # nothing or set between 1 ~ 49 (Int)
 scenario_count = 1
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour

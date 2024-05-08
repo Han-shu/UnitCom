@@ -25,7 +25,7 @@ function _construct_rank_fcst_data(base_power::Float64, initial_time::DateTime; 
     wind_file = joinpath(ts_dir, "wind_scenarios.h5")
     load_file = joinpath(ts_dir, "load_scenarios.h5")
 
-    num_idx = h5open(file, "r") do file
+    num_idx = h5open(load_file, "r") do file
         return length(read(file))
     end
 
