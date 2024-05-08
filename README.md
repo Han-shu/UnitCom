@@ -11,13 +11,15 @@
 - UC infeasibility if starting from existing solution files
 
 # May 6 - May 13 TODO
-- Update UC data
+- ~~Update UC data~~
 - Add hydro power plants
+    - clean NYISO publised data
+    - Subtract from load
 - Generate quantile data or use the existing 10 scenario
 - Run deterministic version of UCED
     - Average 
     - NLB
-- Turn Mac into a server
+- ~~Turn Mac into a server~~
 
 # April 26 - May 6 TODO
 - ~~Draft an email to ask NREL about the data issue~~

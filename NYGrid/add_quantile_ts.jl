@@ -105,6 +105,8 @@ function add_quantiles_time_series_UC!(system::System)::Nothing
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, loads, scenario_forecast_data)
+
+    _add_time_series_hydro!(system)
     return nothing
 end
 
@@ -158,5 +160,7 @@ function add_quantiles_time_series_ED!(system::System)::Nothing
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, loads, scenario_forecast_data)
+
+    _add_time_series_hydro!(system; min5_flag = true)
     return nothing
 end

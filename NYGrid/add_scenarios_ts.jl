@@ -80,6 +80,8 @@ function add_scenarios_time_series_UC!(system::System)::Nothing
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, loads, scenario_forecast_data)
+
+    _add_time_series_hydro!(system)
 return nothing
 end
 
@@ -130,25 +132,33 @@ function add_scenarios_time_series_ED!(system::System)::Nothing
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, loads, scenario_forecast_data)
+
+    _add_time_series_hydro!(system; min5_flag = true)
     return nothing
 end
 
 
-function add_time_series_hydro_UC!(system::System)::Nothing
-    hydro_file = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid/genmax_profile_2018.csv"
-    hydro_gens = get_components(x -> x.prime_mover_type == PrimeMovers.HY, RenewableGen, system)
-    df_ts_genmax = CSV.read(hydro_file, DataFrame)
-    dates = range(DateTime(2018, 1, 1, 0), step=Dates.Hour(1), length=size(df_ts_genmax, 1))
-    for gen_id in 234:243
-        data = TimeArray(dates, df_ts_genmax[!, "Gen$(gen_id)"])
-        ts_genmax = SingleTimeSeries("hydro_max_power", data)
-        add_time_series!(sys, get_component(ThermalStandard, sys, df_genprop[gen_id, "GEN_NAME"]), ts_genmax)
+function _add_time_series_hydro!(system::System; min5_flag = false)::Nothing
+    hydro_file = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid/hydro_2019.csv"
+    df_ts = CSV.read(hydro_file, DataFrame)
+    init_time = Dates.DateTime(2018, 12, 31, 20)
+    df_ts = df_ts[df_ts.Time_Stamp .>= init_time, :]
+    # Get hourly average
+    if min5_flag
+        data = TimeArray(df_ts.Time_Stamp, df_ts.Gen_MW)
+    else
+        min5_ts = df_ts.Gen_MW
+        hour_ts = [sum(min5_ts[i:i+11])/12 for i in 1:12:size(min5_ts, 1)]
+        dates = range(init_time, step=Dates.Hour(1), length=size(hour_ts, 1))
+        data = TimeArray(dates, hour_ts)
     end
+    hy_ts = SingleTimeSeries("hydro_power", data)
+    hydro_gen = first(get_components(HydroDispatch, system))
+    add_time_series!(system, hydro_gen, hy_ts)
+
     return nothing
 end
 
 
-hydro_file = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid/genmax_profile_2018.csv"
-hydro_gens = get_components(HydroDispatch, UCsys)
-hydro_gens = get_components(x -> x.prime_mover_type == PrimeMovers.HY, RenewableGen, system)
-df_ts_genmax = CSV.read(hydro_file, DataFrame)
+
+
