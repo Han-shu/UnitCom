@@ -12,7 +12,7 @@ include("parsing_utils.jl")
 include("manual_data_entries.jl")
 
 function build_ny_system(; base_power = 100)::System
-    data_dir = "/Users/hanshu/Desktop/Price_formation/UnitCom/NYGrid/Data"
+    data_dir = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid"
     system = PSY.System(base_power)
     set_units_base_system!(system, PSY.UnitSystem.NATURAL_UNITS)
 
@@ -116,18 +116,8 @@ function build_ny_system(; base_power = 100)::System
         _add_thermal(system, bus; name = name, fuel = fuel, pmin = pmin, pmax = pmax, ramp_10 = ramp_10, ramp_30 = ramp_30, cost = cost, pm = pm, uptime = uptime, downtime = downtime)
     end
 
-    # Add hydro
-    hydro = df_genprop[df_genprop.GEN_FUEL .== "Hydro", :]
-    for (i, hy) in enumerate(eachrow(hydro))
-        bus = get_bus(system, 1)
-        name = hy.GEN_NAME
-        pmax = hy.PMAX
-        pmin = hy.PMIN
-        ramp_10 = hy.RAMP_10
-        ramp_30 = hy.RAMP_30
-        cost = TwoPartCost(VariableCost(0.0), 0.0)
-        _add_hydro(system, bus; name = name, pmin = pmin, pmax = pmax, ramp_10 = ramp_10, ramp_30 = ramp_30, cost = cost)
-    end
+    # Add aggregate hydro
+    _add_hydro(system, bus; name = "Hydro", pmin = 0.0, pmax = 5000.0, ramp_10 = 300.0, ramp_30 = 3000.0, cost = TwoPartCost(VariableCost(0.0), 0.0))
 
     return system
 end

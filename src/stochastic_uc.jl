@@ -6,6 +6,7 @@ include("stochastic_ed.jl")
 include("get_init_value.jl")
 include("add_net_injection.jl")
 include("add_renewables.jl")
+include("add_hydro.jl")
 include("add_thermal.jl")
 include("add_storage.jl")
 include("add_system_eqs.jl")
@@ -34,6 +35,8 @@ function stochastic_uc(
     _add_thermal_generators!(sys, model, use_must_run)
     
     _add_renewables!(sys, model; theta = theta)
+
+    _add_hydro!(sys, model)
 
     # Storage
     has_storage = false

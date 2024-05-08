@@ -1,93 +1,34 @@
-using Test
-include("NYGrid/build_ny_system.jl")
-include("NYGrid/add_scenarios_ts.jl")
-include("src/stochastic_ed.jl")
+include("NYGrid/build_ny_system.jl") # function to build the NYGrid system
+include("NYGrid/add_scenarios_ts.jl") # function to add scenario time series data
+include("NYGrid/add_quantile_ts.jl") # function to add quantile time series data
 include("src/stochastic_uc.jl")
+include("src/stochastic_ed.jl")
 include("src/get_solution.jl")
+include("src/functions.jl")
+include("src/get_init_value.jl")
+
+# Set parameters
+theta = nothing # nothing or set between 1 ~ 49 (Int)
 scenario_count = 10
-horizon = 24
-VOLL=5000
-start_time = DateTime(2019,1,1,0)
-parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, reserve_requirement_by_hour, reserve_short_penalty)
+uc_horizon = 36 # 36 hours
+ed_horizon = 12 # 12*5 minutes = 1 hour
+result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+model_name, uc_sol_file, ed_sol_file = get_UCED_model_file_name(theta = theta, scenario_count = scenario_count, result_dir = result_dir)
 
-## ED test
-model = stochastic_ed(system, Gurobi.Optimizer, VOLL = 1000, start_time = DateTime(2019, 1, 1, 0))
-# access variable values
-LMP_matrix = zeros(10, 24)
-for s in 1:10, t in 1:24
-        LMP_matrix[s,t] = dual(model[:eq_pb][s,t])
-end
+# Build NY system for UC and ED
+@info "Build NY system for UC"
+UCsys = build_ny_system(base_power = 100)
+@info "Build NY system for ED"
+EDsys = build_ny_system(base_power = 100)
 
-thermal_gen_names = get_name.(get_components(ThermalGen, system))
-for g in thermal_gen_names
-    val = value(model[:pg][g,1,1])
-    for s in 2:10
-        if value(model[:pg][g,s,1]) != val
-            println("Gen: $g, Scenario: $s, Value: $(value(model[:pg][g,s,1]))")
-        end
-    end
-end
-    
-
-# UC test
-scenario_count = 10
-uc_time = @elapsed begin
-    model = stochastic_uc(system, Gurobi.Optimizer, start_time = DateTime(2019, 1, 1, 0), scenario_count = scenario_count, horizon = 48)
-    optimize!(model)
-    fix!(system, model)
-    thermal_gen_names = get_name.(get_components(ThermalGen, system))
-    for g in thermal_gen_names, t in model[:param].time_steps
-        unset_binary(model[:ug][g,t])
-    end 
-    optimize!(model)
-end
-println("Running time for a signle uc problem: $uc_time")
-
-LMP_matrix = zeros(scenario_count, 48)
-for s in 1:scenario_count
-    for t in 1:48
-        LMP_matrix[s,t] = dual(model[:eq_power_balance][s,t])
-    end
-end
-
-wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
-solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, system)
-wind_gen_names = get_name.(wind_gens)
-solar_gen_names = get_name.(solar_gens)
-loads = collect(get_components(StaticLoad, system))
-load_matrix = get_time_series_values(Scenarios, loads[1], "load", start_time = DateTime(2019, 1, 1, 23), len = 24, ignore_scaling_factors = true)
-model[:init_value].ug_t0[thermal_gen_names[1]] 
-
-net_load = zeros(24, 10)
-for s in 1:10, t in 1:24
-    net_load[t,s] = value(model[:pS][solar_gen_names[1],s,t]) + value(model[:pW][wind_gen_names[1],s,t]) - load_matrix[t,s]
-end
-
-thermal_gen_names = get_name.(get_components(ThermalGen, system))
-op_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, system, g)))) for g in thermal_gen_names)
-
-for g in thermal_gen_names
-    println("Gen: $g, Cost: $(op_cost[g])")
-end
-
-@testset "stochastic_uc" begin
-    @test model[:param].time_steps == 1:24
-    @test model[:param].scenarios == 1:10
-    @test model[:param].start_time == DateTime(2019, 1, 1, 0)
-    @test get_time_series_counts(system) == (3, 0, 3)
-    thermal_gen_names = get_name.(get_components(ThermalGen, system))
-
-    fix!(system, model)
-    @test is_binary(model[:ug][thermal_gen_names[1],1]) == true
-    for g in thermal_gen_names, t in model[:param].time_steps
-        unset_binary(model[:ug][g,t])
-    end
-
-    @test is_fixed(model[:ug][thermal_gen_names[1],1]) == true
-    @test is_binary(model[:ug][thermal_gen_names[1],1]) == false
-
-    optimize!(model)
-    @test JuMP.primal_status(model) == MOI.FEASIBLE_POINT
-    @test JuMP.dual_status(model) == MOI.FEASIBLE_POINT
-    @test isnothing(dual(model[:eq_power_balance][1,1])) == false
+if !isnothing(theta)
+    @info "Adding quantile time series data for UC"
+    add_quantiles_time_series_UC!(UCsys)
+    @info "Adding quantile time series data for ED"
+    add_quantiles_time_series_ED!(EDsys)
+else
+    @info "Adding scenarios time series data for UC"
+    add_scenarios_time_series_UC!(UCsys)
+    @info "Adding scenarios time series data for ED"
+    add_scenarios_time_series_ED!(EDsys)
 end
