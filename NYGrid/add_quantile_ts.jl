@@ -78,32 +78,43 @@ end
 
 
 
-function add_quantiles_time_series_UC!(system::System)::Nothing
-    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/ARPAE_NYISO"
-    solar_fcst_file = joinpath(ts_dir, "BA_Existing_solar_intra-hour_fcst_2019.h5")
-    wind_fcst_file = joinpath(ts_dir, "BA_Existing_wind_intra-hour_fcst_2019.h5")
-    load_fcst_file = joinpath(ts_dir, "BA_load_intra-hour_fcst_2019.h5")
-
+function add_quantiles_time_series!(system::System; min5_flag::Bool)::Nothing
     loads = collect(get_components(StaticLoad, system))
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, system)
 
-    wind_fcst_quantiles = _read_fcst_quantiles(wind_fcst_file)
-    solar_fcst_quantiles = _read_fcst_quantiles(solar_fcst_file; issolar = true)
-    load_fcst_quantiles = _read_fcst_quantiles(load_fcst_file)
-
     initial_time = Dates.DateTime(2018, 12, 31, 20)
-    da_resolution = Dates.Hour(1)
+    resolution = min5_flag ? Minute(5) : Dates.Hour(1)
     scenario_count = 99
     base_power = PSY.get_base_power(system)
 
-    solar_data = _construct_fcst_data_UC(solar_fcst_quantiles, base_power, initial_time)
-    wind_data = _construct_fcst_data_UC(wind_fcst_quantiles, base_power, initial_time)
-    load_data = _construct_fcst_data_UC(load_fcst_quantiles, base_power, initial_time)
+    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/ARPAE_NYISO"
+    solar_fcst_file = joinpath(ts_dir, "BA_Existing_solar_intra-hour_fcst_2019.h5")
+    wind_fcst_file = joinpath(ts_dir, "BA_Existing_wind_intra-hour_fcst_2019.h5")
+    load_fcst_file = joinpath(ts_dir, "BA_load_intra-hour_fcst_2019.h5")
+    wind_fcst_quantiles = _read_fcst_quantiles(wind_fcst_file; min5_flag = min5_flag)
+    solar_fcst_quantiles = _read_fcst_quantiles(solar_fcst_file; issolar = true, min5_flag = min5_flag)
+    load_fcst_quantiles = _read_fcst_quantiles(load_fcst_file; min5_flag = min5_flag)
+
+    if min5_flag
+        solar_actual_file = joinpath(ts_dir, "BA_solar_actuals_Existing_2019.h5")
+        wind_actual_file = joinpath(ts_dir, "BA_wind_actuals_Existing_2019.h5")
+        load_actual_file = joinpath(ts_dir, "BA_load_actuals_min5_2019.h5")
+        actual_wind = _read_actuals_min5(wind_actual_file)
+        actual_solar = _read_actuals_min5(solar_actual_file)
+        actual_load = _read_actuals_min5(load_actual_file; isload = true)
+        solar_data = _construct_fcst_data_ED(solar_fcst_quantiles, actual_solar, base_power, initial_time)
+        wind_data = _construct_fcst_data_ED(wind_fcst_quantiles, actual_wind, base_power, initial_time)
+        load_data = _construct_fcst_data_ED(load_fcst_quantiles, actual_load, base_power, initial_time)    
+    else
+        solar_data = _construct_fcst_data_UC(solar_fcst_quantiles, base_power, initial_time)
+        wind_data = _construct_fcst_data_UC(wind_fcst_quantiles, base_power, initial_time)
+        load_data = _construct_fcst_data_UC(load_fcst_quantiles, base_power, initial_time)
+    end
 
     scenario_forecast_data = Scenarios(
         name = "solar_power",
-        resolution = da_resolution,
+        resolution = resolution,
         data = solar_data,
         scenario_count = scenario_count,
         scaling_factor_multiplier = PSY.get_base_power
@@ -112,7 +123,7 @@ function add_quantiles_time_series_UC!(system::System)::Nothing
 
     scenario_forecast_data = Scenarios(
         name = "wind_power",
-        resolution = da_resolution,
+        resolution = resolution,
         data = wind_data,
         scenario_count = scenario_count,
         scaling_factor_multiplier = PSY.get_base_power
@@ -121,75 +132,14 @@ function add_quantiles_time_series_UC!(system::System)::Nothing
 
     scenario_forecast_data = Scenarios(
         name = "load",
-        resolution = da_resolution,
+        resolution = resolution,
         data = load_data,
         scenario_count = scenario_count,
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, loads, scenario_forecast_data)
 
-    _add_time_series_hydro!(system)
-    return nothing
-end
-
-
-function add_quantiles_time_series_ED!(system::System)::Nothing
-    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/ARPAE_NYISO"
-    solar_fcst_file = joinpath(ts_dir, "BA_Existing_solar_intra-hour_fcst_2019.h5")
-    wind_fcst_file = joinpath(ts_dir, "BA_Existing_wind_intra-hour_fcst_2019.h5")
-    load_fcst_file = joinpath(ts_dir, "BA_load_intra-hour_fcst_2019.h5")
-    solar_actual_file = joinpath(ts_dir, "BA_solar_actuals_Existing_2019.h5")
-    wind_actual_file = joinpath(ts_dir, "BA_wind_actuals_Existing_2019.h5")
-    load_actual_file = joinpath(ts_dir, "BA_load_actuals_min5_2019.h5")
-   
-    loads = collect(get_components(StaticLoad, system))
-    wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
-    solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, system)
-
-    wind_fcst_quantiles = _read_fcst_quantiles(wind_fcst_file; min5_flag = true)
-    solar_fcst_quantiles = _read_fcst_quantiles(solar_fcst_file; issolar = true, min5_flag = true)
-    load_fcst_quantiles = _read_fcst_quantiles(load_fcst_file; min5_flag = true)
-
-    actual_wind = _read_actuals_min5(wind_actual_file)
-    actual_solar = _read_actuals_min5(solar_actual_file)
-    actual_load = _read_actuals_min5(load_actual_file; isload = true)
-
-    initial_time = Dates.DateTime(2018, 12, 31, 20)
-    ha_resolution = Dates.Minute(5)
-    scenario_count = 99
-    base_power = PSY.get_base_power(system)
-
-    solar_data = _construct_fcst_data_ED(solar_fcst_quantiles, actual_solar, base_power, initial_time)
-    wind_data = _construct_fcst_data_ED(wind_fcst_quantiles, actual_wind, base_power, initial_time)
-    load_data = _construct_fcst_data_ED(load_fcst_quantiles, actual_load, base_power, initial_time)
-
-    scenario_forecast_data = Scenarios(
-        name = "solar_power",
-        resolution = ha_resolution,
-        data = solar_data,
-        scenario_count = scenario_count,
-        scaling_factor_multiplier = PSY.get_base_power
-    )
-    add_time_series!(system, solar_gens, scenario_forecast_data)
-
-    scenario_forecast_data = Scenarios(
-        name = "wind_power",
-        resolution = ha_resolution,
-        data = wind_data,
-        scenario_count = scenario_count,
-        scaling_factor_multiplier = PSY.get_base_power
-    )
-    add_time_series!(system, wind_gens, scenario_forecast_data)
-
-    scenario_forecast_data = Scenarios(
-        name = "load",
-        resolution = ha_resolution,
-        data = load_data,
-        scenario_count = scenario_count,
-        scaling_factor_multiplier = PSY.get_base_power
-    )
-    add_time_series!(system, loads, scenario_forecast_data)
-
-    _add_time_series_hydro!(system; min5_flag = true)
+    _add_time_series_hydro!(system; min5_flag = min5_flag)
+    
     return nothing
 end

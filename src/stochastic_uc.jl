@@ -11,7 +11,6 @@ include("add_thermal.jl")
 include("add_storage.jl")
 include("add_system_eqs.jl")
 include("compute_conflict.jl")
-include("fix.jl")
 include("../NYGrid/manual_data_entries.jl")
 
 function stochastic_uc(

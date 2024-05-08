@@ -1,6 +1,6 @@
 using JuMP
 
-function stochastic_ed(sys::System, optimizer; init_value = nothing, scenario_count = 10, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 12)
+function stochastic_ed(sys::System, optimizer; uc_LMP, init_value = nothing, scenario_count = 10, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 12)
     model = Model(optimizer)
     model[:obj] = QuadExpr()
     parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, reserve_requirement_by_hour, reserve_short_penalty)
@@ -104,6 +104,8 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, scenario_co
     @constraint(model, eq_storage_energy[b in storage_names, s in scenarios, t in time_steps],
         eb[b,s,t] == (t == 1 ? eb_t0[b] : eb[b,s,t-1]) + η[b].in * kb_charge[b,s,t] - (1/η[b].out) * kb_discharge[b,s,t])
 
+    # Add residual value of storage
+    add_to_expression!(model[:obj], sum(eb[b,s,last(time_steps)] for b in storage_names), uc_LMP[2]/length(scenarios))
 
     # net load = load - wind - solar - hydro
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys)

@@ -1,12 +1,12 @@
 include("NYGrid/build_ny_system.jl") # function to build the NYGrid system
 include("NYGrid/add_scenarios_ts.jl") # function to add scenario time series data
 include("NYGrid/add_quantile_ts.jl") # function to add quantile time series data
-include("NYGrid/rank_scenarios_ts.jl") # function to add quantile time series data
 include("src/stochastic_uc.jl")
 include("src/stochastic_ed.jl")
 include("src/get_solution.jl")
 include("src/functions.jl")
 include("src/get_init_value.jl")
+include("src/get_uc_LMP.jl")
 
 # Set parameters
 theta = 9 # nothing or set between 1 ~ 49 (Int)
@@ -24,16 +24,16 @@ EDsys = build_ny_system(base_power = 100)
 # Add time series data
 if !isnothing(theta)
     @info "Adding quantile time series data for UC"
-    add_rank_scenarios_time_series!(UCsys; min5_flag = false)
-    # add_quantiles_time_series_UC!(UCsys)
+    add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = true)
+    # add_quantiles_time_series!(UCsys; min5_flag = false)
     @info "Adding quantile time series data for ED"
-    add_rank_scenarios_time_series!(EDsys; min5_flag = true)
-    # add_quantiles_time_series_ED!(EDsys)
+    add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = true)
+    # add_quantiles_time_series!(EDsys; min5_flag = true)
 else
     @info "Adding scenarios time series data for UC"
-    add_scenarios_time_series_UC!(UCsys)
+    add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = false)
     @info "Adding scenarios time series data for ED"
-    add_scenarios_time_series_ED!(EDsys)
+    add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = false)
 end
 
 
