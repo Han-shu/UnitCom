@@ -9,8 +9,8 @@ include("src/get_init_value.jl")
 include("src/get_uc_LMP.jl")
 
 # Set parameters
-theta = 9 # nothing or set between 1 ~ 49 (Int)
-scenario_count = 1
+theta = nothing # nothing or set between 1 ~ 49 (Int)
+scenario_count = 10
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
@@ -59,13 +59,13 @@ end
 t= 1
     uc_time = init_time + Hour(1)*(t-1)
 
-    if t % 12 == 0
-        write_json(uc_sol_file, uc_sol)
-        write_json(ed_sol_file, ed_sol)
-    end
-    if t > 360 || uc_time > DateTime(2019,12,29,20)
-        break
-    end
+    # if t % 12 == 0
+    #     write_json(uc_sol_file, uc_sol)
+    #     write_json(ed_sol_file, ed_sol)
+    # end
+    # if t > 360 || uc_time > DateTime(2019,12,29,20)
+    #     break
+    # end
     one_iter = @elapsed begin
     @info "Solving UC model at $(uc_time)"
     one_uc_time = @elapsed begin
@@ -81,6 +81,7 @@ t= 1
     # initiate empty OrderedDict ed_hour_sol
     ed_hour_sol = init_solution_ed(EDsys)
     for i in 1:12
+        global ed_model, ed_hour_sol
         @info "Running length $(length(ed_hour_sol["LMP"]))"
         ed_time = uc_time + Minute(5*(i-1))
         @info "Solving ED model at $(ed_time)"
@@ -93,9 +94,7 @@ t= 1
         end
     end
 
-    if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
-        break
-    end
+
     end
     @info "ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
     uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol)

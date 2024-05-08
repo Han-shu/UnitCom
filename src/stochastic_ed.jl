@@ -105,7 +105,7 @@ function stochastic_ed(sys::System, optimizer; uc_LMP, init_value = nothing, sce
         eb[b,s,t] == (t == 1 ? eb_t0[b] : eb[b,s,t-1]) + η[b].in * kb_charge[b,s,t] - (1/η[b].out) * kb_discharge[b,s,t])
 
     # Add residual value of storage
-    add_to_expression!(model[:obj], sum(eb[b,s,last(time_steps)] for b in storage_names), uc_LMP[2]/length(scenarios))
+    add_to_expression!(model[:obj], sum(eb[b,s,last(time_steps)] for b in storage_names, s in scenarios), -uc_LMP[2]/length(scenarios))
 
     # net load = load - wind - solar - hydro
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys)
