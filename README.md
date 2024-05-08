@@ -17,7 +17,7 @@
     - ~~Subtract from load~~
 - Quantile data 
     - rank existing 10 scenario data
-    - replace the binding time with actual historical data
+    - ~~replace the binding time with actual historical data~~
 - Run deterministic version of UCED
     - Average 
     - NLB
