@@ -1,4 +1,6 @@
-using Plots
+using Plots, JuMP, OrderedDict
+
+include("../src/functions.jl")
 DLAC_solution = read_json(joinpath(result_dir, "DLAC_sol_2024-04-17.json"))
 SLAC_solution = read_json(joinpath(result_dir, "SLAC_sol_2024-04-17.json"))
 DLAC_40_solution = read_json(joinpath(result_dir, "DLAC-NLB-40_sol_2024-04-17.json"))
@@ -45,19 +47,20 @@ plot(min5_x, ED_AVG_UCED_LMP, label = "ED_AVG-UCED", xlabel = "Hour", ylabel = "
 hour_x= range(1, length(AVG_UCED_LMP), step = 1)
 plot!(hour_x, AVG_UCED_LMP, label = "AVG-UCED")
 
-ED_NLB45_UCED_file = joinpath(result_dir, "ED_NLB-45-UCED_2024-05-06.json")
+ED_NLB45_UCED_file = joinpath(result_dir, "ED_NLB-45-UCED_2024-05-07.json")
 ED_NLB45_UCED_sol = read_json(ED_NLB45_UCED_file)
 ED_NLB45_UCED_LMP = []
 for i in ED_NLB45_UCED_sol["LMP"]
     append!(ED_NLB45_UCED_LMP, i)
 end
-NLB45_UCED_file = joinpath(result_dir, "NLB-45-UCED_2024-05-06.json")
+NLB45_UCED_file = joinpath(result_dir, "NLB-45-UCED_2024-05-07.json")
 NLB45_UCED_sol = read_json(NLB45_UCED_file)
 NLB45_UCED_LMP = NLB45_UCED_sol["Hourly average LMP"]
 min5_x= range(1/12, length(NLB45_UCED_LMP), step = 1/12)
 plot(min5_x, ED_NLB45_UCED_LMP, label = "ED_NLB-45-UCED", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)
 hour_x= range(1, length(NLB45_UCED_LMP), step = 1)
 plot!(hour_x, NLB45_UCED_LMP, label = "NLB-45-UCED")
+ylims!(0, 100)
 
 
 plot(hour_x, S_UCED_LMP, label = "S-UCED", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)

@@ -152,7 +152,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, scenario_co
 
     @constraint(model, eq_power_balance[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + 
             sum(kb_discharge[b,s,t] - kb_charge[b,s,t] for b in storage_names) 
-            hydro_dispatch[t] + curtailment[s,t] + 
+            + hydro_dispatch[t] + curtailment[s,t] + 
             sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
 
     if variable_cost[thermal_gen_names[1]] isa Float64

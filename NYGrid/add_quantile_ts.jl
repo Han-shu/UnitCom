@@ -138,9 +138,9 @@ function add_quantiles_time_series_ED!(system::System)::Nothing
     solar_fcst_file = joinpath(ts_dir, "BA_Existing_solar_intra-hour_fcst_2019.h5")
     wind_fcst_file = joinpath(ts_dir, "BA_Existing_wind_intra-hour_fcst_2019.h5")
     load_fcst_file = joinpath(ts_dir, "BA_load_intra-hour_fcst_2019.h5")
-    solar_actual_file = joinpath(data_dir, "BA_solar_actuals_Existing_2019.h5")
-    wind_actual_file = joinpath(data_dir, "BA_wind_actuals_Existing_2019.h5")
-    load_actual_file = joinpath(data_dir, "BA_load_actuals_min5_2019.h5")
+    solar_actual_file = joinpath(ts_dir, "BA_solar_actuals_Existing_2019.h5")
+    wind_actual_file = joinpath(ts_dir, "BA_wind_actuals_Existing_2019.h5")
+    load_actual_file = joinpath(ts_dir, "BA_load_actuals_min5_2019.h5")
    
     loads = collect(get_components(StaticLoad, system))
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
