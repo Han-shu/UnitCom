@@ -105,7 +105,7 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, scenario_co
         eb[b,s,t] == (t == 1 ? eb_t0[b] : eb[b,s,t-1]) + η[b].in * kb_charge[b,s,t] - (1/η[b].out) * kb_discharge[b,s,t])
 
 
-    # net load = load - wind - solar
+    # net load = load - wind - solar - hydro
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys)
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe,RenewableGen, sys) 
     solar_gen_names = get_name.(solar_gens)
@@ -147,11 +147,12 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, scenario_co
 
     @variable(model, curtailment[s in scenarios, t in time_steps] >= 0)
 
-    # @variable(model, overgeneration[s in scenarios, t in time_steps] >= 0)
-    # add_to_expression!(model[:obj], sum(overgeneration[s,t] for s in scenarios, t in time_steps), 299.9/length(scenarios))
+    hydro = first(get_components(HydroDispatch, sys))
+    hydro_dispatch = get_time_series_values(SingleTimeSeries, hydro, "hydro_power", start_time = start_time, len = length(time_steps))
 
     @constraint(model, eq_power_balance[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + 
-            sum(kb_discharge[b,s,t] - kb_charge[b,s,t] for b in storage_names) + curtailment[s,t] + 
+            sum(kb_discharge[b,s,t] - kb_charge[b,s,t] for b in storage_names) 
+            hydro_dispatch[t] + curtailment[s,t] + 
             sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
 
     if variable_cost[thermal_gen_names[1]] isa Float64
@@ -165,8 +166,6 @@ function stochastic_ed(sys::System, optimizer; init_value = nothing, scenario_co
     # Reserve requirements
     _add_reserve_requirement_eq!(sys, model; isED = true)
 
-    # @constraint(model, curtail_upper_bound[s in scenarios, t in time_steps], 
-    #         curtailment[s,t] <= forecast_load[t,s] - sum(pS[g,s,t] for g in solar_gen_names) - sum(pW[g,s,t] for g in wind_gen_names))
     add_to_expression!(model[:obj], sum(curtailment[s,t] for s in scenarios, t in time_steps), VOLL*(1/length(scenarios)))
     
     # Enforce decsion variables for t = 1

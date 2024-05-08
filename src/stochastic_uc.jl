@@ -35,6 +35,8 @@ function stochastic_uc(
     
     _add_renewables!(sys, model; theta = theta)
 
+    _add_hydro(sys, model)
+
     # Storage
     has_storage = false
     if length(get_components(GenericBattery, sys)) != 0 || length(get_components(BatteryEMS, sys)) != 0

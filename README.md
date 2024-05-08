@@ -12,10 +12,12 @@
 
 # May 6 - May 13 TODO
 - ~~Update UC data~~
-- Add hydro power plants
-    - clean NYISO publised data
-    - Subtract from load
-- Generate quantile data or use the existing 10 scenario
+- ~~Add hydro power plants~~
+    - ~~clean NYISO publised data~~
+    - ~~Subtract from load~~
+- Quantile data 
+    - rank existing 10 scenario data
+    - replace the binding time with actual historical data
 - Run deterministic version of UCED
     - Average 
     - NLB
