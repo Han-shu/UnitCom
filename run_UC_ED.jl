@@ -23,9 +23,11 @@ EDsys = build_ny_system(base_power = 100)
 # Add time series data
 if !isnothing(theta)
     @info "Adding quantile time series data for UC"
-    add_quantiles_time_series_UC!(UCsys)
+    add_rank_scenarios_time_series!(UCsys; min5_flag = false)
+    # add_quantiles_time_series_UC!(UCsys)
     @info "Adding quantile time series data for ED"
-    add_quantiles_time_series_ED!(EDsys)
+    add_rank_scenarios_time_series!(EDsys; min5_flag = true)
+    # add_quantiles_time_series_ED!(EDsys)
 else
     @info "Adding scenarios time series data for UC"
     add_scenarios_time_series_UC!(UCsys)
