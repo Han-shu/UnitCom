@@ -10,6 +10,17 @@
 # Problems
 - UC infeasibility if starting from existing solution files
 
+# Log
+May 9
+- Storage energy capacity MWh and power rating MW, fix constraints of reserve
+- Fix objective function of ED (divide 12 for 5 min)
+May 8
+- Add hydro power plants
+- Add residual values for storage
+May 7
+- Rank existing 10 scenarios by net load sum
+- generate_hy_ts.jl to process NYISO historical real-time hydro time series data
+
 # May 6 - May 13 TODO
 - Run deterministic version of UCED
     - Average 

@@ -9,7 +9,7 @@ include("src/get_init_value.jl")
 include("src/get_uc_LMP.jl")
 
 # Set parameters
-theta = nothing # nothing or set between 1 ~ 49 (Int)
+theta = 9 # nothing or set between 1 ~ 49 (Int)
 scenario_count = 1
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
@@ -113,8 +113,12 @@ write_json(uc_sol_file, uc_sol)
 write_json(ed_sol_file, ed_sol)
 
 
-# model_str = string(model)
+# uc_model_str = string(uc_model)
+# ed_model_str = string(ed_model)
 # # Write the model to a text file
-# open(joinpath(result_dir, "model_output.txt"), "w") do file
-#     write(file, model_str)
+# open(joinpath(result_dir, "uc_model.txt"), "w") do file
+#     write(file, uc_model_str)
+# end
+# open(joinpath(result_dir, "ed_model.txt"), "w") do file
+#     write(file, ed_model_str)
 # end

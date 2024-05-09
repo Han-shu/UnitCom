@@ -94,46 +94,8 @@ reserve3 = collect(get_components(VariableReserveNonSpinning, system31))
 has_time_series(reserve1[1])
 get_time_series_container(reserve1[1])
 REG_DN = get_time_series(Deterministic, reserve1[1], "requirement")
-REG_DN[DateTime("2019-01-01T00:00:00")]
-
-for key in keys(REG_DN)
-    println(key, " ", REG_DN[key])
-    break
-end
-REG_DN.data[DateTime("2019-01-01T00:00:00")]
 
 
-
-
-file_dir = joinpath(pkgdir(PowerSystems), "docs", "src", "tutorials", "tutorials_data")
-UCsys = System(joinpath(file_dir, "RTS_GMLC.m"));
-to_json(UCsys, "UCsys.json")
-system2 = System("UCsys.json")
-
-
-resolution = Dates.Hour(1)
-data = Dict(
-    DateTime("2020-01-01T00:00:00") => 10.0*ones(24),
-    DateTime("2020-01-01T01:00:00") => 5.0*ones(24),
-)
-forecast = Deterministic("max_active_power", data, resolution)
-
-
-resolution = Dates.Hour(1)
-dates = range(DateTime("2020-01-01T00:00:00"), step = resolution, length = 24)
-data = TimeArray(dates, ones(24))
-time_series = SingleTimeSeries("max_active_power", data)
-
-
-# Create static time series data.
-resolution = Dates.Hour(1)
-dates = range(DateTime("2020-01-01T00:00:00"), step = resolution, length = 8760)
-data = TimeArray(dates, ones(8760))
-ts = SingleTimeSeries("max_active_power", data)
-add_time_series!(sys, component, ts)
-
-# Transform it to Deterministic
-transform_single_time_series!(sys, 24, Hour(24))
 
 
 # batteries
@@ -181,4 +143,6 @@ cost_forecast = get_variable_cost(generator, market_bid; start_time = initial_ti
 
 
 # Hydro 
-hydro = collect(get_components(HydroDispatch, UCsys))
+hydro = first(get_components(HydroDispatch, EDsys))
+hydro_dispatch = get_time_series_values(SingleTimeSeries, hydro, "hydro_power")
+

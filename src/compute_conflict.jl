@@ -1,10 +1,11 @@
 function print_conflict(model::JuMP.Model; write_iis = false, iis_path = nothing)::Nothing
+    model_status = primal_status(model)
     @error "Optimizer returned status: $model_status"
     JuMP.compute_conflict!(model)
-    optimize!(model)
+    # optimize!(model)
 
     if MOI.get(model, MOI.ConflictStatus()) == MOI.CONFLICT_FOUND
-        iis_model, _ = copy_conflict(model)
+        iis_model, referece_map = copy_conflict(model)
         println(iis_model)
         if write_iis
             if isnothing(iis_path)

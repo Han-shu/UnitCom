@@ -12,20 +12,21 @@ function _get_init_value_for_UC(sys::System;
         history_vg = Dict(g => Vector{Int}() for g in thermal_gen_names)
         history_wg = Dict(g => Vector{Int}() for g in thermal_gen_names)
         return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
-    elseif length(all_variables(uc_model)) > 0 && length(all_variables(ed_model)) > 0 # Initiate from model
-        @info "Obtain initial conditions from existing model"
-        history_wg = uc_model[:init_value].history_wg
-        history_vg = uc_model[:init_value].history_vg
-        thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
-        ug_t0 = Dict(g => value(uc_model[:ug][g,1]) for g in thermal_gen_names)
-        #Get Pg_t0 and eb_t0 from ED model
-        Pg_t0, eb_t0 = _get_binding_value_from_ED(sys, ed_model)
-        for g in thermal_gen_names
-            push!(history_vg[g], Int(round(value(uc_model[:vg][g,1]), digits = 0))) 
-            push!(history_wg[g], Int(round(value(uc_model[:wg][g,1]), digits = 0)))
-        end
-        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
-    elseif length(all_variables(uc_model)) == 0 # Initiate from solution
+    # elseif length(all_variables(uc_model)) > 0 && length(all_variables(ed_model)) > 0 # Initiate from model
+    #     @info "Obtain initial conditions from existing model"
+        # history_wg = uc_model[:init_value].history_wg
+        # history_vg = uc_model[:init_value].history_vg
+        # thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
+        # ug_t0 = Dict(g => value(uc_model[:ug][g,1]) for g in thermal_gen_names)
+        # #Get Pg_t0 and eb_t0 from ED model
+        # Pg_t0, eb_t0 = _get_binding_value_from_ED(sys, ed_model)
+        # for g in thermal_gen_names
+        #     push!(history_vg[g], Int(round(value(uc_model[:vg][g,1]), digits = 0))) 
+        #     push!(history_wg[g], Int(round(value(uc_model[:wg][g,1]), digits = 0)))
+        # end
+        # return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
+    else
+    # elseif length(all_variables(uc_model)) == 0 # Initiate from solution
         @info "Obtain initial conditions from existing solution files"
         ug_t0 = Dict(g => uc_sol["Commitment status"][g][end] for g in thermal_gen_names)
         Pg_t0 = Dict(g => ed_sol["Generator energy dispatch"][g][end][end] for g in thermal_gen_names)
@@ -33,8 +34,8 @@ function _get_init_value_for_UC(sys::System;
         history_wg = Dict(g => uc_sol["Shut down"][g] for g in thermal_gen_names)
         history_vg = Dict(g => uc_sol["Start up"][g] for g in thermal_gen_names)
         return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
-    else
-        error("The initial value is not properly set")
+    # else
+    #     error("The initial value is not properly set")
         return nothing
     end
 end

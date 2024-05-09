@@ -6,6 +6,7 @@ include("src/stochastic_ed.jl")
 include("src/get_solution.jl")
 include("src/functions.jl")
 include("src/get_init_value.jl")
+include("src/get_uc_LMP.jl")
 
 # Open a file in append mode
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
@@ -16,30 +17,33 @@ redirect_stdout(log_file)
 redirect_stderr(log_file)
 
 # Set parameters
-theta = nothing # nothing or set between 1 ~ 49 (Int)
-scenario_count = 10
+theta = 9 # nothing or set between 1 ~ 49 (Int)
+scenario_count = 1
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
-model_name = "UCED"
-uc_sol_file = joinpath(result_dir, "$(model_name)_sol_$(Dates.today()).json")
-ed_sol_file = joinpath(result_dir, "ED_sol_$(Dates.today()).json")
+result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+model_name, uc_sol_file, ed_sol_file = get_UCED_model_file_name(theta = theta, scenario_count = scenario_count, result_dir = result_dir)
 
 # Build NY system for UC and ED
 @info "Build NY system for UC"
 UCsys = build_ny_system(base_power = 100)
+@info "Build NY system for ED"
+EDsys = build_ny_system(base_power = 100)
 # Add time series data
 if !isnothing(theta)
     @info "Adding quantile time series data for UC"
-    add_quantiles_time_series!(UCsys; min5_flag = false)
+    add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = true)
+    # add_quantiles_time_series!(UCsys; min5_flag = false)
+    @info "Adding quantile time series data for ED"
+    add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = true)
+    # add_quantiles_time_series!(EDsys; min5_flag = true)
 else
     @info "Adding scenarios time series data for UC"
-    add_scenarios_time_series!(UCsys; min5_flag = false)
+    add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = false)
+    @info "Adding scenarios time series data for ED"
+    add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = false)
 end
 
-@info "Build NY system for ED"
-EDsys = build_ny_system(base_power = 100)
-@info "Adding scenarios time series data for ED"
-add_scenarios_time_series!(EDsys; min5_flag = true)
 
 # Initialize the solution
 if !isfile(uc_sol_file)
@@ -81,6 +85,7 @@ for t in 1:8760-uc_horizon+1
     @info "UC model at $(uc_time) is solved in $(one_uc_time) seconds"
     # Get commitment status that will be passed to ED
     uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
+    uc_LMP = get_uc_LMP(UCsys, uc_model)
     one_hour_ed_time = @elapsed begin
     ed_hour_sol = init_solution_ed(EDsys)
     for i in 1:12
@@ -88,7 +93,7 @@ for t in 1:8760-uc_horizon+1
         ed_time = uc_time + Minute(5*(i-1))
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
-        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_LMP = uc_LMP, init_value = ED_init_value, theta = theta, start_time = ed_time, horizon = ed_horizon)
+        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_LMP = uc_LMP, init_value = ED_init_value, scenario_count = scenario_count, theta = theta, start_time = ed_time, horizon = ed_horizon)
         ed_hour_sol = get_solution_ed(EDsys, ed_model, ed_hour_sol)
         if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
             @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"
@@ -120,10 +125,3 @@ redirect_stderr()
 
 # Close the log file
 close(log_file)
-
-test = []
-for i in 1:10
-    push!(test, i)
-    println(test)
-    println(test[end])
-end

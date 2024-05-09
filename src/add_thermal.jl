@@ -35,8 +35,6 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     @variable(model, ug[g in thermal_gen_names, t in time_steps], binary = true) # commitment status
     @variable(model, vg[g in thermal_gen_names, t in time_steps], binary = true) # startup status
     @variable(model, wg[g in thermal_gen_names, t in time_steps], binary = true) # shutdown status
-    # @variable(model, vg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
-    # @variable(model, wg[g in thermal_gen_names, t in time_steps], lower_bound = 0, upper_bound = 1)
  
     # power generation variables
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps])
@@ -65,7 +63,7 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     # ramping constraints and reserve constraints
     for g in thermal_gen_names, s in scenarios, t in time_steps
         @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_30[g]*2*ug[g,t] + pg_lim[g].min*vg[g,t])
-        @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t]  <= ramp_30[g]*2*ug[g,t] + pg_lim[g].min*wg[g,t])
+        @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t]  <= ramp_30[g]*2*ug[g,t] + pg_lim[g].max*wg[g,t])
         @constraint(model, spin_10[g,s,t] <= ramp_10[g]*ug[g,t])
         @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_30[g]*ug[g,t])
         @constraint(model, Nspin_10[g,s,t] <= ramp_10[g]*(1-ug[g,t]))
@@ -117,15 +115,15 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     @constraint(model, eq_downtime[g in thermal_gen_names, t in time_steps], lhs_off[g,t] + ug[g,t] <= 1.0)
                                                                     
     # Add variable cost to objective function
-    if isa(variable_cost[thermal_gen_names[1]], Float64)
+    if isa(variable_cost[thermal_gen_names[1]], Float64) # constant variable cost
         add_to_expression!(model[:obj], sum(
                    pg[g,s,t]*variable_cost[g]
                    for g in thermal_gen_names, s in scenarios, t in time_steps), 1/length(scenarios))
-    elseif isa(variable_cost[thermal_gen_names[1]], Tuple)
+    elseif isa(variable_cost[thermal_gen_names[1]], Tuple) # quadratic variable cost
         add_to_expression!(model[:obj], sum(
                     pg[g,s,t]^2*variable_cost[g][1] + pg[g,s,t]*variable_cost[g][2]
                     for g in thermal_gen_names, s in scenarios, t in time_steps), 1/length(scenarios))
-    else
+    else # others, need to be implemented
         error("Different variable cost type other than Float64 or Tuple")
     end   
     
@@ -134,11 +132,5 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
                    ug[g,t]*fixed_cost[g] + vg[g,t]*startup_cost[g] + 
                    wg[g,t]*shutdown_cost[g] for g in thermal_gen_names, t in time_steps))
 
-    # Enforce decsion variables for t = 1
-    # @variable(model, t_pg[g in thermal_gen_names], lower_bound = 0)
-    # for g in thermal_gen_names, s in scenarios
-    #     @constraint(model, pg[g,s,1] == t_pg[g])
-    # end
-    
     return
 end

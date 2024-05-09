@@ -21,15 +21,18 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
     @variable(model, reserve_10_short[s in scenarios, t in time_steps, k in 1:length(penalty_res10)] >= 0)
     @variable(model, reserve_30_short[s in scenarios, t in time_steps, k in 1:length(penalty_res30)] >= 0)
 
+    # 5 min = 1/12 hour
+    multiplier = isED ? 1/(length(scenarios)*12) : 1/length(scenarios)
+
     for k in eachindex(penalty_spin10)
         @constraint(model, [s in scenarios, t in time_steps], reserve_spin10_short[s,t,k] <= penalty_spin10[k].MW)
         add_to_expression!(model[:obj], sum(reserve_spin10_short[s,t,k] for s in scenarios, t in time_steps), 
-                            1/length(scenarios)*penalty_spin10[k].price)
+                            penalty_spin10[k].price*multiplier)
     end
     for k in eachindex(penalty_res10)
         @constraint(model, [s in scenarios, t in time_steps], reserve_10_short[s,t,k] <= penalty_res10[k].MW)
         add_to_expression!(model[:obj], sum(reserve_10_short[s,t,k] for s in scenarios, t in time_steps), 
-                            1/length(scenarios)*penalty_res10[k].price)
+                            penalty_res10[k].price*multiplier)
     end
     for k in eachindex(penalty_res30)
         for s in scenarios, t in time_steps
@@ -42,7 +45,7 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
             end
         end
         add_to_expression!(model[:obj], sum(reserve_30_short[s,t,k] for s in scenarios, t in time_steps), 
-                            1/length(scenarios)*penalty_res30[k].price)
+                            penalty_res30[k].price*multiplier)
     end
     
     # reserve requirement constraints
