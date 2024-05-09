@@ -11,7 +11,11 @@
 - UC infeasibility if starting from existing solution files
 
 # May 6 - May 13 TODO
-- Add residual values for storage
+- Run deterministic version of UCED
+    - Average 
+    - NLB (rank existing 10 and 99 quantiles)
+    - Stochastic
+- ~~Add residual values for storage~~
 - ~~Update UC data~~
 - ~~Add hydro power plants~~
     - ~~clean NYISO publised data~~
@@ -19,9 +23,6 @@
 - ~~Quantile data~~
     - ~~rank existing 10 scenario data~~
     - ~~replace the binding time with actual historical data~~
-- Run deterministic version of UCED
-    - Average 
-    - NLB
 - ~~Turn Mac into a server~~
 
 # April 26 - May 6 TODO
