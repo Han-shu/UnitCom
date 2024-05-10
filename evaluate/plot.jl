@@ -1,26 +1,11 @@
 using Plots
 
 include("../NYGrid/add_scenarios_ts.jl")
-uc_ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Hour"
-ed_ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Min5"
 
-uc_solar_file = joinpath(uc_ts_dir, "solar_scenarios.h5")
-uc_wind_file = joinpath(uc_ts_dir, "wind_scenarios.h5")
-uc_load_file = joinpath(uc_ts_dir, "load_scenarios.h5")
 initial_time = Dates.DateTime(2018, 12, 31, 20)
 base_power = 1.0
-uc_solar_data = _construct_fcst_data_UC(uc_solar_file, base_power, initial_time)
-uc_wind_data = _construct_fcst_data_UC(uc_wind_file, base_power, initial_time)
-uc_load_data = _construct_fcst_data_UC(uc_load_file, base_power, initial_time)
-
-ed_init_time = Dates.DateTime(2018, 12, 31, 20)
-ed_solar_file = joinpath(ed_ts_dir, "solar_scenarios.h5")
-ed_wind_file = joinpath(ed_ts_dir, "wind_scenarios.h5")
-ed_load_file = joinpath(ed_ts_dir, "load_scenarios.h5")
-ed_solar_data = _construct_fcst_data_ED(ed_solar_file, base_power, ed_init_time)
-ed_wind_data = _construct_fcst_data_ED(ed_wind_file, base_power, ed_init_time)
-ed_load_data = _construct_fcst_data_ED(ed_load_file, base_power, ed_init_time)
-
+uc_solar_data, uc_wind_data, uc_load_data = _construct_fcst_data(base_power, initial_time; min5_flag = false, rank_netload = true)
+ed_solar_data, ed_wind_data, ed_load_data = _construct_fcst_data(base_power, initial_time; min5_flag = true, rank_netload = true)
 
 
 initial_time = Dates.DateTime(2019, 1, 1)
@@ -34,6 +19,5 @@ end
 
 uc_x = 0:1:3
 plot!(uc_x, uc_load_data[initial_time][1:4,:], linestyle = :dashdot, label = "UC Load")
-
 display(p)
 

@@ -141,10 +141,8 @@ function stochastic_ed(sys::System, optimizer; uc_LMP, init_value = nothing, sce
     end
     
     model[:forecast_load] = forecast_load
-    @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_solar[g][t][s])
-    @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_wind[g][t][s])
-    # @constraint(model, solar_constraint[g in solar_gen_names, s in scenarios, t in time_steps], pS[g,s,t] <= forecast_solar[g][t,s])
-    # @constraint(model, wind_constraint[g in wind_gen_names, s in scenarios, t in time_steps], pW[g,s,t] <= forecast_wind[g][t,s])
+    @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_solar[g][t,s])
+    @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_wind[g][t,s])
 
     @variable(model, curtailment[s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_load[t,s])
 
