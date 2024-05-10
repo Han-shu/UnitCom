@@ -9,10 +9,13 @@
 
 # Problems
 - UC infeasibility if starting from existing solution files
+- UC unbounded when setting theta = 8, 7, 6 (curtailment or overgeneration)
 
 # Log
+May 10
+- _get_ed_price *12 => $/MWh
 May 9
-- Storage energy capacity MWh and power rating MW, fix constraints of reserve
+- Storage energy capacity MWh and power rating MW, fix constraints of reserve provided by storage
 - Fix objective function of ED (divide 12 for 5 min)
 May 8
 - Add hydro power plants

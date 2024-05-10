@@ -21,10 +21,10 @@ end
 
 function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
     push!(sol["Time"], model[:param].start_time)
-    push!(sol["Spin 10min price"], _get_price(model, :eq_reserve_spin10))
-    push!(sol["Reserve 10min price"], _get_price(model, :eq_reserve_10))
-    push!(sol["Reserve 30min price"], _get_price(model, :eq_reserve_30))
-    push!(sol["LMP"], _get_price(model, :eq_power_balance))
+    push!(sol["Spin 10min price"], _get_ED_price(model, :eq_reserve_spin10))
+    push!(sol["Reserve 10min price"], _get_ED_price(model, :eq_reserve_10))
+    push!(sol["Reserve 30min price"], _get_ED_price(model, :eq_reserve_30))
+    push!(sol["LMP"], _get_ED_price(model, :eq_power_balance))
     push!(sol["operation_cost"], _compute_ed_cost(sys, model))
     push!(sol["charge_consumers"], _compute_ed_charge(sys, model))
     push!(sol["Net load"], _compute_ed_net_load(sys, model))
@@ -67,8 +67,9 @@ function merge_ed_solution(ed_sol::OrderedDict, ed_hour_sol::OrderedDict)::Order
 end
 
 
-function _get_price(model::JuMP.Model, key::Symbol)::Float64
-    price = sum(dual(model[key][s,1]) for s in model[:param].scenarios)
+function _get_ED_price(model::JuMP.Model, key::Symbol)::Float64
+    # Multiply 12 to ensure price is with unit of $/MWh
+    price = sum(dual(model[key][s,1]) for s in model[:param].scenarios)*12
     return price
 end
 

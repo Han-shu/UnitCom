@@ -18,17 +18,17 @@ function _compute_ed_cost(sys::System, model::JuMP.Model)::Float64
 end
 
 
-function _get_price(model::JuMP.Model, key::Symbol)::Float64
-    price = sum(dual(model[key][s,1]) for s in model[:param].scenarios)
+function _get_ed_price(model::JuMP.Model, key::Symbol)::Float64
+    price = sum(dual(model[key][s,1]) for s in model[:param].scenarios)*12
     return price
 end
 
 # compute the total charges for energy and reserves to buyers of electricity
 function _compute_ed_charge(sys::System, model::JuMP.Model)::Float64
-    LMP = _get_price(model, :eq_power_balance)
-    price_spin10 = _get_price(model, :eq_reserve_spin10)
-    price_res10 = _get_price(model, :eq_reserve_10)
-    price_res30 = _get_price(model, :eq_reserve_30)
+    LMP = _get_ed_price(model, :eq_power_balance)
+    price_spin10 = _get_ed_price(model, :eq_reserve_spin10)
+    price_res10 = _get_ed_price(model, :eq_reserve_10)
+    price_res30 = _get_ed_price(model, :eq_reserve_30)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
 
@@ -51,10 +51,10 @@ function _compute_ed_gen_profits(sys::System, model::JuMP.Model)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
     
-    LMP = _get_price(model, :eq_power_balance)
-    price_spin10 = _get_price(model, :eq_reserve_spin10)
-    price_res10 = _get_price(model, :eq_reserve_10)
-    price_res30 = _get_price(model, :eq_reserve_30)
+    LMP = _get_ed_price(model, :eq_power_balance)
+    price_spin10 = _get_ed_price(model, :eq_reserve_spin10)
+    price_res10 = _get_ed_price(model, :eq_reserve_10)
+    price_res30 = _get_ed_price(model, :eq_reserve_30)
     
     gen_profits = OrderedDict()
     for g in thermal_gen_names        

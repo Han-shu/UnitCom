@@ -32,17 +32,16 @@ function _add_renewables!(sys::System, model::JuMP.Model; theta::Union{Nothing, 
             get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))[:, theta]
             for g in wind_gens)
     end
-    @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps] >= 0)
-    @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps] >= 0)
 
+    @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_solar[g][t,s])
+    @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_wind[g][t,s])
 
-
-    for g in solar_gen_names, s in scenarios, t in time_steps
-        @constraint(model, pS[g,s,t] <= forecast_solar[g][t,s])
-    end
-    for g in wind_gen_names, s in scenarios, t in time_steps
-        @constraint(model, pW[g,s,t] <= forecast_wind[g][t,s])
-    end
+    # for g in solar_gen_names, s in scenarios, t in time_steps
+    #     @constraint(model, pS[g,s,t] <= forecast_solar[g][t,s])
+    # end
+    # for g in wind_gen_names, s in scenarios, t in time_steps
+    #     @constraint(model, pW[g,s,t] <= forecast_wind[g][t,s])
+    # end
 
     for s in scenarios, t in time_steps
         add_to_expression!(expr_net_injection[s,t], sum(pS[g,s,t] for g in solar_gen_names), 1.0)

@@ -7,14 +7,7 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
     VOLL = model[:param].VOLL
 
     loads = collect(get_components(StaticLoad, sys))
-    # Load curtailment
-    @variable(model, curtailment[s in scenarios, t in time_steps], lower_bound = 0)
-    for s in scenarios, t in time_steps
-        expr_net_injection[s,t] = AffExpr()
-        add_to_expression!(expr_net_injection[s,t], curtailment[s,t], 1.0)
-        add_to_expression!(model[:obj], VOLL*curtailment[s,t], 1/length(scenarios))
-    end
-
+    
     for load in loads
         if isnothing(theta)
             if length(scenarios) == 1
@@ -31,10 +24,13 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
         end
     end
 
-    # Enforce decsion variables for t = 1
-    # @variable(model, t_curtailment, lower_bound = 0) 
-    # for s in scenarios
-    #     @constraint(model, curtailment[s,1] == t_curtailment)
-    # end
+    # Load curtailment
+    @variable(model, curtailment[s in scenarios, t in time_steps], lower_bound = 0, upper_bound = load_matrix[t,s])
+    for s in scenarios, t in time_steps
+        expr_net_injection[s,t] = AffExpr()
+        add_to_expression!(expr_net_injection[s,t], curtailment[s,t], 1.0)
+        add_to_expression!(model[:obj], VOLL*curtailment[s,t], 1/length(scenarios))
+    end
+
     return
 end
