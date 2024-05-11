@@ -97,9 +97,9 @@ end
 
 
 function _get_binary_status_for_ED(uc_model::JuMP.Model, thermal_gen_names; CoverHour = 2)
-    ug_t0 = Dict(g => [value(uc_model[:ug][g,t]) for t in 1:CoverHour] for g in thermal_gen_names)
-    vg_t0 = Dict(g => [value(uc_model[:vg][g,t]) for t in 1:CoverHour] for g in thermal_gen_names)
-    wg_t0 = Dict(g => [value(uc_model[:wg][g,t]) for t in 1:CoverHour] for g in thermal_gen_names)
+    ug_t0 = Dict(g => [Int(round(value(uc_model[:ug][g,t]), digits=0)) for t in 1:CoverHour] for g in thermal_gen_names)
+    vg_t0 = Dict(g => [Int(round(value(uc_model[:vg][g,t]), digits=0)) for t in 1:CoverHour] for g in thermal_gen_names)
+    wg_t0 = Dict(g => [Int(round(value(uc_model[:wg][g,t]), digits=0)) for t in 1:CoverHour] for g in thermal_gen_names)
     return [ug_t0, vg_t0, wg_t0]
 end
 
