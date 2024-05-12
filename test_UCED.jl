@@ -8,21 +8,14 @@ include("src/functions.jl")
 include("src/get_init_value.jl")
 include("src/get_uc_LMP.jl")
 
-# Open a file in append mode
-result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-log_file = open(joinpath(result_dir,"repl_log.txt"), "a")
-
-# Redirect standard output and standard error
-redirect_stdout(log_file)
-redirect_stderr(log_file)
-
 # Set parameters
-theta = 9 # nothing or set between 1 ~ 49 (Int)
-scenario_count = 1
+theta = nothing # nothing or set between 1 ~ 49 (Int)
+scenario_count = 10
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
+
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-model_name, uc_sol_file, ed_sol_file = get_UCED_model_file_name(theta = theta, scenario_count = scenario_count, result_dir = result_dir)
+model_name, master_folder, uc_folder, ed_folder = get_UCED_model_folder_name(theta = theta, scenario_count = scenario_count)
 
 # Build NY system for UC and ED
 @info "Build NY system for UC"
@@ -44,41 +37,78 @@ else
     add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = false)
 end
 
+# Create Master Model folder if not exist
+if !ispath(joinpath(result_dir, master_folder))
+    @info "Create Master folder for $(model_name) at $(joinpath(result_dir, master_folder))"
+    mkdir(joinpath(result_dir, master_folder))
+end
 
-# Initialize the solution
-if !isfile(uc_sol_file)
+# Determine the initial flag: run from beginning or continue from previous solution
+init_fr_ED_flag, init_fr_file_flag = determine_init_flag(result_dir, master_folder, uc_folder, ed_folder)
+
+if init_fr_ED_flag
 # 1. Run rolling horizon without solution from beginning
     @info "Running rolling horizon $(model_name) from beginning"  
-    init_time = DateTime(2019,1,1)
-    uc_model, ed_model = nothing, nothing
+    # Create folders if not exist
+    if !ispath(joinpath(result_dir, master_folder, uc_folder))
+        @info "Create folders $(joinpath(result_dir, master_folder, uc_folder)) and $(joinpath(result_dir, master_folder, ed_folder))"
+        mkdir(joinpath(result_dir, master_folder, uc_folder))
+        mkdir(joinpath(result_dir, master_folder, ed_folder))
+    end
+    init_time = DateTime(2018,12,31,20)
     uc_sol = init_solution_uc(UCsys)
     ed_sol = init_solution_ed(EDsys)
+    UC_init_value = _get_init_value_for_UC(UCsys; init_fr_ED_flag = true)
 else
 # 2. Run rolling horizon with solution from previous time point
-    @info "Find solution from $(uc_sol_file)"
-    uc_sol = read_json(uc_sol_file)
-    ed_sol = read_json(ed_sol_file)
+    @info "Find path $(joinpath(result_dir, master_folder, uc_folder))"
+    # Find the latest solution file
+    uc_sol_file, ed_sol_file = find_sol_files(result_dir, uc_folder, ed_folder)
     init_time = DateTime(String(uc_sol["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
     @info "Continue running rolling horizon $(model_name) starting from $(init_time)"
     uc_model, ed_model = JuMP.Model(), nothing
+    uc_sol = read_json(uc_sol_file)
+    ed_sol = read_json(ed_sol_file)
+    UC_init_value = _get_init_value_for_UC(UCsys; uc_sol = uc_sol, ed_sol = ed_sol, init_fr_file_flag = true)
 end
+ed_model = nothing
+
 
 # Run rolling horizon UC-ED
-for t in 1:8760-uc_horizon+1
-    global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value
+for t in 1:8760
+    global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value, uc_time, init_fr_file_flag, init_fr_ED_flag
     uc_time = init_time + Hour(1)*(t-1)
-
-    if t % 12 == 0
-        write_json(uc_sol_file, uc_sol)
-        write_json(ed_sol_file, ed_sol)
-    end
-    if t > 6 || uc_time > DateTime(2019,12,29,20)
+    
+    # Break condition
+    if t > 750 || uc_time > DateTime(2019,12,29,20) 
         break
     end
+
+    # For the first hour of the month, save the solution and reinitialize
+    if day(uc_time) == 1 && hour(uc_time) == 0
+        # save the solution only if final hour of last month has been solved
+        if length(uc_sol["Time"]) > 0 && uc_sol["Time"][end] == string(uc_time - Hour(1))
+            @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
+            uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(Date(uc_time - Month(1))).json")
+            ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(Date(uc_time - Month(1))).json")
+            write_json(uc_sol_file, uc_sol)
+            write_json(ed_sol_file, ed_sol)
+        end
+
+        @info "Reinitialize the solution"
+        uc_sol = init_solution_uc(UCsys)
+        ed_sol = init_solution_ed(EDsys)
+    end
+
     one_iter = @elapsed begin
     @info "Solving UC model at $(uc_time)"
     one_uc_time = @elapsed begin
-    UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model, uc_sol = uc_sol, ed_sol = ed_sol)  
+    if init_fr_ED_flag || init_fr_file_flag 
+        init_fr_file_flag = false
+        init_fr_ED_flag = false
+    else
+        UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model)  
+    end
     uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
                         start_time = uc_time, scenario_count = scenario_count, horizon = uc_horizon)
     end
@@ -87,6 +117,7 @@ for t in 1:8760-uc_horizon+1
     uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
     uc_LMP = get_uc_LMP(UCsys, uc_model)
     one_hour_ed_time = @elapsed begin
+    # initiate empty OrderedDict ed_hour_sol
     ed_hour_sol = init_solution_ed(EDsys)
     for i in 1:12
         @info "Running length $(length(ed_hour_sol["LMP"]))"
@@ -114,14 +145,12 @@ end
     @info "One iteration takes $(one_iter) seconds"
 end
 
-# uc_time = init_time + Hour(1)*(1-1)
-# UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model, uc_sol = uc_sol, ed_sol = ed_sol)  
-# uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
-#                 start_time = uc_time, scenario_count = scenario_count, horizon = uc_horizon)
+# # save the solution
+@info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
+uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(Date(uc_time)).json")
+ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(Date(uc_time)).json")
+write_json(uc_sol_file, uc_sol)
+write_json(ed_sol_file, ed_sol)
 
-# # Restore standard output and error
-redirect_stdout()
-redirect_stderr()
 
-# Close the log file
-close(log_file)
+# write_model_txt(uc_model, "uc_model", result_dir)

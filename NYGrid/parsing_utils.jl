@@ -228,6 +228,7 @@ function _add_thermal(
         ramp_limits=(up=ramp_10/base_power, down=ramp_30/base_power),
         time_limits=(up=uptime, down=downtime),
         operation_cost=cost,
+        must_run = fuel == ThermalFuels.NUCLEAR ? true : false,
         base_power=base_power,
         time_at_status=999.0,
         ext=Dict{String,Any}(),

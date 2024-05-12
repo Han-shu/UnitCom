@@ -49,10 +49,15 @@ function stochastic_ed(sys::System, optimizer; uc_LMP, init_value = nothing, sce
     @variable(model, Nspin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
     @variable(model, Nspin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
 
+    must_run_gen_names = get_name.(get_components(x -> PSY.get_must_run(x), ThermalGen, sys))
     for g in thermal_gen_names, s in scenarios, t in time_steps
         i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
         if isnothing(init_value)
-            @constraint(model, pg[g,s,t] >= 0)
+            if g in must_run_gen_names
+                @constraint(model, pg[g,s,t] >= pg_lim[g].min)
+            else
+                @constraint(model, pg[g,s,t] >= 0)
+            end
         else
             @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g][i])
         end

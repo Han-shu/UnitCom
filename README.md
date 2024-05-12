@@ -12,6 +12,10 @@
 - UC unbounded when setting theta = 8, 7, 6 (curtailment or overgeneration)
 
 # Log
+May 12
+- Specify Nuclear gen as must run 
+- Save uc_sol and ed_sol for every month and reinitiate uc_sol and ed_sol
+- Fix the length for UCInitValue.history_vg (24) and UCInitValue.history_wg (8)
 May 10
 - _get_ed_price *12 => $/MWh
 May 9
@@ -23,80 +27,17 @@ May 8
 May 7
 - Rank existing 10 scenarios by net load sum
 - generate_hy_ts.jl to process NYISO historical real-time hydro time series data
-
-# May 6 - May 13 TODO
-- Run deterministic version of UCED
-    - Average 
-    - NLB (rank existing 10 and 99 quantiles)
-    - Stochastic
-- ~~Add residual values for storage~~
-- ~~Update UC data~~
-- ~~Add hydro power plants~~
-    - ~~clean NYISO publised data~~
-    - ~~Subtract from load~~
-- ~~Quantile data~~
-    - ~~rank existing 10 scenario data~~
-    - ~~replace the binding time with actual historical data~~
-- ~~Turn Mac into a server~~
-
-# April 26 - May 6 TODO
-- ~~Draft an email to ask NREL about the data issue~~
-- Add end of horizon storage value
-- ~~Ramp rate (AGC*60 too high or RAMP_30 negative LMP and infeasibility)~~
-- ~~Storage capacity (~200 MW or ~2000 MW)~~
-- ~~Ramp rate correction~~
-- ~~Storage energy and power rating~~
-- ~~Generate time series data for 5 min ED model~~
-    - ~~Interpolate the 15 min forecast tp 5 min~~
-
-# April 18 - 25 TODO
-- ~~Add stochastic 5 min ED model (2h horizon)~~
-- ~~Add 5min rolling horizon ED model~~
-- ~~Connect ED model with UC model~~
-    - ~~pass commitment status from UC to ED~~
-    - ~~pass generartion dispatch and storage level from ED to UC~~
-- ~~Get results from UC~~
-- ~~Get results from ED~~ 
-    - pg, kb_charge, kb_discharge at t = 1
-    - LMP at t = 1
-- Go through the code and make sure everything is correct
-- Calculate policy cost, charge, generator profits
-- Replicate Jacob's policy
-    - ~~DLAC-NLB-\theta~~
-    - DLAC-RT-\theta
-- Other policies ??? Discuss with Jacob
-- NYISO new reserve product
-    - 60 min, 4 hour reserves product
-
-# April 11 - 17 TODO
-- ~~Run rolling horizon with solution from previous time point~~
-- ~~Investigate the infeasibility at DateTime(2019,1,1,13)~~
-- ~~Add deterministic version of the model~~
-- ~~Thermal start-up cost by finding the the most like gen in PERC gen data (cosine similarity)~~
-- ~~Add reserve~~
-    - ~~reserve requirement~~
-    - ~~reserve shortfall penalty~~
-    - ~~reserve variables for thermal gen and battery~~
+May 1
+- Fixing ramp rate, up = RAMP_30, down = RAMP_10, RAMP_30*2 for hourly ramping
+- Fixing storage energy and power rating (/Sienna base power)
+April
+- Add reserve (10 min spinning, 10 min and 30 min reserve)
+- Adding Thermal start-up cost by finding the the most like gen in PERC gen data (cosine similarity)
+- Add deterministic version of the model
 - Replicate Jacob's policy and results
-    - ~~SLAC~~
-    - ~~DLAC-AVG~~
-    - ~~DLAC-NLB-\theta~~
-    - DLAC-RT-\theta
-- ~~Add qunatile estimates time series data~~
 
-# Model TODO
-- ~~Deterministic version~~
-- ~~Add reserve as current implementations in NYISO~~
-    - ~~10 min spinning ~~
-    - ~~10 min non-synchronized ~~
-    - ~~30 min reserve (spinning + non-synchronized)~~
-- New reserve product in NYISO, 60 min, 4 hour notice
-- Add hydro power plants: historical data as fixed dispatch
 
-# Time series TODO
-- Generate time series with NYISO data
-- Make sure the first time point is the same for all scenarios (or take average when attaching ts to components)
-- ~~Normalize the time series data (divide by the base power)~~
+
 
 # NY Grid TODO
 - [NY_Sienna_Conversion](https://github.com/gackermannlogan/NY_Sienna_Conversion)
