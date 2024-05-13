@@ -20,6 +20,7 @@ function stochastic_uc(
     )
     
     model = Model(optimizer)
+    set_silent(model)
     model[:obj] = QuadExpr()
     parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, reserve_requirement_by_hour, reserve_short_penalty)
     model[:param] = parameters

@@ -56,15 +56,15 @@ function write_model_txt(model::JuMP.Model, model_name::AbstractString, result_d
     return
 end
 
-function find_sol_files(result_dir::AbstractString, uc_folder::AbstractString, ed_folder::AbstractString)
+function find_sol_files(result_dir::AbstractString, master_folder::AbstractString, uc_folder::AbstractString, ed_folder::AbstractString)
     uc_time = Dates.Date(2019,12,1)
     while true
-        uc_sol_file = joinpath(result_dir, uc_folder, "UC_$(Date(uc_time)).json")
-        ed_sol_file = joinpath(result_dir, ed_folder, "ED_$(Date(uc_time)).json")
+        uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(Date(uc_time)).json")
+        ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(Date(uc_time)).json")
         if (isfile(uc_sol_file) && isfile(ed_sol_file))
             uc_sol = read_json(uc_sol_file)
             if length(uc_sol["Time"]) >= 24 # check if the solution is at least for 24 hours
-                break
+                return uc_sol_file, ed_sol_file
             else
                 uc_time -= Dates.Month(1)
             end
@@ -82,9 +82,9 @@ function determine_init_flag(result_dir::AbstractString, master_folder::Abstract
     init_fr_ED_flag, init_fr_file_flag = true, false
     if ispath(joinpath(result_dir, master_folder, uc_folder)) && !isempty(readdir(joinpath(result_dir, master_folder, uc_folder)))
         try 
-            find_sol_files(result_dir::AbstractString, uc_folder::AbstractString, ed_folder)
+            find_sol_files(result_dir, master_folder, uc_folder, ed_folder)
         catch e
-            break
+            return init_fr_ED_flag, init_fr_file_flag
         end
         init_fr_ED_flag, init_fr_file_flag = false, true
     end

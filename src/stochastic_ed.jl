@@ -2,6 +2,7 @@ using JuMP
 
 function stochastic_ed(sys::System, optimizer; uc_LMP, init_value = nothing, scenario_count = 10, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 12)
     model = Model(optimizer)
+    set_silent(model)
     model[:obj] = QuadExpr()
     parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, reserve_requirement_by_hour, reserve_short_penalty)
     model[:param] = parameters

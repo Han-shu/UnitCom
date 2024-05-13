@@ -10,7 +10,7 @@ include("src/get_uc_LMP.jl")
 
 # Set parameters
 theta = nothing # nothing or set between 1 ~ 49 (Int)
-scenario_count = 10
+scenario_count = 1
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 
@@ -63,12 +63,11 @@ else
 # 2. Run rolling horizon with solution from previous time point
     @info "Find path $(joinpath(result_dir, master_folder, uc_folder))"
     # Find the latest solution file
-    uc_sol_file, ed_sol_file = find_sol_files(result_dir, uc_folder, ed_folder)
-    init_time = DateTime(String(uc_sol["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
-    @info "Continue running rolling horizon $(model_name) starting from $(init_time)"
-    uc_model, ed_model = JuMP.Model(), nothing
+    uc_sol_file, ed_sol_file = find_sol_files(result_dir, master_folder, uc_folder, ed_folder)
     uc_sol = read_json(uc_sol_file)
     ed_sol = read_json(ed_sol_file)
+    init_time = DateTime(String(uc_sol["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
+    @info "Continue running rolling horizon $(model_name) starting from $(init_time)"
     UC_init_value = _get_init_value_for_UC(UCsys; uc_sol = uc_sol, ed_sol = ed_sol, init_fr_file_flag = true)
 end
 ed_model = nothing
@@ -80,17 +79,17 @@ for t in 1:8760
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if t > 750 || uc_time > DateTime(2019,12,29,20) 
+    if t > 8000 || uc_time > DateTime(2019,12,29,20) 
         break
     end
 
     # For the first hour of the month, save the solution and reinitialize
     if day(uc_time) == 1 && hour(uc_time) == 0
         # save the solution only if final hour of last month has been solved
-        if length(uc_sol["Time"]) > 0 && uc_sol["Time"][end] == string(uc_time - Hour(1))
-            @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
+        if length(uc_sol["Time"]) > 0 && uc_sol["Time"][end] == uc_time - Hour(1)
             uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(Date(uc_time - Month(1))).json")
             ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(Date(uc_time - Month(1))).json")
+            @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
             write_json(uc_sol_file, uc_sol)
             write_json(ed_sol_file, ed_sol)
         end
@@ -146,9 +145,9 @@ end
 end
 
 # # save the solution
-@info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
 uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(Date(uc_time)).json")
 ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(Date(uc_time)).json")
+@info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
 write_json(uc_sol_file, uc_sol)
 write_json(ed_sol_file, ed_sol)
 

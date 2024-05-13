@@ -9,7 +9,7 @@
 
 # Problems
 - UC infeasibility if starting from existing solution files
-- UC unbounded when setting theta = 8, 7, 6 (curtailment or overgeneration)
+- Fixed: UC unbounded when setting theta = 8, 7, 6 (curtailment or overgeneration)
 
 # Log
 May 12
