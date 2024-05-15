@@ -1,4 +1,10 @@
-function get_uc_LMP(sys::System, model::JuMP.Model)::Vector
+"""
+    get_uc_op_price(sys::System, model::JuMP.Model)
+    Obtain the dual values of the energy storage energy balance constraints in the UC model.
+    The dual values would be used to calculate as the residual value of storage
+"""
+
+function get_uc_op_price(sys::System, model::JuMP.Model)::Vector
     @info "Reoptimize with fixed integer variables ..."
     fix!(sys, model)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
@@ -10,8 +16,9 @@ function get_uc_LMP(sys::System, model::JuMP.Model)::Vector
         unset_binary(model[:wg][g,t])
     end 
     optimize!(model)
-    LMP = [sum(dual(model[:eq_power_balance][s,t]) for s in scenarios) for t in time_steps]
-    return LMP
+    # LMP = [sum(dual(model[:eq_power_balance][s,t]) for s in scenarios) for t in time_steps]
+    op_price = [sum(dual(model[:eq_storage_energy]["BA",s,t]) for s in scenarios) for t in time_steps]
+    return op_price
 end
 
 function get_integer_solution(model::JuMP.Model, thermal_gen_names::Vector)::OrderedDict
@@ -23,7 +30,12 @@ function get_integer_solution(model::JuMP.Model, thermal_gen_names::Vector)::Ord
     return sol
 end
 
-# Fix all binary variables (commitment status, start up, shut down) to the integer solution
+
+"""
+    fix!(sys::System, model::JuMP.Model)
+    Fix all binary variables (commitment status, start up, shut down) to the integer solution
+"""
+
 function fix!(sys::System, model::JuMP.Model)
     time_steps = model[:param].time_steps
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))

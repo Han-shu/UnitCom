@@ -6,7 +6,7 @@ include("src/stochastic_ed.jl")
 include("src/get_solution.jl")
 include("src/functions.jl")
 include("src/get_init_value.jl")
-include("src/get_uc_LMP.jl")
+include("src/get_uc_op_price.jl")
 
 # Set parameters
 theta = 10 # nothing or set between 1 ~ 49 (Int)
@@ -62,8 +62,8 @@ if init_fr_ED_flag
 else
 # 2. Run rolling horizon with solution from previous time point
     @info "Find path $(joinpath(result_dir, master_folder, uc_folder))"
-    # Find the latest solution file
     uc_sol_file, ed_sol_file = find_sol_files(result_dir, master_folder, uc_folder, ed_folder)
+    @info "Find the latest solution file $(uc_sol_file) and $(ed_sol_file)"
     uc_sol = read_json(uc_sol_file)
     ed_sol = read_json(ed_sol_file)
     init_time = DateTime(String(uc_sol["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
@@ -114,7 +114,7 @@ for t in 1:8760
     @info "UC model at $(uc_time) is solved in $(one_uc_time) seconds"
     # Get commitment status that will be passed to ED
     uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
-    uc_LMP = get_uc_LMP(UCsys, uc_model)
+    uc_op_price = get_uc_op_price(UCsys, uc_model)
     one_hour_ed_time = @elapsed begin
     # initiate empty OrderedDict ed_hour_sol
     ed_hour_sol = init_solution_ed(EDsys)
@@ -123,7 +123,7 @@ for t in 1:8760
         ed_time = uc_time + Minute(5*(i-1))
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
-        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_LMP = uc_LMP, init_value = ED_init_value, scenario_count = scenario_count, theta = theta, start_time = ed_time, horizon = ed_horizon)
+        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_count = scenario_count, theta = theta, start_time = ed_time, horizon = ed_horizon)
         ed_hour_sol = get_solution_ed(EDsys, ed_model, ed_hour_sol)
         if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
             @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"

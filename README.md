@@ -12,6 +12,8 @@
 - Fixed: UC unbounded when setting theta = 8, 7, 6 (curtailment or overgeneration)
 
 # Log
+May 13
+- Use the dual of storage energy balance constraint as the residual value of storage
 May 12
 - Specify Nuclear gen as must run 
 - Save uc_sol and ed_sol for every month and reinitiate uc_sol and ed_sol
