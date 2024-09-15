@@ -3,6 +3,7 @@
 function _compute_ed_cost(sys::System, model::JuMP.Model)::Float64
     VOLL = model[:param].VOLL
     penalty = model[:param].reserve_short_penalty
+    reserve_products = model[:param].reserve_products
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
     
@@ -10,9 +11,10 @@ function _compute_ed_cost(sys::System, model::JuMP.Model)::Float64
     thermal_gen_op_costs = sum(variable_cost[g]*value(model[:pg][g,1,1]) for g in thermal_gen_names)
     
     lost_load_penalty = VOLL*value(model[:curtailment][1,1])
-    reserve_short_penalty = sum(value(model[:reserve_spin10_short][1,1,k])*penalty["spin10"][k].price for k in 1:length(penalty["spin10"])) +
-                            sum(value(model[:reserve_10_short][1,1,k])*penalty["res10"][k].price for k in 1:length(penalty["res10"])) +
-                            sum(value(model[:reserve_30_short][1,1,k])*penalty["res30"][k].price for k in 1:length(penalty["res30"]))
+    reserve_short_penalty = sum(value(model[:reserve_short][rr,1,1,k])*penalty[rr][k].price for rr in reserve_products for k in 1:length(penalty[rr]))
+    # reserve_short_penalty = sum(value(model[:reserve_spin10_short][1,1,k])*penalty["10Spin"][k].price for k in 1:length(penalty["10Spin"])) +
+    #                         sum(value(model[:reserve_10_short][1,1,k])*penalty["10Total"][k].price for k in 1:length(penalty["10Total"])) +
+    #                         sum(value(model[:reserve_30_short][1,1,k])*penalty["30Total"][k].price for k in 1:length(penalty["30Total"]))
     cost_t = thermal_gen_op_costs + lost_load_penalty + reserve_short_penalty
     return cost_t
 end
@@ -55,8 +57,8 @@ function _compute_ed_charge(sys::System, model::JuMP.Model)::Float64
             reserve_prices["10T"]*value(model[:rg][g,"10N",1,1]) + 
             reserve_prices["30T"]*(value(model[:rg][g,"30S",1,1]) + value(model[:rg][g,"30N",1,1])) 
                         for g in thermal_gen_names) +
-            sum(reserve_prices["10S"]*value(model[:res_10][b,1,1]) + 
-                reserve_prices["30T"]*value(model[:res_30][b,1,1]) for b in storage_names)
+            sum(reserve_prices["10S"]*value(model[:battery_reserve][b,"10S",1,1]) + 
+                reserve_prices["30T"]*value(model[:battery_reserve][b,"30S",1,1]) for b in storage_names)
 
     charge_t = energy_charge_t + reserve_charge_t
 
@@ -83,8 +85,8 @@ function _compute_ed_gen_profits(sys::System, model::JuMP.Model)
     storage_profits = OrderedDict()
     for b in storage_names
         profit = (LMP*(value(model[:kb_discharge][b,1,1])-value(model[:kb_charge][b,1,1])) + 
-                reserve_prices["10S"]*value(model[:res_10][b,1,1]) + 
-                reserve_prices["30T"]*value(model[:res_30][b,1,1]))
+                reserve_prices["10S"]*value(model[:battery_reserve][b,"10S",1,1]) + 
+                reserve_prices["30T"]*value(model[:battery_reserve][b,"30S",1,1]))
         storage_profits[b] = profit
     end
 

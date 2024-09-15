@@ -2,9 +2,9 @@
 # link: https://www.nyiso.com/documents/20142/9622070/Ancillary%20Services%20Shortage%20Pricing_study%20report.pdf
 include("../src/structs.jl")
 reserve_short_penalty = Dict(
-    "spin10" => [PriceMW(775, 655), PriceMW(25, 330)],
-    "res10" => [PriceMW(775, 1200), PriceMW(750, 1310), PriceMW(25, 650)],
-    "res30" => [PriceMW(750, 1650), PriceMW(500, nothing), PriceMW(200, 300), 
+    "10Spin" => [PriceMW(775, 655), PriceMW(25, 330)],
+    "10Total" => [PriceMW(775, 1200), PriceMW(750, 1310), PriceMW(25, 650)],
+    "30Total" => [PriceMW(750, 1650), PriceMW(500, nothing), PriceMW(200, 300), 
                 PriceMW(100, 370), PriceMW(25, nothing)],
 )
 # nothing is because MW depends on the specific hour
@@ -27,9 +27,9 @@ SENY_reserve = [1300, 1300, 1300, 1300, 1300, 1300, 1550, 1800, 1800, 1800, 1800
 LI_reserve = [270, 270, 270, 270, 270, 270, 540, 540, 540, 540, 540, 540, 540, 
                 540, 540, 540, 540, 540, 540, 540, 540, 540, 270, 270]
 reserve_requirement_by_hour = Dict(
-    "spin10" => [985 for i in 1:24],
-    "res10" => [2630 for i in 1:24],
-    "res30" => SENY_reserve + LI_reserve .+(2620 + 1200 + 1000),
+    "10Spin" => [985 for i in 1:24],
+    "10Total" => [2630 for i in 1:24],
+    "30Total" => SENY_reserve + LI_reserve .+(2620 + 1200 + 1000),
 )
 
 map_UnitType = Dict(
