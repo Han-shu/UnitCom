@@ -3,9 +3,9 @@ include("../evaluate/cost.jl")
 function init_solution_ed(sys::System)::OrderedDict
     sol = OrderedDict()
     sol["Time"] = []
-    sol["Spin 10min price"] = []
-    sol["Reserve 10min price"] = []
-    sol["Reserve 30min price"] = []
+    sol["Reserve price 10Spin"] = []
+    sol["Reserve price 10Total"] = []
+    sol["Reserve price 30Total"] = []
     sol["LMP"] = []
     sol["operation_cost"] = []
     sol["charge_consumers"] = []
@@ -21,10 +21,11 @@ end
 
 function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
     push!(sol["Time"], model[:param].start_time)
-    push!(sol["Spin 10min price"], _get_ED_price(model, :eq_reserve_spin10))
-    push!(sol["Reserve 10min price"], _get_ED_price(model, :eq_reserve_10))
-    push!(sol["Reserve 30min price"], _get_ED_price(model, :eq_reserve_30))
-    push!(sol["LMP"], _get_ED_price(model, :eq_power_balance))
+    reserve_prices = _get_ED_reserve_prices(model)
+    push!(sol["Reserve price 10Spin"], reserve_prices["10S"])
+    push!(sol["Reserve price 10Total"], reserve_prices["10T"])
+    push!(sol["Reserve price 30Total"], reserve_prices["30T"])
+    push!(sol["LMP"], _get_ED_dual_price(model, :eq_power_balance))
     push!(sol["operation_cost"], _compute_ed_cost(sys, model))
     push!(sol["charge_consumers"], _compute_ed_charge(sys, model))
     push!(sol["Net load"], _compute_ed_net_load(sys, model))
@@ -67,12 +68,6 @@ function merge_ed_solution(ed_sol::OrderedDict, ed_hour_sol::OrderedDict)::Order
 end
 
 
-function _get_ED_price(model::JuMP.Model, key::Symbol)::Float64
-    # Multiply 12 to ensure price is with unit of $/MWh
-    price = sum(dual(model[key][s,1]) for s in model[:param].scenarios)*12
-    return price
-end
-
 
 function init_solution_uc(sys::System)::OrderedDict
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
@@ -96,9 +91,9 @@ end
 function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict)::OrderedDict
     push!(sol["Time"], model[:param].start_time)
     push!(sol["Hourly average LMP"], mean(ed_sol["LMP"]))
-    push!(sol["Hourly average price for 10min spinning reserve"], mean(ed_sol["Spin 10min price"]))
-    push!(sol["Hourly average price for 10min reserve"], mean(ed_sol["Reserve 10min price"]))
-    push!(sol["Hourly average price for 30min reserve"], mean(ed_sol["Reserve 30min price"]))
+    push!(sol["Hourly average price for 10min spinning reserve"], mean(ed_sol["Reserve price 10Spin"]))
+    push!(sol["Hourly average price for 10min reserve"], mean(ed_sol["Reserve price 10Total"]))
+    push!(sol["Hourly average price for 30min reserve"], mean(ed_sol["Reserve price 30Total"]))
     sys_cost = mean(ed_sol["operation_cost"])
     push!(sol["Charge consumers"], mean(ed_sol["charge_consumers"]))
     gen_profits, sys_cost = minus_uc_integer_cost_thermal_gen(sys, model, ed_sol["gen_profits"], sys_cost)

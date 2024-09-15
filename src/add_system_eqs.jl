@@ -49,19 +49,19 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
     end
     
     # reserve requirement constraints
-    @constraint(model, eq_reserve_spin10[s in scenarios, t in time_steps], 
-        sum(model[:spin_10][g,s,t] for g in thermal_gen_names) + 
-        sum(model[:res_10][b,s,t] for b in storage_names) + sum(reserve_spin10_short[s,t,k] for k in 1:length(penalty_spin10))
+    @constraint(model, eq_reserve_10Spin[s in scenarios, t in time_steps], 
+        sum(model[:rg][g,"10S",s,t] for g in thermal_gen_names) + 
+        sum(model[:battery_reserve][g,"10S",s,t] for b in storage_names) + sum(reserve_spin10_short[s,t,k] for k in 1:length(penalty_spin10))
         >= reserve_requirements["spin10"][_get_offset(isED,t,start_time)])
     
-    @constraint(model, eq_reserve_10[s in scenarios, t in time_steps], 
-        sum(model[:spin_10][g,s,t] + model[:Nspin_10][g,s,t] for g in thermal_gen_names) + 
-        sum(model[:res_10][b,s,t] for b in storage_names) + sum(reserve_10_short[s,t,k] for k in 1:length(penalty_res10)) 
+    @constraint(model, eq_reserve_10Total[s in scenarios, t in time_steps], 
+        sum(model[:rg][g,"10S",s,t] + model[:rg][g,"10N",s,t] for g in thermal_gen_names) + 
+        sum(model[:battery_reserve][g,"10S",s,t] for b in storage_names) + sum(reserve_10_short[s,t,k] for k in 1:length(penalty_res10)) 
         >= reserve_requirements["res10"][_get_offset(isED,t,start_time)])
     
-    @constraint(model, eq_reserve_30[s in scenarios, t in time_steps],
-        sum(model[:spin_10][g,s,t] + model[:Nspin_10][g,s,t] + model[:spin_30][g,s,t] + model[:Nspin_30][g,s,t] for g in thermal_gen_names) + 
-        sum(model[:res_10][b,s,t] + model[:res_30][b,s,t] for b in storage_names) + sum(reserve_30_short[s,t,k] for k in 1:length(penalty_res30)) 
+    @constraint(model, eq_reserve_30Total[s in scenarios, t in time_steps],
+        sum(model[:rg][g,"10S",s,t] + model[:rg][g,"10N",s,t] + model[:rg][g,"30S",s,t] + model[:rg][g,"30N",s,t] for g in thermal_gen_names) + 
+        sum(model[:battery_reserve][g,"10S",s,t] + model[:battery_reserve][g,"30S",s,t] for b in storage_names) + sum(reserve_30_short[s,t,k] for k in 1:length(penalty_res30)) 
         >= reserve_requirements["res30"][_get_offset(isED,t,start_time)])
     
     return

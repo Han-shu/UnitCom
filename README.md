@@ -1,5 +1,14 @@
 # UnitCom
 
+# September 20 2024, meeting
+- Update data
+- Add solar/wind/hydro profits
+- Add curtailment 
+- Stochastic without reserve
+- 50 percentile of the net load or 50 percentile load and 50 percentile solar/wind respectively
+- Reserve tunning (new product to address forecast error)
+
+
 # Limitations
 - All thermal generators and batteries are assumed to be eligible to provide reserve
 - Reserve is provided by thermal generators and batteries only
@@ -19,7 +28,7 @@ May 12
 - Save uc_sol and ed_sol for every month and reinitiate uc_sol and ed_sol
 - Fix the length for UCInitValue.history_vg (24) and UCInitValue.history_wg (8)
 May 10
-- _get_ed_price *12 => $/MWh
+- _get_ED_dual_price *12 => $/MWh
 May 9
 - Storage energy capacity MWh and power rating MW, fix constraints of reserve provided by storage
 - Fix objective function of ED (divide 12 for 5 min)
@@ -33,7 +42,7 @@ May 1
 - Fixing ramp rate, up = RAMP_30, down = RAMP_10, RAMP_30*2 for hourly ramping
 - Fixing storage energy and power rating (/Sienna base power)
 April
-- Add reserve (10 min spinning, 10 min and 30 min reserve)
+- Add reserve (10S spinning, 10T and 30T reserve)
 - Adding Thermal start-up cost by finding the the most like gen in PERC gen data (cosine similarity)
 - Add deterministic version of the model
 - Replicate Jacob's policy and results

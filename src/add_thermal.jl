@@ -1,6 +1,7 @@
 function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)::Nothing
     scenarios = model[:param].scenarios
     time_steps = model[:param].time_steps
+    reserve_types = model[:param].reserve_types
     expr_net_injection = model[:expr_net_injection]
 
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
@@ -39,10 +40,10 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     # power generation variables
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps])
     # reserve variables
-    @variable(model, spin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
-    @variable(model, Nspin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
-    @variable(model, spin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
-    @variable(model, Nspin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, rg[g in thermal_gen_names, r in reserve_types, s in scenarios, t in time_steps] >= 0)
+    # @variable(model, N10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    # @variable(model, S30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    # @variable(model, N30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
 
     # Commitment status constraints 
     @constraint(model, eq_binary[g in thermal_gen_names, t in time_steps], ug[g,t] - (t==1 ? ug_t0[g] : ug[g,t-1]) == vg[g,t] - wg[g,t])
@@ -57,19 +58,19 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     # energy dispatch constraints 
     for g in thermal_gen_names, s in scenarios, t in time_steps
         @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g,t])
-        @constraint(model, pg[g,s,t] + spin_10[g,s,t] + spin_30[g,s,t] <= pg_lim[g].max*ug[g,t])
+        @constraint(model, pg[g,s,t] + rg[g,"10S",s,t] + rg[g,"30S",s,t] <= pg_lim[g].max*ug[g,t])
     end
 
     # ramping constraints and reserve constraints
     for g in thermal_gen_names, s in scenarios, t in time_steps
-        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t] + spin_30[g,s,t] <= ramp_30[g]*2*ug[g,t] + pg_lim[g].min*vg[g,t])
+        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + rg[g,"10S",s,t] + rg[g,"30S",s,t] <= ramp_30[g]*2*ug[g,t] + pg_lim[g].min*vg[g,t])
         @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t]  <= ramp_30[g]*2*ug[g,t] + pg_lim[g].max*wg[g,t])
-        @constraint(model, spin_10[g,s,t] <= ramp_10[g]*ug[g,t])
-        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_30[g]*ug[g,t])
-        @constraint(model, Nspin_10[g,s,t] <= ramp_10[g]*(1-ug[g,t]))
-        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_30[g]*(1-ug[g,t]))
-        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g,t])
-        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g,t]))
+        @constraint(model, rg[g,"10S",s,t] <= ramp_10[g]*ug[g,t])
+        @constraint(model, rg[g,"10S",s,t] + rg[g,"30S",s,t] <= ramp_30[g]*ug[g,t])
+        @constraint(model, rg[g,"10N",s,t] <= ramp_10[g]*(1-ug[g,t]))
+        @constraint(model, rg[g,"10N",s,t] + rg[g,"30N",s,t] <= ramp_30[g]*(1-ug[g,t]))
+        @constraint(model, rg[g,"10S",s,t] + rg[g,"30S",s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g,t])
+        @constraint(model, rg[g,"10N",s,t] + rg[g,"30N",s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g,t]))
     end
 
     for s in scenarios, t in time_steps

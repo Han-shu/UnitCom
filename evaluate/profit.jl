@@ -37,8 +37,6 @@ CSV.write(joinpath(result_dir, "year_gen_profit.csv"), df)
 
 
 
-
-
 function one_file_gen_profit_in_model(model_name::String, filename, length::Int, uc_folder_dic::Dict{String, String})::DefaultDict{String, Float64}
     master_folder = "Master_"*model_name
     uc_folder = uc_folder_dic[model_name]

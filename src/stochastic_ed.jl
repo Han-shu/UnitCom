@@ -8,6 +8,7 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
     model[:param] = parameters
     time_steps = model[:param].time_steps
     scenarios = model[:param].scenarios
+    reserve_types = model[:param].reserve_types
     min_step = minute(model[:param].start_time)/5
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
@@ -45,10 +46,7 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
     pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
     variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps])
-    @variable(model, spin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
-    @variable(model, spin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
-    @variable(model, Nspin_10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
-    @variable(model, Nspin_30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
+    @variable(model, rg[g in thermal_gen_names, r in reserve_types, s in scenarios, t in time_steps] >= 0)
 
     must_run_gen_names = get_name.(get_components(x -> PSY.get_must_run(x), ThermalGen, sys))
     for g in thermal_gen_names, s in scenarios, t in time_steps
@@ -62,7 +60,7 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
         else
             @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g][i])
         end
-        @constraint(model, pg[g,s,t] + spin_10[g,s,t] + spin_30[g,s,t] <= pg_lim[g].max*ug[g][i])
+        @constraint(model, pg[g,s,t] + rg[g,"10S",s,t] + rg[g,"30S",s,t] <= pg_lim[g].max*ug[g][i])
     end
 
     # ramping constraints and reserve constraints
@@ -74,19 +72,19 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
         #TODO startup and shutdown ramping 
     for g in thermal_gen_names, s in scenarios, t in time_steps
         i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
-        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + spin_10[g,s,t]/2 + spin_30[g,s,t]/6 <= ramp_10[g]*ug[g][i]/2 + pg_lim[g].min*vg_min5[g][t])
+        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + rg[g,"10S",s,t]/2 + rg[g,"30S",s,t]/6 <= ramp_10[g]*ug[g][i]/2 + pg_lim[g].min*vg_min5[g][t])
         @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t] <= ramp_10[g]*ug[g][i]/2 + pg_lim[g].max*wg_min5[g][t])
     end
     end
 
     for g in thermal_gen_names, s in scenarios, t in time_steps
         i = Int(div(min_step+t-1, 12)+1)
-        @constraint(model, spin_10[g,s,t] <= ramp_10[g]*ug[g][i])
-        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= ramp_30[g]*ug[g][i])
-        @constraint(model, Nspin_10[g,s,t] <= ramp_10[g]*(1-ug[g][i]))
-        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= ramp_30[g]*(1-ug[g][i]))
-        @constraint(model, spin_10[g,s,t] + spin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g][i])
-        @constraint(model, Nspin_10[g,s,t] + Nspin_30[g,s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g][i]))
+        @constraint(model, rg[g,"10S",s,t]<= ramp_10[g]*ug[g][i])
+        @constraint(model, rg[g,"10S",s,t] + rg[g,"30S",s,t] <= ramp_30[g]*ug[g][i])
+        @constraint(model, rg[g,"10N",s,t]<= ramp_10[g]*(1-ug[g][i]))
+        @constraint(model, rg[g,"10N",s,t]+ rg[g,"30N",s,t]<= ramp_30[g]*(1-ug[g][i]))
+        @constraint(model, rg[g,"10S",s,t] + rg[g,"30S",s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g][i])
+        @constraint(model, rg[g,"10N",s,t]+ rg[g,"30N",s,t]<= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g][i]))
     end
 
     # Storage
@@ -99,11 +97,10 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
     @variable(model, kb_charge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_charge_max[b]) # power capacity MW
     @variable(model, kb_discharge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b])
     @variable(model, eb[b in storage_names, s in scenarios, t in time_steps], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
-    @variable(model, res_10[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0)
-    @variable(model, res_30[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0)
+    @variable(model, battery_reserve[b in storage_names, r in ["10S", "30S"], s in scenarios, t in time_steps], lower_bound = 0)
 
     @constraint(model, battery_discharge[b in storage_names, s in scenarios, t in time_steps], 
-                    kb_discharge[b,s,t] + res_10[b,s,t] + res_30[b,s,t] <= kb_discharge_max[b])
+                    kb_discharge[b,s,t] + battery_reserve[b,"10S",s,t] + battery_reserve[b,"30S",s,t] <= kb_discharge_max[b])
 
     # energy capacity MWh
     @constraint(model, eq_storage_energy[b in storage_names, s in scenarios, t in time_steps],
@@ -182,10 +179,10 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
     @variable(model, t_Nspin_30[g in thermal_gen_names])
 
     @constraint(model, bind_pg[g in thermal_gen_names, s in scenarios], pg[g,s,1] == t_pg[g])
-    @constraint(model, bind_spin10[g in thermal_gen_names, s in scenarios], spin_10[g,s,1] == t_spin_10[g])
-    @constraint(model, bind_spin30[g in thermal_gen_names, s in scenarios], spin_30[g,s,1] == t_spin_30[g])
-    @constraint(model, bind_Nspin10[g in thermal_gen_names, s in scenarios], Nspin_10[g,s,1] == t_Nspin_10[g])
-    @constraint(model, bind_Nspin30[g in thermal_gen_names, s in scenarios], Nspin_30[g,s,1] == t_Nspin_30[g])
+    @constraint(model, bind_spin10[g in thermal_gen_names, s in scenarios], S10[g,s,1] == t_spin_10[g])
+    @constraint(model, bind_spin30[g in thermal_gen_names, s in scenarios], S30[g,s,1] == t_spin_30[g])
+    @constraint(model, bind_Nspin10[g in thermal_gen_names, s in scenarios], N10[g,s,1] == t_Nspin_10[g])
+    @constraint(model, bind_Nspin30[g in thermal_gen_names, s in scenarios], N30[g,s,1] == t_Nspin_30[g])
     
     # Binding storage variables
     @variable(model, t_kb_charge[b in storage_names], lower_bound = 0, upper_bound = kb_charge_max[b])
