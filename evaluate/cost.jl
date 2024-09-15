@@ -12,9 +12,7 @@ function _compute_ed_cost(sys::System, model::JuMP.Model)::Float64
     
     lost_load_penalty = VOLL*value(model[:curtailment][1,1])
     reserve_short_penalty = sum(value(model[:reserve_short][rr,1,1,k])*penalty[rr][k].price for rr in reserve_products for k in 1:length(penalty[rr]))
-    # reserve_short_penalty = sum(value(model[:reserve_spin10_short][1,1,k])*penalty["10Spin"][k].price for k in 1:length(penalty["10Spin"])) +
-    #                         sum(value(model[:reserve_10_short][1,1,k])*penalty["10Total"][k].price for k in 1:length(penalty["10Total"])) +
-    #                         sum(value(model[:reserve_30_short][1,1,k])*penalty["30Total"][k].price for k in 1:length(penalty["30Total"]))
+    
     cost_t = thermal_gen_op_costs + lost_load_penalty + reserve_short_penalty
     return cost_t
 end

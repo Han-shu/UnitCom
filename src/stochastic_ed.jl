@@ -190,11 +190,10 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
     @constraint(model, bind_battery_reserve[b in storage_names, r in ["10S", "30S"], s in scenarios], battery_reserve[b,r,s,1] == t_battery_reserve[b,r])
 
     # Binding renewable variables
-    # @variable(model, t_pS[g in solar_gen_names] >= 0)
-    # @variable(model, t_pW[g in wind_gen_names] >= 0)
-
-    # @constraint(model, bind_pS[g in solar_gen_names, s in scenarios], pS[g,s,1] == t_pS[g])
-    # @constraint(model, bind_pW[g in wind_gen_names, s in scenarios], pW[g,s,1] == t_pW[g])
+    @variable(model, t_pS[g in solar_gen_names] >= 0)
+    @variable(model, t_pW[g in wind_gen_names] >= 0)
+    @constraint(model, bind_pS[g in solar_gen_names, s in scenarios], pS[g,s,1] == t_pS[g])
+    @constraint(model, bind_pW[g in wind_gen_names, s in scenarios], pW[g,s,1] == t_pW[g])
 
     @objective(model, Min, model[:obj])
 
