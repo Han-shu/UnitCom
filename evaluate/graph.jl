@@ -1,93 +1,69 @@
-using Plots, JuMP
+using Plots, Dates, JuMP
 
 include("../src/functions.jl")
-DLAC_solution = read_json(joinpath(result_dir, "DLAC_sol_2024-04-17.json"))
-SLAC_solution = read_json(joinpath(result_dir, "SLAC_sol_2024-04-17.json"))
-DLAC_40_solution = read_json(joinpath(result_dir, "DLAC-NLB-40_sol_2024-04-17.json"))
-DLAC_45_solution = read_json(joinpath(result_dir, "DLAC-NLB-45_sol_2024-04-17.json"))
-DLAC_50_solution = read_json(joinpath(result_dir, "DLAC-NLB-50_sol_2024-04-17.json"))
-LMP = solution["LMP"]
-x_end = length(SLAC_solution["LMP"])
-x = range(1, x_end, step = 1)
-plot(x, SLAC_solution["LMP"], label = "SLAC", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)#, legend = :outertopright)
-# plot!(x, DLAC_solution["LMP"][1:x_end], label = "DLAC-AVG")
-plot!(x, DLAC_40_solution["LMP"][1:x_end], label = "DLAC-NLB-40")
-plot!(x, DLAC_45_solution["LMP"][1:x_end], label = "DLAC-NLB-45")
-plot!(x, DLAC_50_solution["LMP"][1:x_end], label = "DLAC-NLB-50")
-xticks!(0:24:x_end)
+function extract_LMP(model_name::AbstractString, run_date)::Tuple{Array{Float64}, Array{Float64}}
+    uc_LMP, ed_LMP = [], []
+    file_date = Dates.Date(2018,12,1)
+    AVG_dir = "/Users/hanshu/Desktop/Price_formation/Result/Master_AVG"
+    NLB_dir = "/Users/hanshu/Desktop/Price_formation/Result/Master_NLB"
+    STOCH_dir = "/Users/hanshu/Desktop/Price_formation/Result/Master_STOCH"
+    if model_name == "AVG-UCED"
+        path_dir = AVG_dir
+    elseif model_name == "NLB-10-UCED"
+        path_dir = NLB_dir
+    elseif model_name == "S-UCED"
+        path_dir = STOCH_dir
+    else
+        error("File path not defined for $(model_name)")
+    end
 
-result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-S_UCED_file = joinpath(result_dir, "S-UCED_2024-05-09.json")
-ED_S_UCED_file = joinpath(result_dir, "ED_S-UCED_2024-05-09.json")
-S_UCED_sol = read_json(S_UCED_file)
-ED_S_UCED_sol = read_json(ED_S_UCED_file)
-S_UCED_LMP = S_UCED_sol["Hourly average LMP"]
-ED_S_UCED_LMP = []
-for i in ED_S_UCED_sol["LMP"]
-    append!(ED_S_UCED_LMP, i)
+    while true
+        file_date += Dates.Month(1)
+        uc_file = joinpath(path_dir, "$(model_name)_$(run_date)", "UC_$(file_date).json")
+        ed_file = joinpath(path_dir, "ED_$(model_name)_$(run_date)", "ED_$(file_date).json")
+        if !isfile(uc_file) || !isfile(ed_file)
+            break
+        end
+        @info "Extracting LMP for $(model_name) with date $(file_date)"
+        uc_solution = read_json(uc_file)
+        ed_solution = read_json(ed_file)
+        append!(uc_LMP, uc_solution["Hourly average LMP"])
+        for i in ed_solution["LMP"]
+            append!(ed_LMP, i)
+        end
+    end
+    return uc_LMP, ed_LMP
 end
-hour_x= range(1, length(S_UCED_LMP), step = 1)
-min5_x= range(1/12, length(S_UCED_LMP), step = 1/12)
-plot(min5_x, ED_S_UCED_LMP, label = "ED_S-UCED", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)#, legend = :outertopright)
-plot!(hour_x, S_UCED_LMP, label = "S-UCED")
 
-
-AVG_UCED_file = joinpath(result_dir, "AVG-UCED_2024-05-09.json")
-AVG_UCED_sol = read_json(AVG_UCED_file)
-AVG_UCED_LMP = AVG_UCED_sol["Hourly average LMP"]
-
-ED_AVG_UCED_file = joinpath(result_dir, "ED_AVG-UCED_2024-05-09.json")
-ED_AVG_UCED_sol = read_json(ED_AVG_UCED_file)
-ED_AVG_UCED_LMP = []
-for i in ED_AVG_UCED_sol["LMP"]
-    append!(ED_AVG_UCED_LMP, i)
+function plot_hour_min_LMP(uc_LMP::Array{Float64}, ed_LMP::Array{Float64}, model_name::AbstractString)
+    hour_x= range(1, length(uc_LMP), step = 1)
+    min5_x= range(1/12, length(uc_LMP), step = 1/12)
+    p = plot(hour_x, uc_LMP, label = "$(model_name)", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)#, legend = :outertopright)
+    plot!(min5_x, ed_LMP, label = "ED_$(model_name)")
+    return p
 end
-min5_x= range(1/12, length(AVG_UCED_LMP), step = 1/12)
-plot(min5_x, ED_AVG_UCED_LMP*12, label = "ED_AVG-UCED", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)
-hour_x= range(1, length(AVG_UCED_LMP), step = 1)
-plot!(hour_x, AVG_UCED_LMP*12, label = "AVG-UCED")
-ylims!(0, 20)
 
-
-ED_NLB10_UCED_file = joinpath(result_dir, "ED_NLB-10-UCED_2024-05-09.json")
-ED_NLB10_UCED_sol = read_json(ED_NLB10_UCED_file)
-ED_NLB10_UCED_LMP = []
-for i in ED_NLB10_UCED_sol["LMP"]
-    append!(ED_NLB10_UCED_LMP, i)
+function plot_hour_LMP(LMP::Vector{Vector{Float64}}, model_name::Vector{String})
+    x_end = minimum([length(LMP[i]) for i in 1:length(LMP)])
+    hour_x= range(1, x_end, step = 1)
+    p = plot(hour_x, LMP[1], label = "$(model_name[1])", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)
+    for i in 2:length(LMP)
+        plot!(hour_x, LMP[i], label = "$(model_name[i])")
+    end
+    return p
 end
-NLB10_UCED_file = joinpath(result_dir, "NLB-10-UCED_2024-05-09.json")
-NLB10_UCED_sol = read_json(NLB10_UCED_file)
-NLB10_UCED_LMP = NLB10_UCED_sol["Hourly average LMP"]
-min5_x= range(1/12, length(NLB10_UCED_LMP), step = 1/12)
-plot(min5_x, ED_NLB10_UCED_LMP, label = "ED_NLB-10-UCED", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)
-hour_x= range(1, length(NLB10_UCED_LMP), step = 1)
-plot!(hour_x, NLB10_UCED_LMP, label = "NLB-10-UCED")
+
+uc_AVG_LMP, ed_AVG_LMP = extract_LMP("AVG-UCED", Dates.Date(2024,5,15))
+uc_NLB_LMP, ed_NLB_LMP = extract_LMP("NLB-10-UCED", Dates.Date(2024,5,14))
+uc_STOCH_LMP, ed_STOCH_LMP = extract_LMP("S-UCED", Dates.Date(2024,5,21))
 
 
-plot(hour_x, S_UCED_LMP, label = "S-UCED", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)
-# plot!(hour_x, AVG_UCED_LMP, label = "AVG-UCED")
-plot(hour_x, NLB10_UCED_LMP, label = "NLB-10-UCED")
+p1 = plot_hour_min_LMP(uc_AVG_LMP, ed_AVG_LMP, "AVG-UCED")
+p2 = plot_hour_min_LMP(uc_NLB_LMP, ed_NLB_LMP, "NLB-10-UCED")
+p_stoch = plot_hour_min_LMP(uc_STOCH_LMP, ed_STOCH_LMP, "S-UCED")
+p_Hour = plot_hour_LMP([uc_AVG_LMP, uc_NLB_LMP, uc_STOCH_LMP], ["AVG-UCED", "NLB-10-UCED", "S-UCED"])
 
+p_Hour = plot_hour_LMP([uc_STOCH_LMP], ["S-UCED"])
 
-ED_NLB9_UCED_file = joinpath(result_dir, "ED_NLB-9-UCED_2024-05-09.json")
-ED_NLB9_UCED_sol = read_json(ED_NLB9_UCED_file)
-ED_NLB9_UCED_LMP = []
-for i in ED_NLB9_UCED_sol["LMP"]
-    append!(ED_NLB9_UCED_LMP, i)
-end
-NLB9_UCED_file = joinpath(result_dir, "NLB-9-UCED_2024-05-09.json")
-NLB9_UCED_sol = read_json(NLB9_UCED_file)
-NLB9_UCED_LMP = NLB9_UCED_sol["Hourly average LMP"]
-min5_x= range(1/12, length(NLB9_UCED_LMP), step = 1/12)
-plot(min5_x, ED_NLB9_UCED_LMP, label = "ED_NLB-9-UCED", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)
-hour_x= range(1, length(NLB9_UCED_LMP), step = 1)
-plot!(hour_x, NLB9_UCED_LMP, label = "NLB-9-UCED")
-ylims!(0, 100)
-
-
-plot(hour_x, AVG_UCED_LMP.*12, label = "AVG-UCED")
-plot!(hour_x, S_UCED_LMP.*12, label = "S-UCED")
-plot!(hour_x, NLB9_UCED_LMP.*12, label = "NLB-9-UCED")
-plot!(hour_x, NLB10_UCED_LMP.*12, label = "NLB-10-UCED")
-ylims!(0, 60)
-# plot!(hour_x, NLB10_UCED_LMP, label = "NLB-10-UCED")
+# LMP = [uc_AVG_LMP, uc_NLB_LMP, uc_STOCH_LMP]
+# minimum([length(LMP[i]) for i in 1:length(LMP)])

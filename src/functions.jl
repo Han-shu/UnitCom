@@ -1,4 +1,4 @@
-using JSON
+using JSON, DataStructures
 
 function _init(model::JuMP.Model, key::Symbol)::OrderedDict
     if !(key in keys(object_dictionary(model)))

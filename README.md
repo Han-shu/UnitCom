@@ -9,7 +9,7 @@
 
 # Problems
 - UC infeasibility if starting from existing solution files
-- Fixed: UC unbounded when setting theta = 8, 7, 6 (curtailment or overgeneration)
+- RLMP (fix integer variables) v.s. ELMP (relax integer variables)
 
 # Log
 May 13

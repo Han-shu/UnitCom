@@ -10,7 +10,7 @@ include("src/get_uc_op_price.jl")
 
 # Set parameters
 theta = nothing # nothing or set between 1 ~ 49 (Int)
-scenario_count = 1
+scenario_count = 10
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 
@@ -76,11 +76,12 @@ ed_model = nothing
 
 # Run rolling horizon UC-ED
 for t in 1:8760
-    global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value, uc_time, init_fr_file_flag, init_fr_ED_flag
+    global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value
+    global uc_time, init_fr_file_flag, init_fr_ED_flag, uc_sol_file, ed_sol_file
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if t > 8000 || uc_time > DateTime(2019,12,29,20) 
+    if t > 500 || uc_time > DateTime(2019,12,29,20) 
         break
     end
 
@@ -146,8 +147,9 @@ end
 end
 
 # # save the solution
-uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(Date(uc_time)).json")
-ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(Date(uc_time)).json")
+save_date = Date(year(uc_time), month(uc_time), 1)
+uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
+ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(save_date).json")
 @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
 write_json(uc_sol_file, uc_sol)
 write_json(ed_sol_file, ed_sol)
