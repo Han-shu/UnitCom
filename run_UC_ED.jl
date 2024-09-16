@@ -64,7 +64,7 @@ if init_fr_ED_flag
     end
     init_time = DateTime(2018,12,31,20)
     uc_sol = init_solution_uc(UCsys)
-    ed_sol = init_solution_ed(EDsys)
+    ed_sol = init_ed_solution(EDsys)
     UC_init_value = _get_init_value_for_UC(UCsys; init_fr_ED_flag = true)
 else
 # 2. Run rolling horizon with solution from previous time point
@@ -105,7 +105,7 @@ for t in 1:8760
 
         @info "Reinitialize the solution"
         uc_sol = init_solution_uc(UCsys)
-        ed_sol = init_solution_ed(EDsys)
+        ed_sol = init_ed_solution(EDsys)
     end
 
     one_iter = @elapsed begin
@@ -148,12 +148,12 @@ for t in 1:8760
     uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol)
     @info "UC solution is updated"
     
-    save_date = Date(year(uc_time), month(uc_time), 1)
-    uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
-    ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(save_date).json")
-    @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
-    write_json(uc_sol_file, uc_sol)
-    write_json(ed_sol_file, ed_hour_sol)
+    # save_date = Date(year(uc_time), month(uc_time), 1)
+    # uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
+    # ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(save_date).json")
+    # @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
+    # write_json(uc_sol_file, uc_sol)
+    # write_json(ed_sol_file, ed_hour_sol)
 
     ed_sol = merge_ed_solution(ed_sol, ed_hour_sol)
     @info "ED solution is merged"
