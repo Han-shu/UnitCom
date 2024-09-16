@@ -11,18 +11,19 @@ include("src/get_uc_op_price.jl")
 # Set parameters
 """
 Current Policy parameters:
-DLAC-NLB: theta 1~49, scenario_count = 1
+DLAC-NLB: theta 1~10, scenario_count = 1
 DLAC-AVG: theta = nothing, scenario_count = 1
-SLAC: theta = nothing, scenario_count = 10
+STOCH: theta = nothing, scenario_count = 10
 """
 rdate = Dates.today() # or Specify running date Date(2024,5,1)
-theta = nothing # nothing for STOCH or set between 1 ~ 49 (Int)
+theta = 10
 scenario_count = 1
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 model_name, master_folder, uc_folder, ed_folder = get_UCED_model_folder_name(theta = theta, scenario_count = scenario_count, date = rdate)
+@info "Model name: $(model_name), Master folder: $(master_folder), UC folder: $(uc_folder), ED folder: $(ed_folder)"
 
 # Build NY system for UC and ED
 @info "Build NY system for UC"
@@ -120,7 +121,7 @@ for t in 1:8760
     uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
                         start_time = uc_time, scenario_count = scenario_count, horizon = uc_horizon)
     end
-    @info "UC model at $(uc_time) is solved in $(one_uc_time) seconds"
+    @info "$(model_name)-UC model at $(uc_time) is solved in $(one_uc_time) seconds"
     # Get commitment status that will be passed to ED
     uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
     uc_op_price = get_uc_op_price(UCsys, uc_model)
@@ -144,9 +145,9 @@ for t in 1:8760
         break
     end
     end
-    @info "ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
+    @info "$(model_name)-ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
     uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol)
-    @info "UC solution is updated"
+    @info "$(model_name)-UC solution is updated"
     
     # save_date = Date(year(uc_time), month(uc_time), 1)
     # uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
@@ -156,7 +157,7 @@ for t in 1:8760
     # write_json(ed_sol_file, ed_hour_sol)
 
     ed_sol = merge_ed_solution(ed_sol, ed_hour_sol)
-    @info "ED solution is merged"
+    @info "$(model_name)-ED solution is merged"
 end
     @info "One iteration takes $(one_iter) seconds"
 end
