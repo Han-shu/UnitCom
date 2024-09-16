@@ -1,3 +1,13 @@
+include("../src/add_renewables.jl")
+function _compute_ed_curtailment(sys::System, model::JuMP.Model)::Dict
+    curtailment = Dict()
+    curtailment["load"] = value(model[:curtailment][1,1])
+    forecast_solar, forecast_wind = _get_forecast_renewables(sys, model)
+    curtailment["wind"] = forecast_wind["wind"][1,1] - value(model[:pW]["wind",1,1])
+    curtailment["solar"] = forecast_solar["solar"][1,1] - value(model[:pS]["solar",1,1])
+    return curtailment
+end
+
 # compute the total production cost at time t 
 # binary var from UC and op var from ED
 function _compute_ed_cost(sys::System, model::JuMP.Model)::Float64
@@ -91,6 +101,18 @@ function _compute_ed_gen_profits(sys::System, model::JuMP.Model)
     return gen_profits, storage_profits
 end
 
+function _compute_ed_renewable_profits(sys::System, model::JuMP.Model)
+    renewable_gen_names = get_name.(get_components(RenewableGen, sys))
+    LMP = _get_ED_dual_price(model, :eq_power_balance)
+    renewable_profits = OrderedDict()
+    renewable_profits["wind"] = LMP*value(model[:pW]["wind",1,1])
+    renewable_profits["solar"] = LMP*value(model[:pS]["solar",1,1])
+
+    hydro = first(get_components(HydroDispatch, sys))
+    hydro_dispatch = get_time_series_values(SingleTimeSeries, hydro, "hydro_power", start_time = model[:param].start_time, len = length(model[:param].time_steps))
+    renewable_profits["hydro"] = LMP*hydro_dispath[1]
+    return renewable_profits
+end
 
 function minus_uc_integer_cost_thermal_gen(sys::System, model::JuMP.Model, gen_profits_ed::OrderedDict, sys_cost::Float64)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))

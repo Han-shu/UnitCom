@@ -9,7 +9,12 @@ include("src/get_init_value.jl")
 include("src/get_uc_op_price.jl")
 
 # Set parameters
-theta = nothing # nothing or set between 1 ~ 49 (Int)
+'''
+DLAC-NLB: theta 1~49, scenario_count = 1
+DLAC-AVG: theta = nothing, scenario_count = 1
+SLAC: theta = nothing, scenario_count = 10
+'''
+theta = nothing # nothing for STOCH or set between 1 ~ 49 (Int)
 scenario_count = 10
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour

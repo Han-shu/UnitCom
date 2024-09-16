@@ -7,15 +7,16 @@ function init_solution_ed(sys::System)::OrderedDict
     sol["Reserve price 10Total"] = []
     sol["Reserve price 30Total"] = []
     sol["LMP"] = []
-    sol["operation_cost"] = []
+    sol["Operation_cost"] = []
     sol["charge_consumers"] = []
     sol["Net load"] = []
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     sol["Generator energy dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Storage energy"] = OrderedDict(b => [] for b in storage_names)
+    sol["Curtailment"] = OrderedDict(i => [] for i in ["load", "wind", "solar"])
     sol["gen_profits"] = OrderedDict(g => [] for g in thermal_gen_names)
-    sol["storage_profits"] = OrderedDict(b => [] for b in storage_names)
+    sol["Other profits"] = OrderedDict(b => [] for b in ["BA", "wind", "solar", "hydro"])
     return sol
 end
 
@@ -26,9 +27,13 @@ function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::Orde
     push!(sol["Reserve price 10Total"], reserve_prices["10T"])
     push!(sol["Reserve price 30Total"], reserve_prices["30T"])
     push!(sol["LMP"], _get_ED_dual_price(model, :eq_power_balance))
-    push!(sol["operation_cost"], _compute_ed_cost(sys, model))
+    push!(sol["Operation_cost"], _compute_ed_cost(sys, model))
     push!(sol["charge_consumers"], _compute_ed_charge(sys, model))
     push!(sol["Net load"], _compute_ed_net_load(sys, model))
+    curtailment = _compute_ed_curtailment(sys, model)
+    push!(sol["Curtailment"]["load"], curtailment["load"])
+    push!(sol["Curtailment"]["wind"], curtailment["wind"])
+    push!(sol["Curtailment"]["solar"], curtailment["solar"])
     gen_profits, storage_profits = _compute_ed_gen_profits(sys, model)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
@@ -38,8 +43,12 @@ function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::Orde
     end
     for b in storage_names
         push!(sol["Storage energy"][b], value(model[:eb][b,1,1]))
-        push!(sol["storage_profits"][b], storage_profits[b])
+        push!(sol["Other profits"][b], storage_profits[b])
     end
+    renewable_profits = _compute_ed_renewable_profits(sys, model)
+    push!(sol["Other profits"]["wind"], renewable_profits["wind"])
+    push!(sol["Other profits"]["solar"], renewable_profits["solar"])
+    push!(sol["Other profits"]["hydro"], renewable_profits["hydro"])
     return sol 
 end
 
