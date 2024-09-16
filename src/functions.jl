@@ -18,7 +18,7 @@ function read_json(filename::AbstractString)::OrderedDict
     return JSON.parse(open(filename), dicttype = () -> DefaultDict(nothing))
 end
 
-function get_model_file_name(; theta::Union{Nothing, Int64} = nothing, scenario_count::Int64, result_dir::AbstractString)
+function get_model_file_name(; theta::Union{Nothing, Int64} = nothing, scenario_count::Int64, result_dir::AbstractString, date::Date = Dates.today())
     if !isnothing(theta)
         @assert scenario_count == 1 "Define theta for DLAC-NLB but scenario_count != 1"
         model_name = "DLAC-NLB-$(theta)"
@@ -26,22 +26,22 @@ function get_model_file_name(; theta::Union{Nothing, Int64} = nothing, scenario_
         scenario_count = scenario_count # set scenario count 1 for deterministic, 10 for stochastic
         model_name = scenario_count == 1 ? "DLAC-AVG" : "SLAC"
     end
-    solution_file = joinpath(result_dir, "$(model_name)_sol_$(Dates.today()).json")
+    solution_file = joinpath(result_dir, "$(model_name)_sol_$(date).json")
     return model_name, solution_file    
 end
 
-function get_UCED_model_folder_name(; theta::Union{Nothing, Int64} = nothing, scenario_count::Int64)
+function get_UCED_model_folder_name(; theta::Union{Nothing, Int64} = nothing, scenario_count::Int64, date::Date = Dates.today())
     if !isnothing(theta)
         @assert scenario_count == 1 "Define theta for DLAC-NLB but scenario_count != 1"
-        model_name = "NLB-$(theta)-UCED"
+        model_name = "NLB-$(theta)"
         master_name = "NLB"
     else
-        model_name = scenario_count == 1 ? "AVG-UCED" : "S-UCED"
+        model_name = scenario_count == 1 ? "AVG" : "STOCH"
         master_name = scenario_count == 1 ? "AVG" : "STOCH"
     end
     master_folder = "Master_$(master_name)"
-    uc_folder = "$(model_name)_$(Dates.today())"
-    ed_folder = "ED_$(model_name)_$(Dates.today())"
+    uc_folder = "$(model_name)_$(date)"
+    ed_folder = "ED_$(model_name)_$(date)"
     return model_name, master_folder, uc_folder, ed_folder 
 end
 

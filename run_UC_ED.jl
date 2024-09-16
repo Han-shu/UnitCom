@@ -15,14 +15,14 @@ DLAC-NLB: theta 1~49, scenario_count = 1
 DLAC-AVG: theta = nothing, scenario_count = 1
 SLAC: theta = nothing, scenario_count = 10
 """
-
+rdate = Dates.today() # or Specify running date Date(2024,5,1)
 theta = nothing # nothing for STOCH or set between 1 ~ 49 (Int)
 scenario_count = 1
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-model_name, master_folder, uc_folder, ed_folder = get_UCED_model_folder_name(theta = theta, scenario_count = scenario_count)
+model_name, master_folder, uc_folder, ed_folder = get_UCED_model_folder_name(theta = theta, scenario_count = scenario_count, date = rdate)
 
 # Build NY system for UC and ED
 @info "Build NY system for UC"
@@ -126,14 +126,14 @@ for t in 1:8760
     uc_op_price = get_uc_op_price(UCsys, uc_model)
     one_hour_ed_time = @elapsed begin
     # initiate empty OrderedDict ed_hour_sol
-    ed_hour_sol = init_solution_ed(EDsys)
+    ed_hour_sol = init_ed_hour_solution(EDsys)
     for i in 1:12
         @info "Running length $(length(ed_hour_sol["LMP"]))"
         ed_time = uc_time + Minute(5*(i-1))
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
         ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_count = scenario_count, theta = theta, start_time = ed_time, horizon = ed_horizon)
-        ed_hour_sol = get_solution_ed(EDsys, ed_model, ed_hour_sol)
+        ed_hour_sol = get_ed_hour_solution(EDsys, ed_model, ed_hour_sol)
         if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
             @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"
             break
@@ -147,6 +147,14 @@ for t in 1:8760
     @info "ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
     uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol)
     @info "UC solution is updated"
+    
+    save_date = Date(year(uc_time), month(uc_time), 1)
+    uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
+    ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(save_date).json")
+    @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
+    write_json(uc_sol_file, uc_sol)
+    write_json(ed_sol_file, ed_hour_sol)
+
     ed_sol = merge_ed_solution(ed_sol, ed_hour_sol)
     @info "ED solution is merged"
 end

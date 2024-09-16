@@ -1,6 +1,6 @@
 include("../evaluate/cost.jl")
 
-function init_solution_ed(sys::System)::OrderedDict
+function init_ed_hour_solution(sys::System)::OrderedDict
     sol = OrderedDict()
     sol["Time"] = []
     sol["Reserve price 10Spin"] = []
@@ -20,7 +20,21 @@ function init_solution_ed(sys::System)::OrderedDict
     return sol
 end
 
-function get_solution_ed(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
+function init_ed_solution(sys::System)::OrderedDict
+    sol = OrderedDict()
+    sol["Time"] = []
+    sol["LMP"] = []
+    sol["Reserve price 10Spin"] = []
+    sol["Reserve price 10Total"] = []
+    sol["Reserve price 30Total"] = []
+    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+    storage_names = get_name.(get_components(GenericBattery, sys))
+    sol["Generator energy dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Storage energy"] = OrderedDict(b => [] for b in storage_names)
+    return sol
+end
+
+function get_ed_hour_solution(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
     push!(sol["Time"], model[:param].start_time)
     reserve_prices = _get_ED_reserve_prices(model)
     push!(sol["Reserve price 10Spin"], reserve_prices["10S"])
@@ -63,18 +77,36 @@ end
 
 function merge_ed_solution(ed_sol::OrderedDict, ed_hour_sol::OrderedDict)::OrderedDict
     for key in keys(ed_hour_sol)
-        if key in ["Generator energy dispatch", "Storage energy", "gen_profits", "storage_profits"]
-            for g in keys(ed_hour_sol[key])
-                push!(ed_sol[key][g], ed_hour_sol[key][g])
-            end
-        elseif key == "Time"
+        if key == "Time"
             push!(ed_sol[key], ed_hour_sol[key][1])
-        else
+        elseif key in ["Generator energy dispatch", "Storage energy"]
+            for g in keys(ed_hour_sol[key])
+                push!(ed_sol[key][g], ed_hour_sol[key][g][end])
+            end   
+        elseif key in ["LMP", "Reserve price 10Spin", "Reserve price 10Total", "Reserve price 30Total"]
             push!(ed_sol[key], ed_hour_sol[key])
+        else
+            continue
         end
     end
     return ed_sol
 end
+
+
+# function merge_ed_solution(ed_sol::OrderedDict, ed_hour_sol::OrderedDict)::OrderedDict
+#     for key in keys(ed_hour_sol)
+#         if key in ["Generator energy dispatch", "Storage energy", "gen_profits", "storage_profits"]
+#             for g in keys(ed_hour_sol[key])
+#                 push!(ed_sol[key][g], ed_hour_sol[key][g])
+#             end
+#         elseif key == "Time"
+#             push!(ed_sol[key], ed_hour_sol[key][1])
+#         else
+#             push!(ed_sol[key], ed_hour_sol[key])
+#         end
+#     end
+#     return ed_sol
+# end
 
 
 
@@ -84,9 +116,9 @@ function init_solution_uc(sys::System)::OrderedDict
     sol = OrderedDict()
     sol["Time"] = []
     sol["Hourly average LMP"] = []
-    sol["Hourly average price for 10min spinning reserve"] = []
-    sol["Hourly average price for 10min reserve"] = []
-    sol["Hourly average price for 30min reserve"] = []
+    sol["Hourly average reserve price 10Spin"] = []
+    sol["Hourly average reserve price 10Total"] = []
+    sol["Hourly average reserve price 30Total"] = []
     sol["System operator cost"] = []
     sol["Charge consumers"] = []
     sol["Curtailment"] = OrderedDict(i => [] for i in ["load", "wind", "solar"])
@@ -101,9 +133,9 @@ end
 function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict)::OrderedDict
     push!(sol["Time"], model[:param].start_time)
     push!(sol["Hourly average LMP"], mean(ed_sol["LMP"]))
-    push!(sol["Hourly average price for 10min spinning reserve"], mean(ed_sol["Reserve price 10Spin"]))
-    push!(sol["Hourly average price for 10min reserve"], mean(ed_sol["Reserve price 10Total"]))
-    push!(sol["Hourly average price for 30min reserve"], mean(ed_sol["Reserve price 30Total"]))
+    push!(sol["Hourly average reserve price 10Spin"], mean(ed_sol["Reserve price 10Spin"]))
+    push!(sol["Hourly average reserve price 10Total"], mean(ed_sol["Reserve price 10Total"]))
+    push!(sol["Hourly average reserve price 30Total"], mean(ed_sol["Reserve price 30Total"]))
     sys_cost = mean(ed_sol["Operation_cost"])
     push!(sol["Charge consumers"], mean(ed_sol["charge_consumers"]))
     gen_profits, sys_cost = minus_uc_integer_cost_thermal_gen(sys, model, ed_sol["gen_profits"], sys_cost)
@@ -111,10 +143,11 @@ function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, so
     for i in ["load", "wind", "solar"]
         push!(sol["Curtailment"][i], mean(ed_sol["Curtailment"][i]))
     end
-    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+    
     for b in ["BA", "wind", "solar", "hydro"]
         push!(sol["Other profits"][b], mean(ed_sol["Other profits"][b]))
     end
+    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     for g in thermal_gen_names
         push!(sol["Generator profits"][g], gen_profits[g])
         push!(sol["Commitment status"][g], Int(round(value(model[:ug][g,1]), digits=0)))

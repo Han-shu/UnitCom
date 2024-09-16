@@ -124,7 +124,7 @@ for t in 1:8760
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
         ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_count = scenario_count, theta = theta, start_time = ed_time, horizon = ed_horizon)
-        ed_hour_sol = get_solution_ed(EDsys, ed_model, ed_hour_sol)
+        ed_hour_sol = get_ed_hour_solution(EDsys, ed_model, ed_hour_sol)
         if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
             @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"
             break
