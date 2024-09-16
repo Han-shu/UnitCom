@@ -41,9 +41,6 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     @variable(model, pg[g in thermal_gen_names, s in scenarios, t in time_steps])
     # reserve variables
     @variable(model, rg[g in thermal_gen_names, r in reserve_types, s in scenarios, t in time_steps] >= 0)
-    # @variable(model, N10[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
-    # @variable(model, S30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
-    # @variable(model, N30[g in thermal_gen_names, s in scenarios, t in time_steps] >= 0)
 
     # Commitment status constraints 
     @constraint(model, eq_binary[g in thermal_gen_names, t in time_steps], ug[g,t] - (t==1 ? ug_t0[g] : ug[g,t-1]) == vg[g,t] - wg[g,t])
