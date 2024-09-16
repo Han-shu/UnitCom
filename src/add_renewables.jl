@@ -24,6 +24,7 @@ end
 function _get_forecast_renewables(sys::System, model::JuMP.Model; theta::Union{Nothing, Int64} = nothing)
     time_steps = model[:param].time_steps
     start_time = model[:param].start_time
+    scenarios = model[:param].scenarios
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys)
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys)
     if isnothing(theta)

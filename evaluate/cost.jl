@@ -43,9 +43,8 @@ function _get_ED_reserve_prices(model::JuMP.Model)::Dict{String, Float64}
     sys_lambda_10S = _get_ED_dual_price(model, :eq_reserve_10Spin)
     sys_lambda_10T = _get_ED_dual_price(model, :eq_reserve_10Total)
     sys_lambda_30T = _get_ED_dual_price(model, :eq_reserve_30Total)
-    reserve_prices["10S"] = sys_lambda_10S + sys_lambda_10T + sys_lambda_30T
-    reserve_prices["10T"] = sys_lambda_10T + sys_lambda_30T
-    reserve_prices = Dict("10S" => reserve_prices["10S"], "10T" => reserve_prices["10T"], "30T" => sys_lambda_30T)
+    reserve_prices = Dict("10S" => sys_lambda_10S + sys_lambda_10T + sys_lambda_30T, 
+                          "10T" => sys_lambda_10T + sys_lambda_30T, "30T" => sys_lambda_30T)
     return reserve_prices
 end
 
