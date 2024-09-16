@@ -109,7 +109,7 @@ function _compute_ed_renewable_profits(sys::System, model::JuMP.Model)
 
     hydro = first(get_components(HydroDispatch, sys))
     hydro_dispatch = get_time_series_values(SingleTimeSeries, hydro, "hydro_power", start_time = model[:param].start_time, len = length(model[:param].time_steps))
-    renewable_profits["hydro"] = LMP*hydro_dispath[1]
+    renewable_profits["hydro"] = LMP*hydro_dispatch[1]
     return renewable_profits
 end
 

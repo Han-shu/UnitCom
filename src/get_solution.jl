@@ -89,8 +89,9 @@ function init_solution_uc(sys::System)::OrderedDict
     sol["Hourly average price for 30min reserve"] = []
     sol["System operator cost"] = []
     sol["Charge consumers"] = []
+    sol["Curtailment"] = OrderedDict(i => [] for i in ["load", "wind", "solar"])
     sol["Generator profits"] = OrderedDict(g => [] for g in thermal_gen_names)
-    sol["Storage profits"] = OrderedDict(b => [] for b in storage_names)
+    sol["Other profits"] = OrderedDict(b => [] for b in ["BA", "wind", "solar", "hydro"])
     sol["Commitment status"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Start up"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Shut down"] = OrderedDict(g => [] for g in thermal_gen_names)
@@ -103,14 +104,16 @@ function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, so
     push!(sol["Hourly average price for 10min spinning reserve"], mean(ed_sol["Reserve price 10Spin"]))
     push!(sol["Hourly average price for 10min reserve"], mean(ed_sol["Reserve price 10Total"]))
     push!(sol["Hourly average price for 30min reserve"], mean(ed_sol["Reserve price 30Total"]))
-    sys_cost = mean(ed_sol["operation_cost"])
+    sys_cost = mean(ed_sol["Operation_cost"])
     push!(sol["Charge consumers"], mean(ed_sol["charge_consumers"]))
     gen_profits, sys_cost = minus_uc_integer_cost_thermal_gen(sys, model, ed_sol["gen_profits"], sys_cost)
     push!(sol["System operator cost"], sys_cost)
+    for i in ["load", "wind", "solar"]
+        push!(sol["Curtailment"][i], mean(ed_sol["Curtailment"][i]))
+    end
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
-    storage_names = get_name.(get_components(GenericBattery, sys))
-    for b in storage_names
-        push!(sol["Storage profits"][b], mean(ed_sol["storage_profits"][b]))
+    for b in ["BA", "wind", "solar", "hydro"]
+        push!(sol["Other profits"][b], mean(ed_sol["Other profits"][b]))
     end
     for g in thermal_gen_names
         push!(sol["Generator profits"][g], gen_profits[g])
