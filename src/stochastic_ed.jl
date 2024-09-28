@@ -4,7 +4,7 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
     model = Model(optimizer)
     set_silent(model)
     model[:obj] = QuadExpr()
-    parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, reserve_requirement_by_hour, reserve_short_penalty)
+    parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, nyca_reserve_requirement, reserve_short_penalty)
     model[:param] = parameters
     time_steps = model[:param].time_steps
     scenarios = model[:param].scenarios

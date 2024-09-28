@@ -1,5 +1,10 @@
 # UnitCom
 
+# Storage Capacity
+"In 2019, New York passed the nation-leading Climate Leadership and Community Protection Act (Climate Act), which codified some of the most aggressive energy and climate goals in the country, including 1,500 MW of energy storage by 2025 and 3,000 MW by 2030. In June 2024, New York’s Public Service Commission expanded the goal to 6,000 MW by 2030." (https://www.nyserda.ny.gov/All-Programs/Energy-Storage-Program)
+- Pumped hydro (treat as 10h battery): 1170 MWh
+- 4h battery: 1500 MWh
+
 # September 20 2024, meeting
 - Update data
 - Add solar/wind/hydro profits

@@ -1,36 +1,25 @@
-# Reserve short penalty
-# link: https://www.nyiso.com/documents/20142/9622070/Ancillary%20Services%20Shortage%20Pricing_study%20report.pdf
+"""
+Reserve requirements for NYISO
+link: https://www.nyiso.com/documents/20142/3694424/Locational-Reserves-Requirements.pdf
+Reserve short penalty
+link: https://www.nyiso.com/documents/20142/9622070/Ancillary%20Services%20Shortage%20Pricing_study%20report.pdf
+"""
 include("../src/structs.jl")
+
+nyca_reserve_requirement = Dict(
+    "10Spin" => 655,
+    "10Total" => 1310,
+    "30Total" => 2620,
+    "60Total" => nothing, # Requirement will be specified according to different policies
+)
+
 reserve_short_penalty = Dict(
-    "10Spin" => [PriceMW(775, 655), PriceMW(25, 330)],
-    "10Total" => [PriceMW(775, 1200), PriceMW(750, 1310), PriceMW(25, 650)],
-    "30Total" => [PriceMW(750, 1650), PriceMW(500, nothing), PriceMW(200, 300), 
-                PriceMW(100, 370), PriceMW(25, nothing)],
+    "10Spin" => [PriceMW(775, 655)],
+    "10Total" => [PriceMW(750, 1310)],
+    "30Total" => [PriceMW(750, 1650), PriceMW(200, 300), PriceMW(100, 370), PriceMW(25, 300)],
+    "60Total" => [PriceMW(20, 2000)],
 )
-# nothing is because MW depends on the specific hour
 
-# Reserve requirements
-
-# link: https://www.nyiso.com/documents/20142/3694424/Locational-Reserves-Requirements.pdf
-# VII SENY 30-minute total reserve is, depending on the hour, based on Reliability Rules that require the ability to restore a transmission circuit loading toEmergency or Normal TransferOperatingCriteria within30 minutes of thecontingency. The SENY 30-minutetotalreserve requirement will vary as follows: 
-#(a) for hour beginning (HB) 00 through HB 5, the requirement is 1,300 M W; 
-#(b) for HB 6, the requirement is 1,550 M W; 
-#(c) for HB 7 through HB 21, the requirement is 1,800 M W; 
-#(d) for HB 22, the requirement is 1,550 M W; and 
-#(e) for HB 23, the requirement is 1,300 M W. 
-SENY_reserve = [1300, 1300, 1300, 1300, 1300, 1300, 1550, 1800, 1800, 1800, 1800, 
-1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800, 1550, 1300]
-
-# XI LI 30-minute total reserve is based on Reliability Rules that require the ability to restore a transmission circuit loading to Normal OperatingCriteria within 30 minutes of the contingency. 
-# The LI 30-minute reserve requirement will vary from 270MWfor off-peak hours to
-# 540MW for non-peak hours.
-LI_reserve = [270, 270, 270, 270, 270, 270, 540, 540, 540, 540, 540, 540, 540, 
-                540, 540, 540, 540, 540, 540, 540, 540, 540, 270, 270]
-reserve_requirement_by_hour = Dict(
-    "10Spin" => [985 for i in 1:24],
-    "10Total" => [2630 for i in 1:24],
-    "30Total" => SENY_reserve + LI_reserve .+(2620 + 1200 + 1000),
-)
 
 map_UnitType = Dict(
     "Combustion Turbine" => PrimeMovers.CT,
