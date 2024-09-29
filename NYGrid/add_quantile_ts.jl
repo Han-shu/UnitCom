@@ -85,7 +85,7 @@ function add_quantiles_time_series!(system::System; min5_flag::Bool)::Nothing
 
     initial_time = Dates.DateTime(2018, 12, 31, 20)
     resolution = min5_flag ? Minute(5) : Dates.Hour(1)
-    scenario_count = 99
+    scenario_cnt = 99
     base_power = PSY.get_base_power(system)
 
     ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/ARPAE_NYISO"
@@ -116,7 +116,7 @@ function add_quantiles_time_series!(system::System; min5_flag::Bool)::Nothing
         name = "solar_power",
         resolution = resolution,
         data = solar_data,
-        scenario_count = scenario_count,
+        scenario_cnt = scenario_cnt,
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, solar_gens, scenario_forecast_data)
@@ -125,7 +125,7 @@ function add_quantiles_time_series!(system::System; min5_flag::Bool)::Nothing
         name = "wind_power",
         resolution = resolution,
         data = wind_data,
-        scenario_count = scenario_count,
+        scenario_cnt = scenario_cnt,
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, wind_gens, scenario_forecast_data)
@@ -134,7 +134,7 @@ function add_quantiles_time_series!(system::System; min5_flag::Bool)::Nothing
         name = "load",
         resolution = resolution,
         data = load_data,
-        scenario_count = scenario_count,
+        scenario_cnt = scenario_cnt,
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, loads, scenario_forecast_data)

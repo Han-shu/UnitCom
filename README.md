@@ -1,5 +1,16 @@
 # UnitCom
 
+# TODO
+- _read_h5_file: attach scenarios 2:12 time series
+- UC: Use from 2nd time point, ED: Use from 1st time point
+- Bttery qualification for the new product
+- New reserve product requirement
+    - Fixed reserve (FR)
+    - Dynamic reserve (DR)
+- Add model configuration for different policies (SB, NR, BNR, FR, DR)
+- Deterministic model: attach one scenario time series according to theta
+
+
 # Storage Capacity
 "In 2019, New York passed the nation-leading Climate Leadership and Community Protection Act (Climate Act), which codified some of the most aggressive energy and climate goals in the country, including 1,500 MW of energy storage by 2025 and 3,000 MW by 2030. In June 2024, New York’s Public Service Commission expanded the goal to 6,000 MW by 2030." (https://www.nyserda.ny.gov/All-Programs/Energy-Storage-Program)
 - Pumped hydro (treat as 10h battery): 1170 MWh
@@ -26,6 +37,8 @@
 - RLMP (fix integer variables) v.s. ELMP (relax integer variables)
 
 # Log
+September 28
+- Add new reserve products (60T)
 May 13
 - Use the dual of storage energy balance constraint as the residual value of storage
 May 12

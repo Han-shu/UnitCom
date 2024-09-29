@@ -18,31 +18,27 @@ function read_json(filename::AbstractString)::OrderedDict
     return JSON.parse(open(filename), dicttype = () -> DefaultDict(nothing))
 end
 
-function get_model_file_name(; theta::Union{Nothing, Int64} = nothing, scenario_count::Int64, result_dir::AbstractString, date::Date = Dates.today())
-    if !isnothing(theta)
-        @assert scenario_count == 1 "Define theta for DLAC-NLB but scenario_count != 1"
-        model_name = "DLAC-NLB-$(theta)"
-    else
-        scenario_count = scenario_count # set scenario count 1 for deterministic, 10 for stochastic
-        model_name = scenario_count == 1 ? "DLAC-AVG" : "SLAC"
-    end
-    solution_file = joinpath(result_dir, "$(model_name)_sol_$(date).json")
-    return model_name, solution_file    
+function policy_model_folder_name(policy::String, date::Date = Dates.today())
+    master_folder = "Master_$(policy)"
+    uc_folder = "$(policy)_$(date)"
+    ed_folder = "ED_$(policy)_$(date)"
+    return master_folder, uc_folder, ed_folder
 end
 
-function get_UCED_model_folder_name(; theta::Union{Nothing, Int64} = nothing, scenario_count::Int64, date::Date = Dates.today())
-    if !isnothing(theta)
-        @assert scenario_count == 1 "Define theta for DLAC-NLB but scenario_count != 1"
-        model_name = "NLB-$(theta)"
-        master_name = "NLB"
+function policy_theta_parameter(POLICY::String)
+    if POLICY == "SB"
+        theta = nothing
+        scenario_cnt = 11
+    elseif POLICY == "BNR"
+        theta = 8
+        scenario_cnt = 1
+    elseif POLICY in ["NR", "FR", "DR"]
+        theta = 6
+        scenario_cnt = 1
     else
-        model_name = scenario_count == 1 ? "AVG" : "STOCH"
-        master_name = scenario_count == 1 ? "AVG" : "STOCH"
+        error("Policy $POLICY is not defined")
     end
-    master_folder = "Master_$(master_name)"
-    uc_folder = "$(model_name)_$(date)"
-    ed_folder = "ED_$(model_name)_$(date)"
-    return model_name, master_folder, uc_folder, ed_folder 
+    return theta, scenario_cnt
 end
 
 """

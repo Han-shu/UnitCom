@@ -5,16 +5,16 @@ include("src/stochastic_uc.jl")
 include("src/get_solution.jl")
 include("src/functions.jl")
 
-# DLAC-NLB: theta 1~49, scenario_count = 1
-# DLAC-AVG: theta = nothing, scenario_count = 1
-# SLAC: theta = nothing, scenario_count = 10
+# DLAC-NLB: theta 1~49, scenario_cnt = 1
+# DLAC-AVG: theta = nothing, scenario_cnt = 1
+# SLAC: theta = nothing, scenario_cnt = 10
 
 theta = 50 # nothing or set between 1 ~ 49 (Int)
-scenario_count = 1
+scenario_cnt = 1
 horizon = 36
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 initial_time = Dates.DateTime(2019, 1, 1)
-model_name, solution_file = get_model_file_name(theta = theta, scenario_count = scenario_count, result_dir = result_dir)
+model_name, solution_file = get_model_file_name(theta = theta, scenario_cnt = scenario_cnt, result_dir = result_dir)
 
 @info "Build NY system"
 system = build_ny_system(base_power = 100)
@@ -49,7 +49,7 @@ for i in 1:500
     @info "Running rolling horizon $(model_name) for $(start_time)"
     elapsed_time = @elapsed begin
         model = stochastic_uc(system, Gurobi.Optimizer; init_value = init_value, theta = theta,
-                    start_time = start_time, scenario_count = scenario_count, horizon = horizon)
+                    start_time = start_time, scenario_cnt = scenario_cnt, horizon = horizon)
         try
             init_value = _get_init_value_for_UC(system, model)  
             solution = get_solution_uc_t(system, model, solution)

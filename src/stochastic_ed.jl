@@ -1,10 +1,10 @@
 using JuMP
 
-function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing, scenario_count = 10, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 12)
+function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing, scenario_cnt = 10, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 12)
     model = Model(optimizer)
     set_silent(model)
     model[:obj] = QuadExpr()
-    parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL, nyca_reserve_requirement, reserve_short_penalty)
+    parameters = _construct_model_parameters(horizon, scenario_cnt, start_time, VOLL)
     model[:param] = parameters
     time_steps = model[:param].time_steps
     scenarios = model[:param].scenarios

@@ -6,18 +6,21 @@ link: https://www.nyiso.com/documents/20142/9622070/Ancillary%20Services%20Short
 """
 include("../src/structs.jl")
 
+reserve_types = ["10S", "10N", "30S", "30N", "60S", "60N"]
+reserve_products = ["10Spin", "10Total", "30Total", "60Total"]
+
 nyca_reserve_requirement = Dict(
     "10Spin" => 655,
     "10Total" => 1310,
     "30Total" => 2620,
-    "60Total" => nothing, # Requirement will be specified according to different policies
+    "60Total" => 0, # reserve requirement for 60Total depends on policies
 )
 
 reserve_short_penalty = Dict(
     "10Spin" => [PriceMW(775, 655)],
     "10Total" => [PriceMW(750, 1310)],
     "30Total" => [PriceMW(750, 1650), PriceMW(200, 300), PriceMW(100, 370), PriceMW(25, 300)],
-    "60Total" => [PriceMW(20, 2000)],
+    "60Total" => [PriceMW(20, nothing)], # reserve requirement for 60Total depends on policies
 )
 
 

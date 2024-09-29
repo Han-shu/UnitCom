@@ -10,44 +10,55 @@ include("src/get_uc_op_price.jl")
 
 # Set parameters
 """
-Current Policy parameters:
-DLAC-NLB: theta 1~10, scenario_count = 1
-DLAC-AVG: theta = nothing, scenario_count = 1
-STOCH: theta = nothing, scenario_count = 10
+Current POLICY parameters:
+DLAC-NLB: theta 1~10, scenario_cnt = 1
+DLAC-AVG: theta = nothing, scenario_cnt = 1
+STOCH: theta = nothing, scenario_cnt = 10
 """
-rdate = Dates.today() # or Specify running date Date(2024,5,1)
-theta = 10
-scenario_count = 1
+"""
+    POLICY
+    "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
+    "NR": 50 percentile forecast
+    "BNR": Biased forecast
+    "FR": Fixed reserve requirement
+    "DR": Dynamic reserve requirement
+"""
+
+# Specify the policy and running date
+POLICY = "NR"
+run_date = Dates.today() # or Specify running date Date(2024,5,1)
+result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+
+master_folder, uc_folder, ed_folder = POLICY_model_folder_name(POLICY, run_date)
+theta, scenario_cnt = policy_theta_parameter(POLICY)
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
+@info "Policy: $(POLICY), Master folder: $(master_folder), UC folder: $(uc_folder), ED folder: $(ed_folder)"
+@info "UC horizon: $(uc_horizon), ED horizon: $(ed_horizon)"
 
-result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-model_name, master_folder, uc_folder, ed_folder = get_UCED_model_folder_name(theta = theta, scenario_count = scenario_count, date = rdate)
-@info "Model name: $(model_name), Master folder: $(master_folder), UC folder: $(uc_folder), ED folder: $(ed_folder)"
 
 # Build NY system for UC and ED
 @info "Build NY system for UC"
 UCsys = build_ny_system(base_power = 100)
 @info "Build NY system for ED"
 EDsys = build_ny_system(base_power = 100)
+
 # Add time series data
-if !isnothing(theta)
-    @info "Adding quantile time series data for UC"
-    add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = true)
-    # add_quantiles_time_series!(UCsys; min5_flag = false)
-    @info "Adding quantile time series data for ED"
-    add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = true)
-    # add_quantiles_time_series!(EDsys; min5_flag = true)
-else
+if POLICY == "SB" # Stochastic model
     @info "Adding scenarios time series data for UC"
     add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = false)
     @info "Adding scenarios time series data for ED"
     add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = false)
+else # Deterministic model
+    @info "Adding quantile time series data for UC"
+    add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = true)
+    @info "Adding quantile time series data for ED"
+    add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = true)
 end
 
 # Create Master Model folder if not exist
 if !ispath(joinpath(result_dir, master_folder))
-    @info "Create Master folder for $(model_name) at $(joinpath(result_dir, master_folder))"
+    @info "Create Master folder for $(POLICY) at $(joinpath(result_dir, master_folder))"
     mkdir(joinpath(result_dir, master_folder))
 end
 
@@ -56,7 +67,7 @@ init_fr_ED_flag, init_fr_file_flag = determine_init_flag(result_dir, master_fold
 
 if init_fr_ED_flag
 # 1. Run rolling horizon without solution from beginning
-    @info "Running rolling horizon $(model_name) from beginning"  
+    @info "Running rolling horizon $(POLICY) from beginning"  
     # Create folders if not exist
     if !ispath(joinpath(result_dir, master_folder, uc_folder))
         @info "Create folders $(joinpath(result_dir, master_folder, uc_folder)) and $(joinpath(result_dir, master_folder, ed_folder))"
@@ -76,7 +87,7 @@ else
     uc_sol = read_json(uc_sol_file)
     ed_sol = read_json(ed_sol_file)
     init_time = DateTime(String(uc_sol["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
-    @info "Continue running rolling horizon $(model_name) starting from $(init_time)"
+    @info "Continue running rolling horizon $(POLICY) starting from $(init_time)"
     UC_init_value = _get_init_value_for_UC(UCsys; uc_sol = uc_sol, ed_sol = ed_sol, init_fr_file_flag = true)
 end
 ed_model = nothing
@@ -119,9 +130,9 @@ for t in 1:8760
         UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model)  
     end
     uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
-                        start_time = uc_time, scenario_count = scenario_count, horizon = uc_horizon)
+                        start_time = uc_time, scenario_cnt = scenario_cnt, horizon = uc_horizon)
     end
-    @info "$(model_name)-UC model at $(uc_time) is solved in $(one_uc_time) seconds"
+    @info "$(POLICY)-UC model at $(uc_time) is solved in $(one_uc_time) seconds"
     # Get commitment status that will be passed to ED
     uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
     uc_op_price = get_uc_op_price(UCsys, uc_model)
@@ -133,7 +144,7 @@ for t in 1:8760
         ed_time = uc_time + Minute(5*(i-1))
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
-        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_count = scenario_count, theta = theta, start_time = ed_time, horizon = ed_horizon)
+        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_cnt = scenario_cnt, theta = theta, start_time = ed_time, horizon = ed_horizon)
         ed_hour_sol = get_ed_hour_solution(EDsys, ed_model, ed_hour_sol)
         if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
             @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"
@@ -145,9 +156,9 @@ for t in 1:8760
         break
     end
     end
-    @info "$(model_name)-ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
+    @info "$(POLICY)-ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
     uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol)
-    @info "$(model_name)-UC solution is updated"
+    @info "$(POLICY)-UC solution is updated"
     
     # save_date = Date(year(uc_time), month(uc_time), 1)
     # uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
@@ -157,7 +168,7 @@ for t in 1:8760
     # write_json(ed_sol_file, ed_hour_sol)
 
     ed_sol = merge_ed_solution(ed_sol, ed_hour_sol)
-    @info "$(model_name)-ED solution is merged"
+    @info "$(POLICY)-ED solution is merged"
 end
     @info "One iteration takes $(one_iter) seconds"
 end

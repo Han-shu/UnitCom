@@ -82,7 +82,7 @@ scenario_forecast_data = Scenarios(
     name = "solar_power",
     resolution = da_resolution,
     data = hour_ahead_forecast,
-    scenario_count = 10
+    scenario_cnt = 10
 )
 add_time_series!(system, solar_gens, scenario_forecast_data)
 
@@ -99,7 +99,7 @@ scenario_forecast_data = Scenarios(
     name = "wind_power",
     resolution = da_resolution,
     data = hour_ahead_forecast,
-    scenario_count = 10
+    scenario_cnt = 10
 )
 add_time_series!(system, wind_gens, scenario_forecast_data)
 
@@ -116,7 +116,7 @@ scenario_forecast_data = Scenarios(
     name = "load",
     resolution = da_resolution,
     data = hour_ahead_forecast,
-    scenario_count = 10
+    scenario_cnt = 10
 )
 add_time_series!(system, collect(get_components(StaticLoad, system)), scenario_forecast_data)
 
