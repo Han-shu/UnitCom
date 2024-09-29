@@ -15,7 +15,7 @@ function _extract_fcst_matrix(file::String, time::Dates.DateTime, min5_flag::Boo
     end
 end
 
-function comp_new_reserve_requirement(min5_flag::Bool)
+function _get_forecats_error(min5_flag::Bool, theta::Int64)
     if min5_flag
         ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Min5"
     else
@@ -30,6 +30,7 @@ function comp_new_reserve_requirement(min5_flag::Bool)
     end
 
     forecast_error = Dict()
+    initial_time = Dates.DateTime(2018, 12, 31, 20)
     for ix in 1:num_idx
         if min5_flag
             curr_time = initial_time + Minute(5)*(ix - 1)
@@ -46,20 +47,19 @@ function comp_new_reserve_requirement(min5_flag::Bool)
         solar_forecast = solar_forecast[:, net_load_rank] # sort by rank
         wind_forecast = wind_forecast[:, net_load_rank]
         load_forecast = load_forecast[:, net_load_rank] 
-        mid_netload = load_forecast[:,6] - solar_forecast[:, 6] - wind_forecast[:, 6]
-        time_idx = Hour(curr_time)
-        if time_idx not in forecast_error
-            forecast_error[time_idx] = [[base_netload - mid_netload]]
-        else
-            push!(forecast_error[time_idx], [base_netload - mid_netload])
-        end
+        mid_netload = load_forecast[:,theta] - solar_forecast[:, theta] - wind_forecast[:, theta]
+        time_idx = (Dates.hour(curr_time), Dates.minute(curr_time))
+        error = base_netload - mid_netload
+        append!(get!(forecast_error, time_idx, []), [error])
     end
-    reserve_requirement = Dict()
-    for (time_idx, error_list) in forecast_error
-        reserve_requirement[time_idx] = mean(error_list)
-    end
-    return reserve_requirement
+    return forecast_error
 end
 
-
-reserve_req = comp_new_reserve_requirement(false)
+function comp_new_reserve_requirement(min5_flag::Bool, theta::Int64)
+    forecast_error = _get_forecats_error(min5_flag, theta)
+    reserve_requrement = Dict()
+    for (time_idx, error) in forecast_error
+        reserve_requrement[time_idx] = 1.5*std(error) #TODO
+    end
+    return reserve_requrement
+end
