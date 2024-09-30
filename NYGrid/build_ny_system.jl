@@ -61,7 +61,7 @@ function build_ny_system(; base_power = 100)::System
         )
 
     add_component!(system, load)
-    
+
 
     # Add Battery: 1500 MWh 4h battery and Pumped hydro: 1170 MWh 10h battery
         # Aggregate 4h battery: 1500 MWh
@@ -114,6 +114,19 @@ function build_ny_system(; base_power = 100)::System
 
     # Add aggregate hydro
     _add_hydro(system, bus; name = "Hydro", pmin = 0.0, pmax = 5000.0, ramp_10 = 300.0, ramp_30 = 3000.0, cost = TwoPartCost(VariableCost(0.0), 0.0))
+
+    reserve = PSY.VariableReserve(
+        name = 
+        available = true,
+        time_frame = 60, # saturation time frame = 60min
+        requirement = 1.0,
+        sustained_time = 14400, # reserve must be sustanined 4 hours
+        max_output_fraction = 1.0,
+        max_participation_factor = 1.0,
+        deployed_fraction = 0.0,
+        ext = Dict{String, Any}(),
+    )
+    PSY.add_component!(system, reserve)
 
     return system
 end

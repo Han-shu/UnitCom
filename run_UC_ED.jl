@@ -1,6 +1,7 @@
 include("NYGrid/build_ny_system.jl") # function to build the NYGrid system
 include("NYGrid/add_scenarios_ts.jl") # function to add scenario time series data
 include("NYGrid/add_quantile_ts.jl") # function to add quantile time series data
+include("NYGrid/comp_new_reserve_req.jl")
 include("src/stochastic_uc.jl")
 include("src/stochastic_ed.jl")
 include("src/get_solution.jl")
@@ -54,6 +55,12 @@ else # Deterministic model
     add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = true)
     @info "Adding quantile time series data for ED"
     add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = true)
+end
+
+if POLICY == "FR"
+    @info "Adding fixed reserve requirement to UC and ED model"
+    add_fixed_reserve_time_series!(UCsys, theta; min5_flag = false)
+    add_fixed_reserve_time_series!(EDsys, theta; min5_flag = true)
 end
 
 # Create Master Model folder if not exist

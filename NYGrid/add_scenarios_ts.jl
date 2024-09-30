@@ -1,3 +1,5 @@
+include("comp_new_reserve_req.jl")
+
 # Add scenarios data by ranking the total net load 
 
 using PowerSystems, Dates, HDF5, Statistics
@@ -121,3 +123,11 @@ function _add_time_series_hydro!(system::System; min5_flag)::Nothing
 
     return nothing
 end
+
+function add_fixed_reserve_time_series!(system::System, theta::int64; min5_flag::Bool)::Nothing
+    reserve_requirment_ts = comp_fixed_reserve_requirement(min5_flag, theta)
+    reserve = first(get_componets(VariableReserve, system))
+    PSY.set_ext!(reserve, reserve_requirment_ts)
+    return nothing
+end
+    
