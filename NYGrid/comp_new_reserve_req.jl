@@ -55,7 +55,7 @@ function _get_forecats_error(min5_flag::Bool, theta::Int64)
     return forecast_error
 end
 
-function comp_fixed_reserve_requirement(min5_flag::Bool, theta::Int64)
+function comp_fixed_reserve_requirement(theta::Int64; min5_flag::Bool)
     forecast_error = _get_forecats_error(min5_flag, theta)
     reserve_requrement = Dict()
     for (time_idx, error) in forecast_error

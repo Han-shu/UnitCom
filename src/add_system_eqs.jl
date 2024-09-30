@@ -15,7 +15,7 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
 
-    new_reserve_requirement = _get_new_reserve_rerquirement(sys, model, policy)
+    new_reserve_requirement = _get_new_reserve_rerquirement(sys, model, policy, isED)
 
     @variable(model, reserve_short[rr in reserve_products, s in scenarios, t in time_steps, k in 1:length(penalty[rr])] >= 0)
     
@@ -84,11 +84,15 @@ end
     "FR": Fixed reserve requirement
     "DR": Dynamic reserve requirement
 """
-function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::String)::Vector{Float64}
+function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::String, isED::Bool)::Vector{Float64}
     if policy in ["SB", "NR", "BNR"]
         return [0.0 for t in model[:param].time_steps]
     elseif policy == "FR"
-        return #TODO predetermined reserve requirement
+        start_time = model[:param].start_time
+        time_steps = model[:param].time_steps
+        index = (Dates.hour(start_time), Dates.minute(start_time))
+        subdic = isED ? reserve_requirement["ED"] : reserve_requirement["UC"]
+        return subdic[index][time_steps]
     elseif policy == "DR"
         theta1 = 10
         theta2 = 6

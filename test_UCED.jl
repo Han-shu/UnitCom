@@ -15,7 +15,7 @@ uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-model_name, master_folder, uc_folder, ed_folder = get_UCED_model_folder_name(theta = theta, scenario_cnt = scenario_cnt)
+model_name, master_folder, uc_folder, ed_folder = get_UCED_model_folder_name(theta = theta, scenario_count = scenario_cnt)
 
 # Build NY system for UC and ED
 @info "Build NY system for UC"
@@ -109,7 +109,7 @@ for t in 1:8760
         UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model)  
     end
     uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
-                        start_time = uc_time, scenario_cnt = scenario_cnt, horizon = uc_horizon)
+                        start_time = uc_time, scenario_count = scenario_cnt, horizon = uc_horizon)
     end
     @info "UC model at $(uc_time) is solved in $(one_uc_time) seconds"
     # Get commitment status that will be passed to ED
@@ -123,7 +123,7 @@ for t in 1:8760
         ed_time = uc_time + Minute(5*(i-1))
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
-        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_cnt = scenario_cnt, theta = theta, start_time = ed_time, horizon = ed_horizon)
+        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_count = scenario_cnt, theta = theta, start_time = ed_time, horizon = ed_horizon)
         ed_hour_sol = get_ed_hour_solution(EDsys, ed_model, ed_hour_sol)
         if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
             @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"

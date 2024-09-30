@@ -3,7 +3,7 @@ function get_model_file_name(; theta::Union{Nothing, Int64} = nothing, scenario_
         @assert scenario_cnt == 1 "Define theta for DLAC-NLB but scenario_cnt != 1"
         model_name = "DLAC-NLB-$(theta)"
     else
-        scenario_cnt = scenario_cnt # set scenario count 1 for deterministic, 10 for stochastic
+        scenario_count = scenario_cnt # set scenario count 1 for deterministic, 10 for stochastic
         model_name = scenario_cnt == 1 ? "DLAC-AVG" : "SLAC"
     end
     solution_file = joinpath(result_dir, "$(model_name)_sol_$(date).json")

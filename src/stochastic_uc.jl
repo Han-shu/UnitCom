@@ -15,14 +15,14 @@ include("../NYGrid/manual_data_entries.jl")
 
 function stochastic_uc(
     sys::System, optimizer; 
-    start_time = DateTime(2019,1,1,0), scenario_cnt = 10, horizon = 24, 
+    start_time = DateTime(2019,1,1,0), scenario_count = 10, horizon = 24, 
     VOLL=5000, use_must_run=true, init_value=nothing, theta=nothing,
     )
     
     model = Model(optimizer)
     set_silent(model)
     model[:obj] = QuadExpr()
-    parameters = _construct_model_parameters(horizon, scenario_cnt, start_time, VOLL)
+    parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL)
     model[:param] = parameters
 
     if isnothing(init_value)

@@ -1,13 +1,14 @@
+include("../src/structs.jl")
+
+reserve_types = ["10S", "10N", "30S", "30N", "60S", "60N"]
+reserve_products = ["10Spin", "10Total", "30Total", "60Total"]
+
 """
 Reserve requirements for NYISO
 link: https://www.nyiso.com/documents/20142/3694424/Locational-Reserves-Requirements.pdf
 Reserve short penalty
 link: https://www.nyiso.com/documents/20142/9622070/Ancillary%20Services%20Shortage%20Pricing_study%20report.pdf
 """
-include("../src/structs.jl")
-
-reserve_types = ["10S", "10N", "30S", "30N", "60S", "60N"]
-reserve_products = ["10Spin", "10Total", "30Total", "60Total"]
 
 nyca_reserve_requirement = Dict(
     "10Spin" => 655,

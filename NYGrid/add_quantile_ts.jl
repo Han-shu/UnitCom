@@ -116,7 +116,7 @@ function add_quantiles_time_series!(system::System; min5_flag::Bool)::Nothing
         name = "solar_power",
         resolution = resolution,
         data = solar_data,
-        scenario_cnt = scenario_cnt,
+        scenario_count = scenario_cnt,
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, solar_gens, scenario_forecast_data)
@@ -125,7 +125,7 @@ function add_quantiles_time_series!(system::System; min5_flag::Bool)::Nothing
         name = "wind_power",
         resolution = resolution,
         data = wind_data,
-        scenario_cnt = scenario_cnt,
+        scenario_count = scenario_cnt,
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, wind_gens, scenario_forecast_data)
@@ -134,7 +134,7 @@ function add_quantiles_time_series!(system::System; min5_flag::Bool)::Nothing
         name = "load",
         resolution = resolution,
         data = load_data,
-        scenario_cnt = scenario_cnt,
+        scenario_count = scenario_cnt,
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, loads, scenario_forecast_data)

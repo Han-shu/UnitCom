@@ -62,7 +62,7 @@ function add_scenarios_time_series!(system::System; min5_flag::Bool, rank_netloa
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, system)
 
     initial_time = Dates.DateTime(2018, 12, 31, 20)
-    scenario_cnt = 11
+    scenario_cnt = 10
     base_power = PSY.get_base_power(system)
     resolution = min5_flag ? Dates.Minute(5) : Dates.Hour(1)
 
@@ -73,7 +73,7 @@ function add_scenarios_time_series!(system::System; min5_flag::Bool, rank_netloa
         name = "solar_power",
         resolution = resolution,
         data = solar_data,
-        scenario_cnt = scenario_cnt,
+        scenario_count = scenario_cnt,
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, solar_gens, scenario_forecast_data)
@@ -83,7 +83,7 @@ function add_scenarios_time_series!(system::System; min5_flag::Bool, rank_netloa
         name = "wind_power",
         resolution = resolution,
         data = wind_data,
-        scenario_cnt = scenario_cnt,
+        scenario_count = scenario_cnt,
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, wind_gens, scenario_forecast_data)
@@ -92,7 +92,7 @@ function add_scenarios_time_series!(system::System; min5_flag::Bool, rank_netloa
         name = "load",
         resolution = resolution,
         data = load_data,
-        scenario_cnt = scenario_cnt,
+        scenario_count = scenario_cnt,
         scaling_factor_multiplier = PSY.get_base_power
     )
     add_time_series!(system, loads, scenario_forecast_data)
@@ -124,10 +124,11 @@ function _add_time_series_hydro!(system::System; min5_flag)::Nothing
     return nothing
 end
 
-function add_fixed_reserve_time_series!(system::System, theta::int64; min5_flag::Bool)::Nothing
-    reserve_requirment_ts = comp_fixed_reserve_requirement(min5_flag, theta)
-    reserve = first(get_componets(VariableReserve, system))
-    PSY.set_ext!(reserve, reserve_requirment_ts)
-    return nothing
-end
+#TODO: add_fixed_reserve_time_series! function
+# function add_fixed_reserve_time_series!(system::System, theta::Int64; min5_flag::Bool)::Nothing
+#     reserve_requirment_ts = comp_fixed_reserve_requirement(min5_flag, theta)
+#     reserve = first(get_componets(VariableReserve, system))
+#     PSY.set_ext!(reserve, reserve_requirment_ts)
+#     return nothing
+# end
     

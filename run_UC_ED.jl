@@ -9,28 +9,21 @@ include("src/functions.jl")
 include("src/get_init_value.jl")
 include("src/get_uc_op_price.jl")
 
-# Set parameters
-"""
-Current POLICY parameters:
-DLAC-NLB: theta 1~10, scenario_cnt = 1
-DLAC-AVG: theta = nothing, scenario_cnt = 1
-STOCH: theta = nothing, scenario_cnt = 10
-"""
-"""
+#=
     POLICY
     "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
     "NR": 50 percentile forecast
     "BNR": Biased forecast
     "FR": Fixed reserve requirement
     "DR": Dynamic reserve requirement
-"""
+=#
 
 # Specify the policy and running date
 POLICY = "NR"
 run_date = Dates.today() # or Specify running date Date(2024,5,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
-master_folder, uc_folder, ed_folder = POLICY_model_folder_name(POLICY, run_date)
+master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
 theta, scenario_cnt = policy_theta_parameter(POLICY)
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
@@ -57,10 +50,11 @@ else # Deterministic model
     add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = true)
 end
 
+# Compute fixed reserve requirement for FR policy
+reserve_requirement = Dict()
 if POLICY == "FR"
-    @info "Adding fixed reserve requirement to UC and ED model"
-    add_fixed_reserve_time_series!(UCsys, theta; min5_flag = false)
-    add_fixed_reserve_time_series!(EDsys, theta; min5_flag = true)
+    reserve_requirement["UC"] = comp_fixed_reserve_requirement(theta; min5_flag = false)
+    reserve_requirement["ED"] = comp_fixed_reserve_requirement(theta; min5_flag = true)
 end
 
 # Create Master Model folder if not exist
@@ -103,7 +97,7 @@ ed_model = nothing
 # Run rolling horizon UC-ED
 for t in 1:8760
     global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value
-    global uc_time, init_fr_file_flag, init_fr_ED_flag, uc_sol_file, ed_sol_file
+    global uc_time, init_fr_file_flag, init_fr_ED_flag, uc_sol_file, ed_sol_file, reserve_requirement
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
@@ -137,7 +131,7 @@ for t in 1:8760
         UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model)  
     end
     uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
-                        start_time = uc_time, scenario_cnt = scenario_cnt, horizon = uc_horizon)
+                        start_time = uc_time, scenario_count = scenario_cnt, horizon = uc_horizon)
     end
     @info "$(POLICY)-UC model at $(uc_time) is solved in $(one_uc_time) seconds"
     # Get commitment status that will be passed to ED
@@ -151,7 +145,7 @@ for t in 1:8760
         ed_time = uc_time + Minute(5*(i-1))
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
-        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_cnt = scenario_cnt, theta = theta, start_time = ed_time, horizon = ed_horizon)
+        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_count = scenario_cnt, theta = theta, start_time = ed_time, horizon = ed_horizon)
         ed_hour_sol = get_ed_hour_solution(EDsys, ed_model, ed_hour_sol)
         if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
             @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"
@@ -166,13 +160,6 @@ for t in 1:8760
     @info "$(POLICY)-ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
     uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol)
     @info "$(POLICY)-UC solution is updated"
-    
-    # save_date = Date(year(uc_time), month(uc_time), 1)
-    # uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
-    # ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(save_date).json")
-    # @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
-    # write_json(uc_sol_file, uc_sol)
-    # write_json(ed_sol_file, ed_hour_sol)
 
     ed_sol = merge_ed_solution(ed_sol, ed_hour_sol)
     @info "$(POLICY)-ED solution is merged"
