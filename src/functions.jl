@@ -1,5 +1,23 @@
 using JSON, DataStructures
 
+function _read_h5_by_idx(file::String, time::Dates.DateTime)
+    return h5open(file, "r") do file
+        return read(file, string(time))
+    end
+end
+
+function _extract_fcst_matrix(file::String, time::Dates.DateTime, min5_flag::Bool)
+    matrix = _read_h5_by_idx(file, time)
+    # the first scenario is the historical data, so we skip it
+    if min5_flag
+        # ED: Use from 1st time point
+        return matrix[:, 1], matrix[:, 2:end]
+    else
+        # UC: Use from 2nd time point becase the first time point is the historical data
+        return matrix[2:end, 1], matrix[2:end, 2:end]
+    end
+end
+
 function _init(model::JuMP.Model, key::Symbol)::OrderedDict
     if !(key in keys(object_dictionary(model)))
         model[key] = OrderedDict()

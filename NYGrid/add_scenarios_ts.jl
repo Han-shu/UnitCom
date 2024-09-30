@@ -1,14 +1,10 @@
-include("comp_new_reserve_req.jl")
+include("../src/functions.jl")
 
 # Add scenarios data by ranking the total net load 
 
 using PowerSystems, Dates, HDF5, Statistics
 
-function _read_h5_by_idx(file, time)
-    return h5open(file, "r") do file
-        return read(file, string(time))
-    end
-end
+
 
 function _construct_fcst_data(base_power::Float64, initial_time::DateTime; min5_flag::Bool, rank_netload::Bool)
     if min5_flag
@@ -34,9 +30,10 @@ function _construct_fcst_data(base_power::Float64, initial_time::DateTime; min5_
         else
             curr_time = initial_time + Hour(ix - 1)
         end
-        solar_forecast = _read_h5_by_idx(solar_file, curr_time)
-        wind_forecast = _read_h5_by_idx(wind_file, curr_time)
-        load_forecast = _read_h5_by_idx(load_file, curr_time)
+
+        history_solar, solar_forecast = _extract_fcst_matrix(solar_file, curr_time, min5_flag)
+        history_wind, wind_forecast = _extract_fcst_matrix(wind_file, curr_time, min5_flag)
+        history_load, load_forecast = _extract_fcst_matrix(load_file, curr_time, min5_flag)
 
         if rank_netload
             net_load = load_forecast - solar_forecast - wind_forecast
@@ -62,7 +59,7 @@ function add_scenarios_time_series!(system::System; min5_flag::Bool, rank_netloa
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, system)
 
     initial_time = Dates.DateTime(2018, 12, 31, 20)
-    scenario_cnt = 10
+    scenario_cnt = 9 #TODO update to 11 with updated data
     base_power = PSY.get_base_power(system)
     resolution = min5_flag ? Dates.Minute(5) : Dates.Hour(1)
 

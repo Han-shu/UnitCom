@@ -1,19 +1,6 @@
+include("../src/functions.jl")
+
 using Dates, HDF5, Statistics
-
-function _read_h5_by_idx(file::String, time::Dates.DateTime)
-    return h5open(file, "r") do file
-        return read(file, string(time))
-    end
-end
-
-function _extract_fcst_matrix(file::String, time::Dates.DateTime, min5_flag::Bool)
-    matrix = _read_h5_by_idx(file, time)
-    if min5_flag
-        return matrix[:, 1], matrix[:, 2:end]
-    else
-        return matrix[2:end, 1], matrix[2:end, 2:end]
-    end
-end
 
 function _get_forecats_error(min5_flag::Bool, theta::Int64)
     if min5_flag
@@ -37,10 +24,10 @@ function _get_forecats_error(min5_flag::Bool, theta::Int64)
         else
             curr_time = initial_time + Hour(ix - 1)
         end
-        base_solar, solar_forecast = _extract_fcst_matrix(solar_file, curr_time, min5_flag)
-        base_wind, wind_forecast = _extract_fcst_matrix(wind_file, curr_time, min5_flag)
-        base_load, load_forecast = _extract_fcst_matrix(load_file, curr_time, min5_flag)
-        base_netload = base_load - base_solar - base_wind
+        history_solar, solar_forecast = _extract_fcst_matrix(solar_file, curr_time, min5_flag)
+        history_wind, wind_forecast = _extract_fcst_matrix(wind_file, curr_time, min5_flag)
+        history_load, load_forecast = _extract_fcst_matrix(load_file, curr_time, min5_flag)
+        base_netload = history_load - history_solar - history_wind
         net_load = load_forecast - solar_forecast - wind_forecast
         net_load_path = sum(net_load, dims=1)
         net_load_rank = sortperm(vec(net_load_path)) # from low to high

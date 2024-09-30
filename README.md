@@ -1,14 +1,14 @@
 # UnitCom
 
 # TODO
-- _read_h5_file: attach scenarios 2:12 time series
-- UC: Use from 2nd time point, ED: Use from 1st time point
-- Bttery qualification for the new product
+- function _extract_fcst_matrix: ~~_read_h5_file: attach scenarios 2:12 time series~~
+- function _extract_fcst_matrix: ~~UC: Use from 2nd time point, ED: Use from 1st time point~~
+- Battery qualification for the new product
 - New reserve product requirement
     - Fixed reserve (FR)
     - Dynamic reserve (DR)
 - Add model configuration for different policies (SB, NR, BNR, FR, DR)
-- Deterministic model: attach one scenario time series according to theta
+- No need: Deterministic model: attach one scenario time series according to theta
 
 
 # Storage Capacity
