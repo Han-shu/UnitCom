@@ -7,16 +7,16 @@ function init_ed_hour_solution(sys::System)::OrderedDict
     sol["Reserve price 10Total"] = []
     sol["Reserve price 30Total"] = []
     sol["LMP"] = []
-    sol["Operation_cost"] = []
+    sol["Operation Cost"] = []
     sol["charge_consumers"] = []
     sol["Net load"] = []
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
-    sol["Generator energy dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
-    sol["Storage energy"] = OrderedDict(b => [] for b in storage_names)
+    sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Storage Energy"] = OrderedDict(b => [] for b in storage_names)
     sol["Curtailment"] = OrderedDict(i => [] for i in ["load", "wind", "solar"])
-    sol["gen_profits"] = OrderedDict(g => [] for g in thermal_gen_names)
-    sol["Other profits"] = OrderedDict(b => [] for b in ["BA", "wind", "solar", "hydro"])
+    sol["Generator Profits"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Other Profits"] = OrderedDict(b => [] for b in ["BA", "wind", "solar", "hydro"])
     return sol
 end
 
@@ -29,8 +29,8 @@ function init_ed_solution(sys::System)::OrderedDict
     sol["Reserve price 30Total"] = []
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
-    sol["Generator energy dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
-    sol["Storage energy"] = OrderedDict(b => [] for b in storage_names)
+    sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Storage Energy"] = OrderedDict(b => [] for b in storage_names)
     return sol
 end
 
@@ -41,7 +41,7 @@ function get_ed_hour_solution(sys::System, model::JuMP.Model, sol::OrderedDict):
     push!(sol["Reserve price 10Total"], reserve_prices["10T"])
     push!(sol["Reserve price 30Total"], reserve_prices["30T"])
     push!(sol["LMP"], _get_ED_dual_price(model, :eq_power_balance))
-    push!(sol["Operation_cost"], _compute_ed_cost(sys, model))
+    push!(sol["Operation Cost"], _compute_ed_cost(sys, model))
     push!(sol["charge_consumers"], _compute_ed_charge(sys, model))
     push!(sol["Net load"], _compute_ed_net_load(sys, model))
     curtailment = _compute_ed_curtailment(sys, model)
@@ -52,17 +52,17 @@ function get_ed_hour_solution(sys::System, model::JuMP.Model, sol::OrderedDict):
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     for g in thermal_gen_names
-        push!(sol["Generator energy dispatch"][g], value(model[:pg][g,1,1]))
-        push!(sol["gen_profits"][g], gen_profits[g])
+        push!(sol["Generator Dispatch"][g], value(model[:pg][g,1,1]))
+        push!(sol["Generator Profits"][g], gen_profits[g])
     end
     for b in storage_names
-        push!(sol["Storage energy"][b], value(model[:eb][b,1,1]))
-        push!(sol["Other profits"][b], storage_profits[b])
+        push!(sol["Storage Energy"][b], value(model[:eb][b,1,1]))
+        push!(sol["Other Profits"][b], storage_profits[b])
     end
     renewable_profits = _compute_ed_renewable_profits(sys, model)
-    push!(sol["Other profits"]["wind"], renewable_profits["wind"])
-    push!(sol["Other profits"]["solar"], renewable_profits["solar"])
-    push!(sol["Other profits"]["hydro"], renewable_profits["hydro"])
+    push!(sol["Other Profits"]["wind"], renewable_profits["wind"])
+    push!(sol["Other Profits"]["solar"], renewable_profits["solar"])
+    push!(sol["Other Profits"]["hydro"], renewable_profits["hydro"])
     return sol 
 end
 
@@ -79,7 +79,7 @@ function merge_ed_solution(ed_sol::OrderedDict, ed_hour_sol::OrderedDict)::Order
     for key in keys(ed_hour_sol)
         if key == "Time"
             push!(ed_sol[key], ed_hour_sol[key][1])
-        elseif key in ["Generator energy dispatch", "Storage energy"]
+        elseif key in ["Generator Dispatch", "Storage Energy"]
             for g in keys(ed_hour_sol[key])
                 push!(ed_sol[key][g], ed_hour_sol[key][g][end])
             end   
@@ -91,22 +91,6 @@ function merge_ed_solution(ed_sol::OrderedDict, ed_hour_sol::OrderedDict)::Order
     end
     return ed_sol
 end
-
-
-# function merge_ed_solution(ed_sol::OrderedDict, ed_hour_sol::OrderedDict)::OrderedDict
-#     for key in keys(ed_hour_sol)
-#         if key in ["Generator energy dispatch", "Storage energy", "gen_profits", "storage_profits"]
-#             for g in keys(ed_hour_sol[key])
-#                 push!(ed_sol[key][g], ed_hour_sol[key][g])
-#             end
-#         elseif key == "Time"
-#             push!(ed_sol[key], ed_hour_sol[key][1])
-#         else
-#             push!(ed_sol[key], ed_hour_sol[key])
-#         end
-#     end
-#     return ed_sol
-# end
 
 
 
@@ -122,8 +106,10 @@ function init_solution_uc(sys::System)::OrderedDict
     sol["System operator cost"] = []
     sol["Charge consumers"] = []
     sol["Curtailment"] = OrderedDict(i => [] for i in ["load", "wind", "solar"])
-    sol["Generator profits"] = OrderedDict(g => [] for g in thermal_gen_names)
-    sol["Other profits"] = OrderedDict(b => [] for b in ["BA", "wind", "solar", "hydro"])
+    sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Generator Profits"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Storage Energy"] = OrderedDict(b => [] for b in storage_names)
+    sol["Other Profits"] = OrderedDict(b => [] for b in ["BA", "wind", "solar", "hydro"])
     sol["Commitment status"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Start up"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Shut down"] = OrderedDict(g => [] for g in thermal_gen_names)
@@ -136,23 +122,28 @@ function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, so
     push!(sol["Hourly average reserve price 10Spin"], mean(ed_sol["Reserve price 10Spin"]))
     push!(sol["Hourly average reserve price 10Total"], mean(ed_sol["Reserve price 10Total"]))
     push!(sol["Hourly average reserve price 30Total"], mean(ed_sol["Reserve price 30Total"]))
-    sys_cost = mean(ed_sol["Operation_cost"])
+    sys_cost = mean(ed_sol["Operation Cost"])
     push!(sol["Charge consumers"], mean(ed_sol["charge_consumers"]))
-    gen_profits, sys_cost = minus_uc_integer_cost_thermal_gen(sys, model, ed_sol["gen_profits"], sys_cost)
+    gen_profits, sys_cost = minus_uc_integer_cost_thermal_gen(sys, model, ed_sol["Generator Profits"], sys_cost)
     push!(sol["System operator cost"], sys_cost)
     for i in ["load", "wind", "solar"]
         push!(sol["Curtailment"][i], mean(ed_sol["Curtailment"][i]))
     end
     
     for b in ["BA", "wind", "solar", "hydro"]
-        push!(sol["Other profits"][b], mean(ed_sol["Other profits"][b]))
+        push!(sol["Other Profits"][b], mean(ed_sol["Other Profits"][b]))
     end
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     for g in thermal_gen_names
-        push!(sol["Generator profits"][g], gen_profits[g])
+        push!(sol["Generator Dispatch"][g], mean(ed_sol["Generator Dispatch"][g]))
+        push!(sol["Generator Profits"][g], gen_profits[g])
         push!(sol["Commitment status"][g], Int(round(value(model[:ug][g,1]), digits=0)))
         push!(sol["Start up"][g], Int(round(value(model[:vg][g,1]), digits=0)))
         push!(sol["Shut down"][g], Int(round(value(model[:wg][g,1]), digits=0)))
+    end
+    storage_names = get_name.(get_components(GenericBattery, sys))
+    for b in storage_names
+        push!(sol["Storage Energy"][b], mean(ed_sol["Storage Energy"][b]))
     end
     return sol
 end
@@ -164,7 +155,7 @@ end
 #     storage_names = get_name.(get_components(GenericBattery, sys))
 #     sol = OrderedDict()
 #     sol["Time"] = []
-#     sol["Generator energy dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
+#     sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
 #     sol["Commitment status"] = OrderedDict(g => [] for g in thermal_gen_names)
 #     sol["Start up"] = OrderedDict(g => [] for g in thermal_gen_names)
 #     sol["Shut down"] = OrderedDict(g => [] for g in thermal_gen_names)
@@ -190,7 +181,7 @@ end
 #     storage_names = get_name.(get_components(GenericBattery, sys))
 #     push!(sol["Time"], model[:param].start_time)
 #     for g in thermal_gen_names
-#         push!(sol["Generator energy dispatch"][g], value(model[:t_pg][g]))
+#         push!(sol["Generator Dispatch"][g], value(model[:t_pg][g]))
 #         push!(sol["Commitment status"][g], value(model[:ug][g,1]))
 #         push!(sol["Start up"][g], value(model[:vg][g,1]))
 #         push!(sol["Shut down"][g], value(model[:wg][g,1]))
