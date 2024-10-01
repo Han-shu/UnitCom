@@ -6,12 +6,13 @@ using PowerSystems, Dates, HDF5, Statistics
 
 
 
-function _construct_fcst_data(base_power::Float64, initial_time::DateTime; min5_flag::Bool, rank_netload::Bool)
+function _construct_fcst_data(base_power::Float64; min5_flag::Bool, rank_netload::Bool)
     if min5_flag
         ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Min5"
     else
         ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Hour"
     end
+    initial_time = Dates.DateTime(2018, 12, 31, 21)
     solar_file = joinpath(ts_dir, "solar_scenarios.h5")
     wind_file = joinpath(ts_dir, "wind_scenarios.h5")
     load_file = joinpath(ts_dir, "load_scenarios.h5")
@@ -27,6 +28,9 @@ function _construct_fcst_data(base_power::Float64, initial_time::DateTime; min5_
     for ix in 1:num_idx
         if min5_flag
             curr_time = initial_time + Minute(5)*(ix - 1)
+            if curr_time > Dates.DateTime(2019, 12, 31, 0)
+                break
+            end
         else
             curr_time = initial_time + Hour(ix - 1)
         end
@@ -58,13 +62,12 @@ function add_scenarios_time_series!(system::System; min5_flag::Bool, rank_netloa
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, system)
 
-    initial_time = Dates.DateTime(2018, 12, 31, 20)
-    scenario_cnt = 9 #TODO update to 11 with updated data
+    scenario_cnt = 11 
     base_power = PSY.get_base_power(system)
     resolution = min5_flag ? Dates.Minute(5) : Dates.Hour(1)
 
     #construct data dict (rank_netload = true: ranking senarios by net load from low to high)
-    solar_data, wind_data, load_data = _construct_fcst_data(base_power, initial_time; min5_flag = min5_flag, rank_netload = rank_netload)
+    solar_data, wind_data, load_data = _construct_fcst_data(base_power; min5_flag = min5_flag, rank_netload = rank_netload)
 
     scenario_forecast_data = Scenarios(
         name = "solar_power",
@@ -103,7 +106,7 @@ end
 function _add_time_series_hydro!(system::System; min5_flag)::Nothing
     hydro_file = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid/hydro_2019.csv"
     df_ts = CSV.read(hydro_file, DataFrame)
-    init_time = Dates.DateTime(2018, 12, 31, 20)
+    init_time = Dates.DateTime(2018, 12, 31, 21)
     df_ts = df_ts[df_ts.Time_Stamp .>= init_time, :]
     # Get hourly average
     if min5_flag

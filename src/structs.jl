@@ -1,3 +1,5 @@
+include("../NYGrid/manual_data_entries.jl") 
+
 mutable struct PriceMW
     price
     MW
@@ -15,7 +17,7 @@ mutable struct Parameters
 end
 
 function _construct_model_parameters(horizon::Int, scenario_cnt::Int, start_time::DateTime, VOLL::Int)
-    return Parameters(1:horizon, 1:scenario_cnt, reserve_types, start_time, VOLL, reserve_products, reserve_requirements, reserve_short_penalty)
+    return Parameters(1:horizon, 1:scenario_cnt, reserve_types, start_time, VOLL, reserve_products, nyca_reserve_requirement, reserve_short_penalty)
 end
 
 

@@ -1,4 +1,4 @@
-using JSON, DataStructures
+using JuMP, JSON, DataStructures
 
 function _read_h5_by_idx(file::String, time::Dates.DateTime)
     return h5open(file, "r") do file

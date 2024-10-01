@@ -1,4 +1,4 @@
-include("../src/structs.jl")
+# include("../src/structs.jl")
 
 reserve_types = ["10S", "10N", "30S", "30N", "60S", "60N"]
 reserve_products = ["10Spin", "10Total", "30Total", "60Total"]

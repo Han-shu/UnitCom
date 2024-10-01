@@ -17,7 +17,7 @@ function _get_forecats_error(min5_flag::Bool, theta::Int64)
     end
 
     forecast_error = Dict()
-    initial_time = Dates.DateTime(2018, 12, 31, 20)
+    initial_time = Dates.DateTime(2018, 12, 31, 21)
     for ix in 1:num_idx
         if min5_flag
             curr_time = initial_time + Minute(5)*(ix - 1)

@@ -83,7 +83,7 @@ function add_quantiles_time_series!(system::System; min5_flag::Bool)::Nothing
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, system)
 
-    initial_time = Dates.DateTime(2018, 12, 31, 20)
+    initial_time = Dates.DateTime(2018, 12, 31, 21)
     resolution = min5_flag ? Minute(5) : Dates.Hour(1)
     scenario_cnt = 99
     base_power = PSY.get_base_power(system)
