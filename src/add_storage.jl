@@ -16,12 +16,12 @@ function _add_stroage!(sys::System, model::JuMP.Model)::Nothing
     @variable(model, kb_charge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_charge_max[b])
     @variable(model, kb_discharge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b])
     @variable(model, eb[b in storage_names, s in scenarios, t in time_steps], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
-    @variable(model, battery_reserve[b in storage_names, r in ["10S", "30S"], s in scenarios, t in time_steps], lower_bound = 0)
+    @variable(model, battery_reserve[b in storage_names, r in ["10S", "30S", "60S"], s in scenarios, t in time_steps], lower_bound = 0)
 
     # Constraints
     # Battery discharge
     @constraint(model, battery_discharge[b in storage_names, s in scenarios, t in time_steps], 
-                    kb_discharge[b,s,t] + battery_reserve[b,"10S",s,t] + battery_reserve[b,"30S",s,t] <= kb_discharge_max[b])
+                    kb_discharge[b,s,t] + battery_reserve[b,"10S",s,t] + battery_reserve[b,"30S",s,t] + battery_reserve[b,"60S",s,t] <= kb_discharge_max[b])
     # Storage energy update
     @constraint(model, eq_storage_energy[b in storage_names, s in scenarios, t in time_steps],
         eb[b,s,t] == (t==1 ? eb_t0[b] : eb[b,s,t-1]) + η[b].in * kb_charge[b,s,t] - (1/η[b].out) * kb_discharge[b,s,t])

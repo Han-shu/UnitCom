@@ -60,7 +60,7 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
         else
             @constraint(model, pg[g,s,t] >= pg_lim[g].min*ug[g][i])
         end
-        @constraint(model, pg[g,s,t] + rg[g,"10S",s,t] + rg[g,"30S",s,t] <= pg_lim[g].max*ug[g][i])
+        @constraint(model, pg[g,s,t] + rg[g,"10S",s,t] + rg[g,"30S",s,t] + rg[g,"60S",s,t] <= pg_lim[g].max*ug[g][i])
     end
 
     # ramping constraints and reserve constraints
@@ -81,10 +81,12 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
         i = Int(div(min_step+t-1, 12)+1)
         @constraint(model, rg[g,"10S",s,t]<= ramp_10[g]*ug[g][i])
         @constraint(model, rg[g,"10S",s,t] + rg[g,"30S",s,t] <= ramp_30[g]*ug[g][i])
+        @constraint(model, rg[g,"10S",s,t] + rg[g,"30S",s,t] + rg[g,"60S",s,t] <= 2*ramp_30[g]*ug[g][i])
         @constraint(model, rg[g,"10N",s,t]<= ramp_10[g]*(1-ug[g][i]))
-        @constraint(model, rg[g,"10N",s,t]+ rg[g,"30N",s,t]<= ramp_30[g]*(1-ug[g][i]))
-        @constraint(model, rg[g,"10S",s,t] + rg[g,"30S",s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g][i])
-        @constraint(model, rg[g,"10N",s,t]+ rg[g,"30N",s,t]<= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g][i]))
+        @constraint(model, rg[g,"10N",s,t]+ rg[g,"30N",s,t] <= ramp_30[g]*(1-ug[g][i]))
+        @constraint(model, rg[g,"10N",s,t]+ rg[g,"30N",s,t] + rg[g,"60S",s,t] <= 2*ramp_30[g]*(1-ug[g][i]))
+        @constraint(model, rg[g,"10S",s,t] + rg[g,"30S",s,t] + rg[g,"60S",s,t] <= (pg_lim[g].max - pg_lim[g].min)*ug[g][i])
+        @constraint(model, rg[g,"10N",s,t]+ rg[g,"30N",s,t] + rg[g,"60N",s,t] <= (pg_lim[g].max - pg_lim[g].min)*(1-ug[g][i]))
     end
 
     # Storage
@@ -97,17 +99,19 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
     @variable(model, kb_charge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_charge_max[b]) # power capacity MW
     @variable(model, kb_discharge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b])
     @variable(model, eb[b in storage_names, s in scenarios, t in time_steps], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
-    @variable(model, battery_reserve[b in storage_names, r in ["10S", "30S"], s in scenarios, t in time_steps], lower_bound = 0)
+    @variable(model, battery_reserve[b in storage_names, r in ["10S", "30S", "60S"], s in scenarios, t in time_steps], lower_bound = 0)
 
     @constraint(model, battery_discharge[b in storage_names, s in scenarios, t in time_steps], 
-                    kb_discharge[b,s,t] + battery_reserve[b,"10S",s,t] + battery_reserve[b,"30S",s,t] <= kb_discharge_max[b])
+                    kb_discharge[b,s,t] + battery_reserve[b,"10S",s,t] + battery_reserve[b,"30S",s,t] + battery_reserve[b,"60S",s,t] <= kb_discharge_max[b])
 
     # energy capacity MWh
     @constraint(model, eq_storage_energy[b in storage_names, s in scenarios, t in time_steps],
         eb[b,s,t] == (t == 1 ? eb_t0[b] : eb[b,s,t-1]) + η[b].in * kb_charge[b,s,t]/12 - (1/η[b].out) * kb_discharge[b,s,t]/12)
 
     # Add residual value of storage
-    add_to_expression!(model[:obj], sum(eb[b,s,last(time_steps)] for b in storage_names, s in scenarios), -uc_op_price[2]/length(scenarios))
+    for b in storage_names
+        add_to_expression!(model[:obj], sum(eb[b,s,last(time_steps)] for s in scenarios), -uc_op_price[b][2]/length(scenarios))
+    end
 
     # net load = load - wind - solar - hydro
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys)

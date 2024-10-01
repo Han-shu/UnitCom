@@ -38,8 +38,9 @@ function _get_ED_reserve_prices(model::JuMP.Model)::Dict{String, Float64}
     sys_lambda_10S = _get_ED_dual_price(model, :eq_reserve_10Spin)
     sys_lambda_10T = _get_ED_dual_price(model, :eq_reserve_10Total)
     sys_lambda_30T = _get_ED_dual_price(model, :eq_reserve_30Total)
+    sys_lambda_60T = _get_ED_dual_price(model, :eq_reserve_60Total)
     reserve_prices = Dict("10S" => sys_lambda_10S + sys_lambda_10T + sys_lambda_30T, 
-                          "10T" => sys_lambda_10T + sys_lambda_30T, "30T" => sys_lambda_30T)
+                          "10T" => sys_lambda_10T + sys_lambda_30T, "30T" => sys_lambda_30T, "60T" => sys_lambda_60T)
     return reserve_prices
 end
 
@@ -57,10 +58,12 @@ function _compute_ed_charge(sys::System, model::JuMP.Model)::Float64
 
     reserve_charge_t = sum(reserve_prices["10S"]*value(model[:rg][g,"10S",1,1]) + 
             reserve_prices["10T"]*value(model[:rg][g,"10N",1,1]) + 
-            reserve_prices["30T"]*(value(model[:rg][g,"30S",1,1]) + value(model[:rg][g,"30N",1,1])) 
+            reserve_prices["30T"]*(value(model[:rg][g,"30S",1,1]) + value(model[:rg][g,"30N",1,1])) +
+            reserve_prices["60T"]*(value(model[:rg][g,"60S",1,1]) + value(model[:rg][g,"60N",1,1]))
                         for g in thermal_gen_names) +
             sum(reserve_prices["10S"]*value(model[:battery_reserve][b,"10S",1,1]) + 
-                reserve_prices["30T"]*value(model[:battery_reserve][b,"30S",1,1]) for b in storage_names)
+                reserve_prices["30T"]*value(model[:battery_reserve][b,"30S",1,1]) +
+                reserve_prices["60T"]*value(model[:battery_reserve][b,"60S",1,1]) for b in storage_names)
 
     charge_t = energy_charge_t + reserve_charge_t
 
@@ -79,7 +82,8 @@ function _compute_ed_gen_profits(sys::System, model::JuMP.Model)
         profit = ((LMP-variable_cost[g])*value(model[:pg][g,1,1]) + 
                 reserve_prices["10S"]*value(model[:rg][g,"10S",1,1]) +
                 reserve_prices["10T"]*value(model[:rg][g,"10N",1,1]) + 
-                reserve_prices["30T"]*(value(model[:rg][g,"30S",1,1]) + value(model[:rg][g,"30N",1,1]))) 
+                reserve_prices["30T"]*(value(model[:rg][g,"30S",1,1]) + value(model[:rg][g,"30N",1,1]))) +
+                reserve_prices["60T"]*(value(model[:rg][g,"60S",1,1]) + value(model[:rg][g,"60N",1,1]))
         gen_profits[g] = profit
     end
 
@@ -88,7 +92,8 @@ function _compute_ed_gen_profits(sys::System, model::JuMP.Model)
     for b in storage_names
         profit = (LMP*(value(model[:kb_discharge][b,1,1])-value(model[:kb_charge][b,1,1])) + 
                 reserve_prices["10S"]*value(model[:battery_reserve][b,"10S",1,1]) + 
-                reserve_prices["30T"]*value(model[:battery_reserve][b,"30S",1,1]))
+                reserve_prices["30T"]*value(model[:battery_reserve][b,"30S",1,1])) + 
+                reserve_prices["60T"]*value(model[:battery_reserve][b,"60S",1,1])
         storage_profits[b] = profit
     end
 

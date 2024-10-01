@@ -15,7 +15,7 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
 
-    new_reserve_requirement = _get_new_reserve_rerquirement(sys, model, policy, isED)
+    new_reserve_requirement = _get_new_reserve_rerquirement(sys, model, POLICY, isED)
 
     @variable(model, reserve_short[rr in reserve_products, s in scenarios, t in time_steps, k in 1:length(penalty[rr])] >= 0)
     
@@ -31,10 +31,12 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
                                             penalty[rr][k].price*multiplier)
             end
         else # "60Total"
-            @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= new_reserve_requirement[t])
-            if ~isED
-                add_to_expression!(model[:obj], sum(reserve_short[rr,s,t,k] for s in scenarios, t in time_steps), 
-                                            penalty[rr][k].price*multiplier)
+            for k in eachindex(penalty[rr])
+                @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= new_reserve_requirement[t])
+                if ~isED
+                    add_to_expression!(model[:obj], sum(reserve_short[rr,s,t,k] for s in scenarios, t in time_steps), 
+                                                penalty[rr][k].price*multiplier)
+                end
             end
         end
     end

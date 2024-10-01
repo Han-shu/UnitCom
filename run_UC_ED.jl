@@ -96,8 +96,9 @@ ed_model = nothing
 
 # Run rolling horizon UC-ED
 for t in 1:8760
+    global POLICY, reserve_requirement
     global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value
-    global uc_time, init_fr_file_flag, init_fr_ED_flag, uc_sol_file, ed_sol_file, reserve_requirement
+    global uc_time, init_fr_file_flag, init_fr_ED_flag, uc_sol_file, ed_sol_file
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition

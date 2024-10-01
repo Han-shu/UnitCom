@@ -4,7 +4,7 @@
     The dual values would be used to calculate as the residual value of storage
 """
 
-function get_uc_op_price(sys::System, model::JuMP.Model)::Vector
+function get_uc_op_price(sys::System, model::JuMP.Model)::OrderedDict
     @info "Reoptimize with fixed integer variables ..."
     fix!(sys, model)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
@@ -16,8 +16,8 @@ function get_uc_op_price(sys::System, model::JuMP.Model)::Vector
         unset_binary(model[:wg][g,t])
     end 
     optimize!(model)
-    # LMP = [sum(dual(model[:eq_power_balance][s,t]) for s in scenarios) for t in time_steps]
-    op_price = [sum(dual(model[:eq_storage_energy]["BA",s,t]) for s in scenarios) for t in time_steps]
+    storage_names = get_name.(get_components(GenericBattery, sys))
+    op_price = OrderedDict(b => [sum(dual(model[:eq_storage_energy][b,s,t]) for s in scenarios) for t in time_steps] for b in storage_names)
     return op_price
 end
 
