@@ -75,7 +75,7 @@ if init_fr_ED_flag
         mkdir(joinpath(result_dir, master_folder, uc_folder))
         mkdir(joinpath(result_dir, master_folder, ed_folder))
     end
-    init_time = DateTime(2018,12,31,20)
+    init_time = DateTime(2018,12,31,21)
     uc_sol = init_solution_uc(UCsys)
     ed_sol = init_ed_solution(EDsys)
     UC_init_value = _get_init_value_for_UC(UCsys; init_fr_ED_flag = true)
