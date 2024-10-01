@@ -1,5 +1,5 @@
 """
-    get_uc_op_price(sys::System, model::JuMP.Model)
+    get_uc_op_price(sys::System, model::JuMP.Model)::OrderedDict
     Obtain the dual values of the energy storage energy balance constraints in the UC model.
     The dual values would be used to calculate as the residual value of storage
 """

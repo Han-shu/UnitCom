@@ -1,4 +1,4 @@
-include("../NYGrid/manual_data_entries.jl") 
+# include("../NYGrid/manual_data_entries.jl") 
 
 mutable struct PriceMW
     price
