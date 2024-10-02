@@ -48,7 +48,7 @@ function policy_theta_parameter(POLICY::String)
         theta = nothing
         scenario_cnt = 11
     elseif POLICY == "BNR"
-        theta = 8
+        theta = 10
         scenario_cnt = 1
     elseif POLICY in ["NR", "FR", "DR"]
         theta = 6

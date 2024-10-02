@@ -63,15 +63,15 @@ function build_ny_system(; base_power = 100)::System
     add_component!(system, load)
 
 
-    # Add Battery: 1500 MWh 4h battery and Pumped hydro: 1170 MWh 10h battery
-        # Aggregate 4h battery: 1500 MWh
+    # Add Battery: 1500 MW 4h battery and Pumped hydro: 1170 MW 10h battery
+        # Aggregate 4h battery: 1500 MW, 6000 MWh
     eff = 0.9
-    energy_capacity = 15 # 1500MW sum(storage[:, :EnergyCapacity]) / 10000.0
-    rating = energy_capacity * 0.25 # 4 hour battery
+    rating = 15 # 1500MW, 4 hour battery
+    energy_capacity = rating*4 # 6000 MWh
     bus = get_bus(system, 1)
     _build_battery(system, GenericBattery, bus, "BA", energy_capacity, rating, eff)  # Call build battery function
     
-        # Aggregate Pumped hydro (treat as 10h battery): 1170 MWh
+        # Aggregate Pumped hydro (treat as 10h battery): 1170 MW, 11700 MWh
     _build_battery(system, GenericBattery, bus, "PH", 117, 11.7, 0.9)
 
 
