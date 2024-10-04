@@ -43,6 +43,9 @@ function _get_forecast_renewables(sys::System, model::JuMP.Model; theta::Union{N
                 get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))
                 for g in wind_gens)
         end
+    elseif theta == 100
+        load = first(get_components(StaticLoad, sys))
+        forecast_solar, forecast_wind = _get_worst_renewables(first(solar_gens), first(wind_gens), load, start_time, time_steps)
     else
         forecast_solar = Dict(get_name(g) => 
             get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps))[:, theta]
@@ -53,5 +56,16 @@ function _get_forecast_renewables(sys::System, model::JuMP.Model; theta::Union{N
     end
 
     return forecast_solar, forecast_wind
+end
+
+function _get_worst_renewables(solar_gen::RenewableGen, wind_gen::RenewableGen, load::StaticLoad, start_time::DateTime, time_steps)
+    fcst_solar = get_time_series_values(Scenarios, solar_gen, "solar_power", start_time = start_time, len = length(time_steps))
+    fcst_wind = get_time_series_values(Scenarios, wind_gen, "wind_power", start_time = start_time, len = length(time_steps))
+    fcst_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
+    fcst_netload = fcst_load .- fcst_solar .- fcst_wind
+    worst_index = argmax(fcst_netload, dims = 2)
+    fcst_solar_worst = Dict(get_name(solar_gen) => fcst_solar[worst_index])
+    fcst_wind_worst = Dict(get_name(wind_gen) => fcst_wind[worst_index])
+    return fcst_solar_worst, fcst_wind_worst
 end
 

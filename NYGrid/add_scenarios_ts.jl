@@ -5,7 +5,13 @@ include("../src/functions.jl")
 using PowerSystems, Dates, HDF5, Statistics
 
 
-
+"""
+    _construct_fcst_data(base_power::Float64; min5_flag::Bool, rank_netload::Bool)
+    return solar_data, wind_data, load_data for forecast data in h5 files
+    x_data: Dict{Dates.DateTime, Matrix{Float64}} where x = solar, wind, load
+    key = time, value = forecast data indexed by time
+    if rank_netload = true, ranking senarios by sum of net load from low to high
+"""
 function _construct_fcst_data(base_power::Float64; min5_flag::Bool, rank_netload::Bool)
     if min5_flag
         ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Min5"

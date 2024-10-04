@@ -13,13 +13,14 @@ include("src/get_uc_op_price.jl")
     POLICY
     "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
     "NR": 50 percentile forecast
-    "BNR": Biased forecast
+    "BNR": Biased forecast (theta = 11)
+    "RF": Robust forecast (worst case, theta = 100)
     "FR": Fixed reserve requirement
     "DR": Dynamic reserve requirement
 =#
 
 # Specify the policy and running date
-POLICY = "BNR"
+POLICY = "NR"
 run_date = Dates.today() # or Specify running date Date(2024,5,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 

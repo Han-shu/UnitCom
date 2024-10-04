@@ -15,6 +15,10 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
         else
             load_matrix = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
         end
+    elseif theta == 100
+        solar_gen = first(get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys))
+        wind_gen = first(get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys))
+        load_matrix = _get_worst_load(solar_gen, wind_gen, load, start_time, time_steps)
     else
         load_matrix = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))[:, theta]
     end
@@ -33,4 +37,14 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
     end
 
     return
+end
+
+function _get_worst_load(solar_gen::RenewableGen, wind_gen::RenewableGen, load::StaticLoad, start_time::DateTime, time_steps)
+    fcst_solar = get_time_series_values(Scenarios, solar_gen, "solar_power", start_time = start_time, len = length(time_steps))
+    fcst_wind = get_time_series_values(Scenarios, wind_gen, "wind_power", start_time = start_time, len = length(time_steps))
+    fcst_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
+    fcst_netload = fcst_load .- fcst_solar .- fcst_wind
+    worst_index = argmax(fcst_netload, dims = 2)
+    fcst_load_worst = fcst_load[worst_index]
+    return fcst_load_worst
 end
