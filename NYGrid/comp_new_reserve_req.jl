@@ -21,6 +21,9 @@ function _get_forecats_error(min5_flag::Bool, theta::Int64)
     for ix in 1:num_idx
         if min5_flag
             curr_time = initial_time + Minute(5)*(ix - 1)
+            if curr_time > Dates.DateTime(2019, 12, 31, 0)
+                break
+            end
         else
             curr_time = initial_time + Hour(ix - 1)
         end

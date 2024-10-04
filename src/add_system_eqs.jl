@@ -96,24 +96,23 @@ function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::
         subdic = isED ? reserve_requirement["ED"] : reserve_requirement["UC"]
         return subdic[index][time_steps]
     elseif policy == "DR"
-        theta1 = 10
-        theta2 = 6
-        netload_diff = _get_fcst_netload_diff(sys, model, theta1, theta2)
+        theta = 6
+        netload_diff = _get_fcst_netload_diff(sys, model, theta)
         return netload_diff
     else
         error("Policy $policy is not defined")
     end
 end
 
-function _get_fcst_netload_diff(sys::System, model::JuMP.Model, theta1::Int, theta2::Int)::Vector{Float64}
+function _get_fcst_netload_diff(sys::System, model::JuMP.Model, theta::Int)::Vector{Float64}
     start_time = model[:param].start_time
     time_steps = model[:param].time_steps
     solar_gen = first(get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys))
     wind_gen = first(get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys))
     load = first(get_components(StaticLoad, sys))
-    fcst_netload_theta1 = _get_fcst_netload_theta(solar_gen, wind_gen, load, start_time, time_steps, theta1)
-    fcst_netload_theta2 = _get_fcst_netload_theta(solar_gen, wind_gen, load, start_time, time_steps, theta2)
-    return fcst_netload_theta1 - fcst_netload_theta2
+    max_fcst_netload = _get_max_fcst_netload(solar_gen, wind_gen, load, start_time, time_steps)
+    fcst_netload_theta = _get_fcst_netload_theta(solar_gen, wind_gen, load, start_time, time_steps, theta)
+    return max_fcst_netload - fcst_netload_theta
 end
 
 
@@ -121,9 +120,17 @@ function _get_forecast_theta_vector(component, component_name, start_time, time_
     return get_time_series_values(Scenarios, component, component_name, start_time = start_time, len = length(time_steps))[:, theta] 
 end
 
-function _get_fcst_netload_theta(solar_gen::RenewableGen, wind_gen::RenewableGen, load::StaticLoad, start_time::DateTime, time_steps::Vector{Int}, theta::Int)
+function _get_fcst_netload_theta(solar_gen::RenewableGen, wind_gen::RenewableGen, load::StaticLoad, start_time::DateTime, time_steps, theta::Int)
     fcst_solar_theta = _get_forecast_theta_vector(solar_gen, "solar_power", start_time, time_steps, theta)
     fcst_wind_theta = _get_forecast_theta_vector(wind_gen, "wind_power", start_time, time_steps, theta)
     fcst_load_theta = _get_forecast_theta_vector(load, "load", start_time, time_steps, theta)
     return fcst_load_theta - fcst_solar_theta - fcst_wind_theta
+end
+
+function _get_max_fcst_netload(solar_gen::RenewableGen, wind_gen::RenewableGen, load::StaticLoad, start_time::DateTime, time_steps)
+    fcst_solar = get_time_series_values(Scenarios, solar_gen, "solar_power", start_time = start_time, len = length(time_steps))
+    fcst_wind = get_time_series_values(Scenarios, wind_gen, "wind_power", start_time = start_time, len = length(time_steps))
+    fcst_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
+    fcst_netload = fcst_load .- fcst_solar .- fcst_wind
+    return vec(maximum(fcst_netload, dims = 2))
 end

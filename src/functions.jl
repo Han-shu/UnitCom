@@ -48,10 +48,10 @@ function policy_theta_parameter(POLICY::String)
         theta = nothing
         scenario_cnt = 11
     elseif POLICY == "BNR"
-        theta = 10
+        theta = 11
         scenario_cnt = 1
     elseif POLICY in ["NR", "FR", "DR"]
-        theta = 6
+        theta = nothing
         scenario_cnt = 1
     else
         error("Policy $POLICY is not defined")

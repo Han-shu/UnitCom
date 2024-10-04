@@ -19,7 +19,7 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "SB"
+POLICY = "BNR"
 run_date = Dates.today() # or Specify running date Date(2024,5,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
