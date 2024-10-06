@@ -5,6 +5,7 @@ function _get_init_value_for_UC(sys::System;
         ed_sol::Union{OrderedDict, Nothing} = nothing,
         init_fr_file_flag::Bool = false,
         init_fr_ED_flag::Bool = false,
+        init_fr_file_time = nothing,
         )::UCInitValue
     thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
     storage_names = PSY.get_name.(get_components(GenericBattery, sys))
@@ -15,12 +16,19 @@ function _get_init_value_for_UC(sys::System;
         history_wg = Dict(g => zeros(8) for g in thermal_gen_names)
         return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
     elseif init_fr_file_flag # Initiate from solution
-        @info "Obtain initial conditions from existing solution files"
-        ug_t0 = Dict(g => uc_sol["Commitment status"][g][end] for g in thermal_gen_names)
-        Pg_t0 = Dict(g => ed_sol["Generator energy dispatch"][g][end][end] for g in thermal_gen_names)
-        eb_t0 = Dict(b => ed_sol["Storage energy"][b][end][end] for b in storage_names)
-        history_wg = Dict(g => uc_sol["Shut down"][g][end-7:end] for g in thermal_gen_names)
-        history_vg = Dict(g => uc_sol["Start up"][g][end-23:end] for g in thermal_gen_names)
+        if isnothing(init_fr_file_time)
+            @info "Obtain initial conditions from existing solution files at the latest time"
+            t = length(uc_sol["Time"])
+        else
+            @info "Obtain initial conditions from existing solution files at $(init_fr_file_time)"
+            string_time = Dates.format(init_fr_file_time, "yyyy-mm-ddTHH:MM:SS")
+            t = findfirst(x -> x == string_time, uc_sol["Time"])
+        end
+        ug_t0 = Dict(g => uc_sol["Commitment status"][g][t] for g in thermal_gen_names)
+        Pg_t0 = Dict(g => ed_sol["Generator Dispatch"][g][t][end] for g in thermal_gen_names)
+        eb_t0 = Dict(b => ed_sol["Storage Energy"][b][t][end] for b in storage_names)
+        history_wg = Dict(g => uc_sol["Shut down"][g][t-7:t] for g in thermal_gen_names)
+        history_vg = Dict(g => uc_sol["Start up"][g][t-23:t] for g in thermal_gen_names)
         return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
     elseif length(all_variables(uc_model)) > 0 && length(all_variables(ed_model)) > 0 # Initiate from model
         @info "Obtain initial conditions from existing model"
@@ -90,7 +98,7 @@ function _get_init_value_for_ED(sys::System, uc_status::Vector;
     ug_t0 = uc_status[1]
     vg_t0 = uc_status[2]
     wg_t0 = uc_status[3]
-    if !isnothing(ed_model) # Priority is initiating from the ED model
+    if !isnothing(ed_model) # Priority is initiating from exiting ED model
         Pg_t0, eb_t0 = _get_binding_value_from_ED(sys, ed_model)
         return EDInitValue(ug_t0, vg_t0, wg_t0, Pg_t0, eb_t0)  
     else
@@ -128,7 +136,7 @@ function _get_init_value_for_UC(sys::System, solution::OrderedDict)::UCInitValue
     history_wg = Dict(g => solution["Shut down"][g] for g in thermal_gen_names)
     history_vg = Dict(g => solution["Start up"][g] for g in thermal_gen_names)
     ug_t0 = Dict(g => solution["Commitment status"][g][end] for g in thermal_gen_names)
-    Pg_t0 = Dict(g => solution["Generator energy dispatch"][g][end] for g in thermal_gen_names)
+    Pg_t0 = Dict(g => solution["Generator Dispatch"][g][end] for g in thermal_gen_names)
     eb_t0 = Dict(b => solution["Batter energy"][b][end] for b in storage_names)
     return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
 end

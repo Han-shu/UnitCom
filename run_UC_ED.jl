@@ -14,13 +14,14 @@ include("src/get_uc_op_price.jl")
     "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
     "NR": 50 percentile forecast
     "BNR": Biased forecast (theta = 11)
-    "RF": Robust forecast (worst case, theta = 100)
+    "WF": Worst forecast (highest net load case, theta = 100)
+    "MLF": Most likely forecast (theta = 1 without ranking)
     "FR": Fixed reserve requirement
     "DR": Dynamic reserve requirement
 =#
 
 # Specify the policy and running date
-POLICY = "NR"
+POLICY = "MLF"
 run_date = Dates.today() # or Specify running date Date(2024,5,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
@@ -39,7 +40,7 @@ UCsys = build_ny_system(base_power = 100)
 EDsys = build_ny_system(base_power = 100)
 
 # Add time series data
-if POLICY == "SB" # Stochastic model
+if POLICY == "SB" || POLICY == "MLF" # Stochastic model or Most likely forecast
     @info "Adding scenarios time series data for UC"
     add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = false)
     @info "Adding scenarios time series data for ED"
@@ -176,6 +177,6 @@ ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(save_date).js
 @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
 write_json(uc_sol_file, uc_sol)
 write_json(ed_sol_file, ed_sol)
-
+@info "Current time is $(now())"
 
 # write_model_txt(uc_model, "uc_model", result_dir)

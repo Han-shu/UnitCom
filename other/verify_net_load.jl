@@ -21,9 +21,9 @@ end
 
 thermal_gen_names = get_name.(get_components(ThermalGen, system))
 for g in thermal_gen_names
-    for i in eachindex(solution["Generator energy dispatch"][g])
-        if solution["Generator energy dispatch"][g][i] > 0
-            println("$(g) $(i) $(solution["Generator energy dispatch"][g][i])")
+    for i in eachindex(solution["Generator Dispatch"][g])
+        if solution["Generator Dispatch"][g][i] > 0
+            println("$(g) $(i) $(solution["Generator Dispatch"][g][i])")
         end
     end
 end

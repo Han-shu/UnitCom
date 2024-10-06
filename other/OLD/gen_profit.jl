@@ -20,7 +20,7 @@ function compute_gen_profit(sys::System, solution)::OrderedDict
     thermal_gen_profits = OrderedDict()
     for g in thermal_gen_names
         profit = 0.0
-        pg = solution["Generator energy dispatch"][g]
+        pg = solution["Generator Dispatch"][g]
         ug = solution["Commitment status"][g]
         vg = solution["Start up"][g]
         wg = solution["Shut down"][g]
