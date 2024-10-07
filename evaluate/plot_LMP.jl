@@ -53,10 +53,11 @@ res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 #                 "BNR" => Dates.Date(2024,10,1), "FR" => Dates.Date(2024,10,3), 
 #                 "DR" => Dates.Date(2024,10,3))
 run_dates = Dict("SB" => Dates.Date(2024,10,2), 
-                "NR" => Dates.Date(2024,10,4), 
-                "BNR" => Dates.Date(2024,10,4), 
-                "WF" => Dates.Date(2024,10,5), 
-                "SB" => Dates.Date(2024,10,2))
+                # "NR" => Dates.Date(2024,10,4),
+                # "BNR" => Dates.Date(2024,10,4), 
+                "WF" => Dates.Date(2024,10,5),) 
+                # "MLF" => Dates.Date(2024,10,5))
+
 policies = collect(keys(run_dates))
 hour_LMPS = Dict{String, Vector{Float64}}()
 min5_LMPS = Dict{String, Vector{Float64}}()
@@ -90,5 +91,8 @@ POLICY = "NR"
 for rundate in run_dates[POLICY]
     uc_LMP, ed_LMP = extract_LMP(res_dir, POLICY, rundate)
     hour_LMPS[POLICY*"$(rundate)"] = uc_LMP
+end
+for key in keys(hour_LMPS)
+    println("Policy: $(key), Average LMP: $(mean(hour_LMPS[key]))")
 end
 p = plot_mult_policies_hour_LMP(hour_LMPS)

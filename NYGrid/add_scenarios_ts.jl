@@ -10,9 +10,9 @@ using PowerSystems, Dates, HDF5, Statistics
     return solar_data, wind_data, load_data for forecast data in h5 files
     x_data: Dict{Dates.DateTime, Matrix{Float64}} where x = solar, wind, load
     key = time, value = forecast data indexed by time
-    if rank_netload = true, ranking senarios by sum of net load from low to high
+    if POLICY == "BNR", ranking senarios by sum of net load from low to high
 """
-function _construct_fcst_data(base_power::Float64; min5_flag::Bool, rank_netload::Bool)
+function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bool)
     if min5_flag
         ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Min5"
     else
@@ -45,13 +45,19 @@ function _construct_fcst_data(base_power::Float64; min5_flag::Bool, rank_netload
         history_wind, wind_forecast = _extract_fcst_matrix(wind_file, curr_time, min5_flag)
         history_load, load_forecast = _extract_fcst_matrix(load_file, curr_time, min5_flag)
 
-        if rank_netload
+        if POLICY == "BNF" # ranking scenarios by sum of net load
             net_load = load_forecast - solar_forecast - wind_forecast
             net_load_path = sum(net_load, dims=1)
             net_load_rank = sortperm(vec(net_load_path)) # from low to high
             solar_forecast = solar_forecast[:, net_load_rank] # sort by rank
             wind_forecast = wind_forecast[:, net_load_rank]
             load_forecast = load_forecast[:, net_load_rank] 
+        end
+
+        if POLICY == "PF" # replace the first scenario with the historical data
+            solar_forecast = vcat(history_solar, solar_forecast[:, 2:end])
+            wind_forecast = vcat(history_wind, wind_forecast[:, 2:end])
+            load_forecast = vcat(history_load, load_forecast[:, 2:end])
         end
 
         solar_data[curr_time] = solar_forecast./base_power
@@ -62,7 +68,7 @@ function _construct_fcst_data(base_power::Float64; min5_flag::Bool, rank_netload
 end
 
 
-function add_scenarios_time_series!(system::System; min5_flag::Bool, rank_netload::Bool = false)::Nothing
+function add_scenarios_time_series!(POLICY::String, system::System; min5_flag::Bool)::Nothing
 
     loads = collect(get_components(StaticLoad, system))
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
@@ -72,8 +78,8 @@ function add_scenarios_time_series!(system::System; min5_flag::Bool, rank_netloa
     base_power = PSY.get_base_power(system)
     resolution = min5_flag ? Dates.Minute(5) : Dates.Hour(1)
 
-    #construct data dict (rank_netload = true: ranking senarios by net load from low to high)
-    solar_data, wind_data, load_data = _construct_fcst_data(base_power; min5_flag = min5_flag, rank_netload = rank_netload)
+    #construct data dict according to the policy
+    solar_data, wind_data, load_data = _construct_fcst_data(POLICY, base_power; min5_flag = min5_flag)
 
     scenario_forecast_data = Scenarios(
         name = "solar_power",

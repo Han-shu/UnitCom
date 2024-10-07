@@ -47,6 +47,9 @@ function policy_theta_parameter(POLICY::String)
     if POLICY == "SB"
         theta = nothing
         scenario_cnt = 11
+    elseif POLICY == "PF"
+        theta = 1
+        scenario_cnt = 1
     elseif POLICY == "MLF"
         theta = 1
         scenario_cnt = 1

@@ -11,6 +11,7 @@ include("src/get_uc_op_price.jl")
 
 #=
     POLICY
+    "PF": Perfect forecast
     "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
     "NR": 50 percentile forecast
     "BNR": Biased forecast (theta = 11)
@@ -40,17 +41,10 @@ UCsys = build_ny_system(base_power = 100)
 EDsys = build_ny_system(base_power = 100)
 
 # Add time series data
-if POLICY == "SB" || POLICY == "MLF" # Stochastic model or Most likely forecast
-    @info "Adding scenarios time series data for UC"
-    add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = false)
-    @info "Adding scenarios time series data for ED"
-    add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = false)
-else # Deterministic model
-    @info "Adding quantile time series data for UC"
-    add_scenarios_time_series!(UCsys; min5_flag = false, rank_netload = true)
-    @info "Adding quantile time series data for ED"
-    add_scenarios_time_series!(EDsys; min5_flag = true, rank_netload = true)
-end
+@info "Adding scenarios time series data for UC"
+add_scenarios_time_series!(POLICY, UCsys; min5_flag = false)
+@info "Adding scenarios time series data for ED"
+add_scenarios_time_series!(POLICY, EDsys; min5_flag = true)
 
 # Compute fixed reserve requirement for FR policy
 reserve_requirement = Dict()

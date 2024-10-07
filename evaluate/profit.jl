@@ -101,21 +101,21 @@ function year_cost_in_model(model_name::String, uc_folder_dic::Dict{String, Stri
 end
 
 
-function one_file_cost_in_model(model_name::String, filename, extract_len::Int64, uc_folder_dic::Dict{String, String})
-    master_folder = "Master_"*model_name
-    uc_folder = uc_folder_dic[model_name]
-    uc_path = joinpath(result_dir, master_folder, uc_folder)
-    file = joinpath(uc_path, filename)
-    @assert isfile(file)
+function one_file_cost_in_model(POLICY::String, res_dir::String, run_date::Dates.Date, file_date::Dates.Date, extract_len::Int64)
+    path_dir = joinpath(res_dir, "Master_$(POLICY)")
+    @assert isdir(path_dir) error("Directory not found for $(POLICY)")
+    uc_file = joinpath(path_dir, "$(POLICY)_$(run_date)", "UC_$(file_date).json")
 
     Gen_profit = []
-    uc_sol = read_json(file)
+    uc_sol = read_json(uc_file)
     for i in 1:extract_len
         hour_sum_gen_profit = 0
-        for key in keys(uc_sol["Generator profits"])
-            hour_sum_gen_profit += uc_sol["Generator profits"][key][i]
+        for key in keys(uc_sol["Generator Profits"])
+            hour_sum_gen_profit += uc_sol["Generator Profits"][key][i]
         end
-        hour_sum_gen_profit += uc_sol["Storage profits"]["BA"][i]
+        for key in keys(uc_sol["Other Profits"])
+            hour_sum_gen_profit += uc_sol["Other Profits"][key][i]
+        end
         append!(Gen_profit, hour_sum_gen_profit)
     end
 
@@ -124,21 +124,56 @@ function one_file_cost_in_model(model_name::String, filename, extract_len::Int64
 end
 
 
-df_AVG = year_cost_in_model(model[2], uc_folder_dic)
-df_NLB = year_cost_in_model(model[3], uc_folder_dic)
-year_result = leftjoin(df_AVG, df_NLB, on = :Time, makeunique = true)
-new_columns = ["Time", "AVG_Consumers_payment", "AVG_Total_cost", "AVG_Gen_profit", "NLB_Consumers_payment", "NLB_Total_cost", "NLB_Gen_profit"]
-rename!(year_result, Symbol.(new_columns))
-CSV.write(joinpath(result_dir, "year_cost.csv"), year_result)
+# df_AVG = year_cost_in_model(model[2], uc_folder_dic)
+# df_NLB = year_cost_in_model(model[3], uc_folder_dic)
+# year_result = leftjoin(df_AVG, df_NLB, on = :Time, makeunique = true)
+# new_columns = ["Time", "AVG_Consumers_payment", "AVG_Total_cost", "AVG_Gen_profit", "NLB_Consumers_payment", "NLB_Total_cost", "NLB_Gen_profit"]
+# rename!(year_result, Symbol.(new_columns))
+# CSV.write(joinpath(result_dir, "year_cost.csv"), year_result)
 
-filename = "UC_2019-01-01.json"
-uc_sol = read_json("/Users/hanshu/Desktop/Price_formation/Result/Master_STOCH/S-UCED_2024-05-21/UC_2019-01-01.json")
+# filename = "UC_2019-01-01.json"
+# uc_sol = read_json("/Users/hanshu/Desktop/Price_formation/Result/Master_STOCH/S-UCED_2024-05-21/UC_2019-01-01.json")
+# extract_len = length(uc_sol["Time"])
+
+run_dates = Dict("SB" => Dates.Date(2024,10,2), 
+                "NR" => Dates.Date(2024,10,4),
+                "BNR" => Dates.Date(2024,10,4), 
+                "WF" => Dates.Date(2024,10,5),
+                "MLF" => Dates.Date(2024,10,5))
+
+res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+df = DataFrame()
+uc_sol = read_json("/Users/hanshu/Desktop/Price_formation/Result/Master_SB/SB_2024-10-02/UC_2019-01-01.json")
 extract_len = length(uc_sol["Time"])
-file_cost_STOCH = one_file_cost_in_model("STOCH", filename, extract_len, uc_folder_dic)
-file_cost_AVG = one_file_cost_in_model("AVG", filename, extract_len, uc_folder_dic)
-file_cost_NLB = one_file_cost_in_model("NLB", filename, extract_len, uc_folder_dic)
-file_result = leftjoin(file_cost_STOCH, file_cost_AVG, on = "Time", makeunique = true)
-file_result = leftjoin(file_result, file_cost_NLB, on = "Time", makeunique = true)
-new_columns = ["Time", "STOCH_Consumers_payment", "STOCH_Total_cost", "STOCH_Gen_profit", "AVG_Consumers_payment", "AVG_Total_cost", "AVG_Gen_profit", "NLB_Consumers_payment", "NLB_Total_cost", "NLB_Gen_profit"]
-rename!(file_result, Symbol.(new_columns))
-CSV.write(joinpath(result_dir, "21days_cost.csv"), file_result)
+for POLICY in collect(keys(run_dates))
+    run_date = run_dates[POLICY]
+    file_date = Dates.Date(2019,1,1)
+    policy_cost = one_file_cost_in_model(POLICY, res_dir, run_date, file_date, extract_len)
+    if isempty(df)
+        df = policy_cost
+    else
+        df = leftjoin(df, policy_cost, on = :Time, makeunique = true)
+    end
+end
+
+property = ["Consumers_payment", "Total_cost", "Gen_profit"]
+new_columns = ["Time"]
+for POLICY in collect(keys(run_dates))
+    for prop in property
+        append!(new_columns, [string(POLICY, "_", prop)])
+    end
+end
+DataFrames.rename!(df, Symbol.(new_columns))
+
+for POLICY in keys(run_dates)
+    println("Policy: $(POLICY), Total cost: $(sum(df[!, string(POLICY, "_Total_cost")]))")  
+end
+
+# file_cost_STOCH = one_file_cost_in_model("STOCH", filename, extract_len, uc_folder_dic)
+# file_cost_AVG = one_file_cost_in_model("AVG", filename, extract_len, uc_folder_dic)
+# file_cost_NLB = one_file_cost_in_model("NLB", filename, extract_len, uc_folder_dic)
+# file_result = leftjoin(file_cost_STOCH, file_cost_AVG, on = "Time", makeunique = true)
+# file_result = leftjoin(file_result, file_cost_NLB, on = "Time", makeunique = true)
+# new_columns = ["Time", "STOCH_Consumers_payment", "STOCH_Total_cost", "STOCH_Gen_profit", "AVG_Consumers_payment", "AVG_Total_cost", "AVG_Gen_profit", "NLB_Consumers_payment", "NLB_Total_cost", "NLB_Gen_profit"]
+# rename!(file_result, Symbol.(new_columns))
+# CSV.write(joinpath(result_dir, "21days_cost.csv"), file_result)
