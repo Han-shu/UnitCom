@@ -55,9 +55,9 @@ function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bo
         end
 
         if POLICY == "PF" # replace the first scenario with the historical data
-            solar_forecast = vcat(history_solar, solar_forecast[:, 2:end])
-            wind_forecast = vcat(history_wind, wind_forecast[:, 2:end])
-            load_forecast = vcat(history_load, load_forecast[:, 2:end])
+            solar_forecast = hcat(reshape(history_solar, :, 1) , solar_forecast[:, 2:end])
+            wind_forecast = hcat(reshape(history_wind, :, 1), wind_forecast[:, 2:end])
+            load_forecast = hcat(reshape(history_load, :, 1), load_forecast[:, 2:end])
         end
 
         solar_data[curr_time] = solar_forecast./base_power

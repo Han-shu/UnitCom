@@ -8,6 +8,7 @@ end
 
 function _extract_fcst_matrix(file::String, time::Dates.DateTime, min5_flag::Bool)
     matrix = _read_h5_by_idx(file, time)
+    # println(size(matrix))
     # the first scenario is the historical data, so we skip it
     if min5_flag
         # ED: Use from 1st time point

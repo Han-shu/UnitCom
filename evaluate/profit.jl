@@ -136,16 +136,18 @@ end
 # extract_len = length(uc_sol["Time"])
 
 run_dates = Dict("SB" => Dates.Date(2024,10,2), 
-                "NR" => Dates.Date(2024,10,4),
-                "BNR" => Dates.Date(2024,10,4), 
-                "WF" => Dates.Date(2024,10,5),
-                "MLF" => Dates.Date(2024,10,5))
+                "PF" => Dates.Date(2024,10,8),
+                # "NR" => Dates.Date(2024,10,4),
+                # "BNR" => Dates.Date(2024,10,4), 
+                "WF" => Dates.Date(2024,10,5),)
+                # "MLF" => Dates.Date(2024,10,5))
 
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 df = DataFrame()
 uc_sol = read_json("/Users/hanshu/Desktop/Price_formation/Result/Master_SB/SB_2024-10-02/UC_2019-01-01.json")
 extract_len = length(uc_sol["Time"])
 for POLICY in collect(keys(run_dates))
+    global df
     run_date = run_dates[POLICY]
     file_date = Dates.Date(2019,1,1)
     policy_cost = one_file_cost_in_model(POLICY, res_dir, run_date, file_date, extract_len)

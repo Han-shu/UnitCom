@@ -53,6 +53,7 @@ res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 #                 "BNR" => Dates.Date(2024,10,1), "FR" => Dates.Date(2024,10,3), 
 #                 "DR" => Dates.Date(2024,10,3))
 run_dates = Dict("SB" => Dates.Date(2024,10,2), 
+                "PF" => Dates.Date(2024,10,8),
                 # "NR" => Dates.Date(2024,10,4),
                 # "BNR" => Dates.Date(2024,10,4), 
                 "WF" => Dates.Date(2024,10,5),) 
@@ -69,7 +70,7 @@ end
 
 using Statistics
 for key in keys(hour_LMPS)
-    println("Policy: $(key), Average LMP: $(mean(hour_LMPS[key]))")
+    println("Policy: $(key), Average LMP: $(mean(hour_LMPS[key])), std: $(std(hour_LMPS[key]))")
 end
 
 p = plot_mult_policies_hour_LMP(hour_LMPS)
