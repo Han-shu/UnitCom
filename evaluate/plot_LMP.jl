@@ -27,7 +27,7 @@ end
 function plot_one_policy_hour_min_LMP(uc_LMPS::Dict{String, Vector{Float64}}, ed_LMPS::Dict{String, Vector{Float64}}, POLICY::AbstractString; min5_flag::Bool = false)
     hour_x= 1:length(uc_LMPS[POLICY])
     min5_x= range(1/12, step = 1/12, length = length(ed_LMPS[POLICY]))
-    p = plot(hour_x, uc_LMPS[POLICY], label = "$(POLICY)", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)#, legend = :outertopright)
+    p = plot(hour_x, uc_LMPS[POLICY], label = "$(POLICY)", xlabel = "Hour", ylabel = "Price (\$/MWh)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)#, legend = :outertopright)
     if min5_flag
         plot!(min5_x, ed_LMPS[POLICY], label = "ED_$(POLICY)")
     end
@@ -40,7 +40,7 @@ function plot_mult_policies_hour_LMP(LMPS::Dict{String, Vector{Float64}})
     p = nothing
     for (i,key) in enumerate(keys(LMPS))
         if i == 1
-            p = plot(hour_x, LMPS[key][1:x_end], label = "$(key)", xlabel = "Hour", ylabel = "Price (\$/MW)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11)
+            p = plot(hour_x, LMPS[key][1:x_end], label = "$(key)", xlabel = "Hour", ylabel = "Price (\$/MWh)", title = "LMP", guidefontsize=12, tickfontsize=8, legendfontsize=11, ylims = (0, 100))
         else
             plot!(p, hour_x, LMPS[key][1:x_end], label = "$(key)")
         end
@@ -49,15 +49,13 @@ function plot_mult_policies_hour_LMP(LMPS::Dict{String, Vector{Float64}})
 end
 
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-# run_dates = Dict("SB" => Dates.Date(2024,10,2), "NR" => Dates.Date(2024,10,1), 
-#                 "BNR" => Dates.Date(2024,10,1), "FR" => Dates.Date(2024,10,3), 
-#                 "DR" => Dates.Date(2024,10,3))
+
 run_dates = Dict("SB" => Dates.Date(2024,10,2), 
                 "PF" => Dates.Date(2024,10,8),
                 # "NR" => Dates.Date(2024,10,4),
                 # "BNR" => Dates.Date(2024,10,4), 
-                "WF" => Dates.Date(2024,10,5),) 
-                # "MLF" => Dates.Date(2024,10,5))
+                "WF" => Dates.Date(2024,10,5),
+                "DR" => Dates.Date(2024,5,1))
 
 policies = collect(keys(run_dates))
 hour_LMPS = Dict{String, Vector{Float64}}()
@@ -85,10 +83,10 @@ key = "SB"
 plot!(p, hour_x, hour_LMPS[key][1:x_end], label = "$(key)")
 
 
-run_dates = Dict("NR" => [Dates.Date(2024,10,1), Dates.Date(2024,10,4)])
+run_dates = Dict("DR" => [Dates.Date(2024,10,9), Dates.Date(2024,5,1)])
 hour_LMPS = Dict{String, Vector{Float64}}()
 min5_LMPS = Dict{String, Vector{Float64}}()
-POLICY = "NR"
+POLICY = "DR"
 for rundate in run_dates[POLICY]
     uc_LMP, ed_LMP = extract_LMP(res_dir, POLICY, rundate)
     hour_LMPS[POLICY*"$(rundate)"] = uc_LMP

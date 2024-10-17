@@ -59,6 +59,18 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     end
 
     # ramping constraints and reserve constraints
+    # Non-spinning reserve qualifications, time_limits[:up] > 1 are not eligible to provide non-spinning reserve
+    non_faststart_gen_names = []
+    for g in thermal_gen_names
+        time_limits = get_time_limits(get_component(ThermalGen, sys, g))
+        if time_limits[:up] > 1
+            push!(non_faststart_gen_names, g)
+        end
+    end
+    for g in non_faststart_gen_names, s in scenarios, t in time_steps, r in ["10N", "30N", "60N"]
+        @constraint(model, rg[g,r,s,t] <= 0)
+    end
+
     for g in thermal_gen_names, s in scenarios, t in time_steps
         # ramping constraints
         @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + rg[g,"10S",s,t] + rg[g,"30S",s,t] + rg[g,"60S",s,t] <= ramp_30[g]*2*ug[g,t] + pg_lim[g].min*vg[g,t])

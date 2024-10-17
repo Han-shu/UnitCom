@@ -12,8 +12,6 @@ end
 # binary var from UC and op var from ED
 function _compute_ed_cost(sys::System, model::JuMP.Model)::Float64
     VOLL = model[:param].VOLL
-    penalty = model[:param].reserve_short_penalty
-    reserve_products = model[:param].reserve_products
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
     
@@ -21,9 +19,8 @@ function _compute_ed_cost(sys::System, model::JuMP.Model)::Float64
     thermal_gen_op_costs = sum(variable_cost[g]*value(model[:pg][g,1,1]) for g in thermal_gen_names)
     
     lost_load_penalty = VOLL*value(model[:curtailment][1,1])
-    reserve_short_penalty = sum(value(model[:reserve_short][rr,1,1,k])*penalty[rr][k].price for rr in reserve_products for k in 1:length(penalty[rr]))
     
-    cost_t = thermal_gen_op_costs + lost_load_penalty + reserve_short_penalty
+    cost_t = thermal_gen_op_costs + lost_load_penalty
     return cost_t
 end
 
@@ -70,34 +67,34 @@ function _compute_ed_charge(sys::System, model::JuMP.Model)::Float64
     return charge_t
 end
 
-function _compute_ed_gen_profits(sys::System, model::JuMP.Model)
+function _compute_ed_gen_revenue(sys::System, model::JuMP.Model)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
-    variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
-    
+    storage_names = get_name.(get_components(GenericBattery, sys))
+
     LMP = _get_ED_dual_price(model, :eq_power_balance)
     reserve_prices = _get_ED_reserve_prices(model)
     
-    gen_profits = OrderedDict()
+    EnergyRevenues = OrderedDict()
+    ReserveRevenues = OrderedDict()
     for g in thermal_gen_names        
-        profit = ((LMP-variable_cost[g])*value(model[:pg][g,1,1]) + 
-                reserve_prices["10S"]*value(model[:rg][g,"10S",1,1]) +
-                reserve_prices["10T"]*value(model[:rg][g,"10N",1,1]) + 
-                reserve_prices["30T"]*(value(model[:rg][g,"30S",1,1]) + value(model[:rg][g,"30N",1,1]))) +
-                reserve_prices["60T"]*(value(model[:rg][g,"60S",1,1]) + value(model[:rg][g,"60N",1,1]))
-        gen_profits[g] = profit
+        energy_revenue = LMP*value(model[:pg][g,1,1])
+        reserve_revenue = reserve_prices["10S"]*value(model[:rg][g,"10S",1,1]) +
+                        reserve_prices["10T"]*value(model[:rg][g,"10N",1,1]) + 
+                        reserve_prices["30T"]*(value(model[:rg][g,"30S",1,1]) + value(model[:rg][g,"30N",1,1])) +
+                        reserve_prices["60T"]*(value(model[:rg][g,"60S",1,1]) + value(model[:rg][g,"60N",1,1]))
+        EnergyRevenues[g] = energy_revenue
+        ReserveRevenues[g] = reserve_revenue
     end
 
-    storage_names = get_name.(get_components(GenericBattery, sys))
-    storage_profits = OrderedDict()
     for b in storage_names
-        profit = (LMP*(value(model[:kb_discharge][b,1,1])-value(model[:kb_charge][b,1,1])) + 
-                reserve_prices["10S"]*value(model[:battery_reserve][b,"10S",1,1]) + 
-                reserve_prices["30T"]*value(model[:battery_reserve][b,"30S",1,1])) + 
-                reserve_prices["60T"]*value(model[:battery_reserve][b,"60S",1,1])
-        storage_profits[b] = profit
+        energy_revenue = LMP*(value(model[:kb_discharge][b,1,1])-value(model[:kb_charge][b,1,1]))
+        reserve_revenue = reserve_prices["10S"]*value(model[:battery_reserve][b,"10S",1,1]) + 
+                        reserve_prices["30T"]*value(model[:battery_reserve][b,"30S",1,1]) + 
+                        reserve_prices["60T"]*value(model[:battery_reserve][b,"60S",1,1])
+        EnergyRevenues[b] = energy_revenue
+        ReserveRevenues[b] = reserve_revenue
     end
-
-    return gen_profits, storage_profits
+    return EnergyRevenues, ReserveRevenues
 end
 
 function _compute_ed_renewable_profits(sys::System, model::JuMP.Model)

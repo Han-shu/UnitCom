@@ -100,15 +100,3 @@ end
 uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol)
 @info "$(POLICY)-UC solution is updated"
 
-    # ed_sol = merge_ed_solution(ed_sol, ed_hour_sol)
-    # @info "$(POLICY)-ED solution is merged"
-
-# # save the solution
-# save_date = Date(year(uc_time), month(uc_time), 1)
-# uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
-# ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(save_date).json")
-# @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
-# write_json(uc_sol_file, uc_sol)
-# write_json(ed_sol_file, ed_sol)
-# @info "Current time is $(now())"
-
