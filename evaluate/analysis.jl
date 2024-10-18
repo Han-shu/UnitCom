@@ -73,7 +73,7 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
         Gen_cost_dict[g] = genfuel_cost + geninteger_cost
         GenFuelCosts += genfuel_cost
         GenIntegerCosts += geninteger_cost
-        Gen_profit[g] -= genfuel_cost + geninteger_cost
+        Gen_profit[g] -= (genfuel_cost + geninteger_cost)
     end
     VOLL = 5000
     load_curtailment_penalty = load_curtailment*VOLL
@@ -100,12 +100,13 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
 end
 
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-run_dates = Dict("DR" => Dates.Date(2024,10,17))
+run_dates = Dict("DR" => Dates.Date(2024,10,17),
                 # "SB" => Dates.Date(2024,10,2), 
-#                 "PF" => Dates.Date(2024,10,8),
+                # "PF" => Dates.Date(2024,10,17),
+                "PF" => Dates.Date(2024,10,18),
 #                 "NR" => Dates.Date(2024,10,4), 
 #                 "BNR" => Dates.Date(2024,10,4), 
-#                 "WF" => Dates.Date(2024,10,5), 
+                "WF" => Dates.Date(2024,10,18)) 
                 
 
 uc_sol = read_json("/Users/hanshu/Desktop/Price_formation/Result/Master_SB/SB_2024-10-02/UC_2019-01-01.json")
@@ -119,12 +120,12 @@ GenCosts = Dict()
 for POLICY in collect(keys(run_dates))
     run_date = run_dates[POLICY]
     file_date = Dates.Date(2019,1,1)
-    ans, Gen_energy_revenue, Gen_reserve_revenue, Gen_cost_dict, Gen_profit = calc_cost_fr_uc_sol(POLICY, res_dir, run_date, file_date, extract_len = extract_len)
+    ans, Gen_energy_revenue, Gen_reserve_revenue, Gen_cost, Gen_profit = calc_cost_fr_uc_sol(POLICY, res_dir, run_date, file_date, extract_len = extract_len)
     Costs[POLICY] = ans
     GenEnergyRevenues[POLICY] = Gen_energy_revenue
     GenReserveRevenues[POLICY] = Gen_reserve_revenue
     GenProfits[POLICY] = Gen_profit
-    GenCosts[POLICY] = gen_costs
+    GenCosts[POLICY] = Gen_cost
 end
 
 fast_gen_names, nuclear_gen_names, thermal_gen_names = get_gen_names_by_type()
@@ -146,6 +147,7 @@ df = DataFrame(POLICY = collect(keys(run_dates)),
                 Fast_gen_profits = [fast_gen_profits[POLICY] for POLICY in collect(keys(run_dates))],
                 Nuclear_gen_profits = [nuclear_gen_profits[POLICY] for POLICY in collect(keys(run_dates))],
                 Storage_profits = [storage_profits[POLICY] for POLICY in collect(keys(run_dates))],
+                Thermal_gen_profits = [thermal_gen_profits[POLICY] for POLICY in collect(keys(run_dates))],
                 All_gen_profits = [all_gen_profits[POLICY] for POLICY in collect(keys(run_dates))])
 
                 

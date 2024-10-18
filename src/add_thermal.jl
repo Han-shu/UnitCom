@@ -73,7 +73,8 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
 
     for g in thermal_gen_names, s in scenarios, t in time_steps
         # ramping constraints
-        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + rg[g,"10S",s,t] + rg[g,"30S",s,t] + rg[g,"60S",s,t] <= ramp_30[g]*2*ug[g,t] + pg_lim[g].min*vg[g,t])
+        # @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + rg[g,"10S",s,t] + rg[g,"30S",s,t] + rg[g,"60S",s,t] <= ramp_30[g]*2*ug[g,t] + pg_lim[g].min*vg[g,t])
+        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) <= ramp_30[g]*2*ug[g,t] + pg_lim[g].min*vg[g,t])
         @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t]  <= ramp_30[g]*2*ug[g,t] + pg_lim[g].max*wg[g,t])
         # reserve constraints
         @constraint(model, rg[g,"10S",s,t] <= ramp_10[g]*ug[g,t])
@@ -142,8 +143,7 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     end   
     
     # Add fixed, startup, shutdown to objective function
-    add_to_expression!(model[:obj], sum(
-                   ug[g,t]*fixed_cost[g] + vg[g,t]*startup_cost[g] + 
+    add_to_expression!(model[:obj], sum(ug[g,t]*fixed_cost[g] + vg[g,t]*startup_cost[g] + 
                    wg[g,t]*shutdown_cost[g] for g in thermal_gen_names, t in time_steps))
 
     return

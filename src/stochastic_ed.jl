@@ -64,6 +64,19 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
     end
 
     # ramping constraints and reserve constraints
+    
+    # Non-spinning reserve qualifications, time_limits[:up] > 1 are not eligible to provide non-spinning reserve
+    non_faststart_gen_names = []
+    for g in thermal_gen_names
+        time_limits = get_time_limits(get_component(ThermalGen, sys, g))
+        if time_limits[:up] > 1
+            push!(non_faststart_gen_names, g)
+        end
+    end
+    for g in non_faststart_gen_names, s in scenarios, t in time_steps, r in ["10N", "30N", "60N"]
+        @constraint(model, rg[g,r,s,t] <= 0)
+    end
+
     get_rmp_up_limit(g) = PSY.get_ramp_limits(g).up
     get_rmp_dn_limit(g) = PSY.get_ramp_limits(g).down
     ramp_10 = Dict(g => get_rmp_up_limit(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
@@ -72,7 +85,7 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
         #TODO startup and shutdown ramping 
     for g in thermal_gen_names, s in scenarios, t in time_steps
         i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
-        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) + rg[g,"10S",s,t]/2 + rg[g,"30S",s,t]/6 <= ramp_10[g]*ug[g][i]/2 + pg_lim[g].min*vg_min5[g][t])
+        @constraint(model, pg[g,s,t] - (t==1 ? Pg_t0[g] : pg[g,s,t-1]) <= ramp_10[g]*ug[g][i]/2 + pg_lim[g].min*vg_min5[g][t])
         @constraint(model, (t==1 ? Pg_t0[g] : pg[g,s,t-1]) - pg[g,s,t] <= ramp_10[g]*ug[g][i]/2 + pg_lim[g].max*wg_min5[g][t])
     end
     end
