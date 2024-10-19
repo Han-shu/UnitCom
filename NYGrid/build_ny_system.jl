@@ -72,7 +72,7 @@ function build_ny_system(; base_power = 100)::System
     _build_battery(system, GenericBattery, bus, "BA", energy_capacity, rating, eff)  # Call build battery function
     
         # Aggregate Pumped hydro (treat as 10h battery): 1170 MW, 11700 MWh
-    _build_battery(system, GenericBattery, bus, "PH", 117, 11.7, 0.9)
+    _build_battery(system, GenericBattery, bus, "PH", 117, 11.7, 0.8)
 
 
     # Add thermal generators
@@ -103,9 +103,11 @@ function build_ny_system(; base_power = 100)::System
         pm = map_UnitType[genprop.GEN_FUEL]
         # ThreePartCost(variable, fixed, start_up, shut_down) 
         if fuel == ThermalFuels.NUCLEAR
-            cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, genprop.StartUpCost*100)
+            # cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, genprop.StartUpCost*100)
+            cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.StartUpCost, genprop.StartUpCost*100)
         else
-            cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
+            cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.StartUpCost, 0.0)
+            # cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
         end
         type = _thermal_type(pm, fuel, pmax)
         uptime, downtime = duration_lims[type][:up], duration_lims[type][:down]

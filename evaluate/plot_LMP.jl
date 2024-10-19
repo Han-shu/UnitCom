@@ -55,7 +55,7 @@ run_dates = Dict("SB" => Dates.Date(2024,10,2),
                 # "NR" => Dates.Date(2024,10,4),
                 # "BNR" => Dates.Date(2024,10,4), 
                 "WF" => Dates.Date(2024,10,5),
-                "DR" => Dates.Date(2024,5,1))
+                "DR" => Dates.Date(2024,10,18))
 
 policies = collect(keys(run_dates))
 hour_LMPS = Dict{String, Vector{Float64}}()
@@ -83,7 +83,7 @@ key = "SB"
 plot!(p, hour_x, hour_LMPS[key][1:x_end], label = "$(key)")
 
 
-run_dates = Dict("DR" => [Dates.Date(2024,10,9), Dates.Date(2024,5,1)])
+run_dates = Dict("DR" => [Dates.Date(2024,10,9), Dates.Date(2024,10,18)])
 hour_LMPS = Dict{String, Vector{Float64}}()
 min5_LMPS = Dict{String, Vector{Float64}}()
 POLICY = "DR"

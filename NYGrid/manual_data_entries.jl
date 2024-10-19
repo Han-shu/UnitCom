@@ -21,7 +21,7 @@ reserve_short_penalty = Dict(
     "10Spin" => [PriceMW(775, 655)],
     "10Total" => [PriceMW(750, 1310)],
     "30Total" => [PriceMW(750, 1650), PriceMW(200, 300), PriceMW(100, 370), PriceMW(25, 300)],
-    "60Total" => [PriceMW(100, nothing)], # reserve requirement for 60Total depends on policies
+    "60Total" => [PriceMW(20, nothing)], # reserve requirement for 60Total depends on policies
 )
 
 

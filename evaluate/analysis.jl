@@ -100,12 +100,12 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
 end
 
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-run_dates = Dict("DR" => Dates.Date(2024,10,17),
+run_dates = Dict("DR" => Dates.Date(2024,10,18),
                 # "SB" => Dates.Date(2024,10,2), 
                 # "PF" => Dates.Date(2024,10,17),
                 "PF" => Dates.Date(2024,10,18),
 #                 "NR" => Dates.Date(2024,10,4), 
-#                 "BNR" => Dates.Date(2024,10,4), 
+                "BNR" => Dates.Date(2024,10,18), 
                 "WF" => Dates.Date(2024,10,18)) 
                 
 
