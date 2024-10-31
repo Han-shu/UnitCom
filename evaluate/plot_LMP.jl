@@ -53,7 +53,7 @@ res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 run_dates = Dict("DR" => Dates.Date(2024,10,18),
                 "SB" => Dates.Date(2024,10,19), 
                 "PF" => Dates.Date(2024,10,19),
-                "NR" => Dates.Date(2024,10,18), 
+                "MF" => Dates.Date(2024,10,18), 
                 "BNR" => Dates.Date(2024,10,18),
                 "WF" => Dates.Date(2024,10,18)) 
 

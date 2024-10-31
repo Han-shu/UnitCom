@@ -60,7 +60,7 @@ function policy_theta_parameter(POLICY::String)
     elseif POLICY == "BF"
         theta = 9
         scenario_cnt = 1
-    elseif POLICY in ["NR", "FR", "DR"] # use mean forecast
+    elseif POLICY in ["MF", "FR", "DR"] # use mean forecast
         theta = nothing
         scenario_cnt = 1
     else

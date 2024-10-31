@@ -13,7 +13,7 @@ include("src/get_uc_op_price.jl")
     POLICY
     "PF": Perfect forecast
     "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
-    "NR": mean forecast
+    "MF": mean forecast
     "BNR": Biased forecast (rank scenarios by net load sum, theta = 11)
     "BF": Biased forecast (rank scenarios by net load, theta = 7)
     "WF": Worst forecast (highest net load case, theta = 11)
@@ -22,8 +22,8 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "NR"
-run_date = Dates.today() #Dates.today() # or Specify running date Date(2024,5,1)
+POLICY = "WF"
+run_date = Date(2024,10,30) #Dates.today() #Dates.today() # or Specify running date Date(2024,5,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)

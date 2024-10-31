@@ -137,7 +137,7 @@ end
 
 run_dates = Dict("SB" => Dates.Date(2024,10,2), 
                 "PF" => Dates.Date(2024,10,8),
-                "NR" => Dates.Date(2024,10,4),
+                "MF" => Dates.Date(2024,10,4),
                 "BNR" => Dates.Date(2024,10,4), 
                 "WF" => Dates.Date(2024,10,5),
                 "DR" => Dates.Date(2024,10,16))

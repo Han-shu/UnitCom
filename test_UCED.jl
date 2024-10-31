@@ -12,7 +12,7 @@ include("src/get_uc_op_price.jl")
 #=
     POLICY
     "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
-    "NR": 50 percentile forecast
+    "MF": 50 percentile forecast
     "BNR": Biased forecast (theta = 11)
     "WF": Worst forecast (highest net load case, theta = 100)
     "MLF": Most likely forecast (theta = 1 without ranking)

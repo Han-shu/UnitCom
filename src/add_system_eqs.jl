@@ -79,13 +79,13 @@ end
 """
     policy
     "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
-    "NR": 50 percentile forecast
+    "MF": 50 percentile forecast
     "BNR": Biased forecast
     "FR": Fixed reserve requirement
     "DR": Dynamic reserve requirement
 """
 function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::String, isED::Bool)::Vector{Float64}
-    if policy in ["SB", "NR", "BNR", "WF", "BF", "PF"]
+    if policy in ["SB", "MF", "BNR", "WF", "BF", "PF"]
         return [0.0 for t in model[:param].time_steps]
     elseif policy == "FR"
         start_time = model[:param].start_time
