@@ -54,6 +54,16 @@ function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bo
             load_forecast = load_forecast[:, net_load_rank] 
         end
 
+        if POLICY == "WF" || POLICY == "BF" # rank by net load at each time step
+            net_load = load_forecast - solar_forecast - wind_forecast
+            for i in 1:size(net_load, 2)
+                net_load_rank = sortperm(net_load[:, i])
+                solar_forecast[:, i] = solar_forecast[net_load_rank, i]
+                wind_forecast[:, i] = wind_forecast[net_load_rank, i]
+                load_forecast[:, i] = load_forecast[net_load_rank, i]
+            end
+        end
+
         if POLICY == "PF" # replace the first scenario with the historical data
             solar_forecast = hcat(reshape(history_solar, :, 1) , solar_forecast[:, 2:end])
             wind_forecast = hcat(reshape(history_wind, :, 1), wind_forecast[:, 2:end])

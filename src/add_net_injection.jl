@@ -15,10 +15,10 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
         else
             load_matrix = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
         end
-    elseif theta == 100
-        solar_gen = first(get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys))
-        wind_gen = first(get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys))
-        load_matrix = _get_worst_load(solar_gen, wind_gen, load, start_time, time_steps)
+    # elseif theta == 100
+    #     solar_gen = first(get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys))
+    #     wind_gen = first(get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys))
+    #     load_matrix = _get_worst_load(solar_gen, wind_gen, load, start_time, time_steps)
     else
         load_matrix = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))[:, theta]
     end

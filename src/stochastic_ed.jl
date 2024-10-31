@@ -103,35 +103,7 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
 
     # Storage
     _add_stroage!(sys, model; isED = true, uc_op_price = uc_op_price)
-    # storage_names = PSY.get_name.(get_components(PSY.GenericBattery, sys))
-    # eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, sys, b)) for b in storage_names)
-    # η = Dict(b => get_efficiency(get_component(GenericBattery, sys, b)) for b in storage_names)
-    # kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, sys, b))[:max] for b in storage_names)
-    # kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, sys, b))[:max] for b in storage_names)
-
-    # @variable(model, kb_charge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_charge_max[b]) # power capacity MW
-    # @variable(model, kb_discharge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b])
-    # @variable(model, eb[b in storage_names, s in scenarios, t in time_steps], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
-    # @variable(model, battery_reserve[b in storage_names, r in ["10S", "30S", "60S"], s in scenarios, t in time_steps], lower_bound = 0)
-
-    # @constraint(model, battery_discharge[b in storage_names, s in scenarios, t in time_steps], 
-    #                 kb_discharge[b,s,t] + battery_reserve[b,"10S",s,t] + battery_reserve[b,"30S",s,t] + battery_reserve[b,"60S",s,t] <= kb_discharge_max[b])
-    # # Sustainable time limits for reserves
-    # @constraint(model, eq_battery_res10S[b in storage_names, s in scenarios, t in time_steps], 
-    #                 battery_reserve[b,"10S",s,t]/6 <= eb[b,s,t] - eb_lim[b].min)
-    # @constraint(model, eq_battery_res30S[b in storage_names, s in scenarios, t in time_steps],
-    #                 battery_reserve[b,"30S",s,t]/2 <= eb[b,s,t] - eb_lim[b].min)
-    # @constraint(model, eq_battery_res60S[b in storage_names, s in scenarios, t in time_steps],
-    #                 battery_reserve[b,"60S",s,t]*4 <= eb[b,s,t] - eb_lim[b].min)
-    # # energy capacity MWh
-    # @constraint(model, eq_storage_energy[b in storage_names, s in scenarios, t in time_steps],
-    #     eb[b,s,t] == (t == 1 ? eb_t0[b] : eb[b,s,t-1]) + η[b].in * kb_charge[b,s,t]/12 - (1/η[b].out) * kb_discharge[b,s,t]/12)
-
-    # # Add residual value of storage
-    # for b in storage_names
-    #     add_to_expression!(model[:obj], sum(eb[b,s,last(time_steps)] for s in scenarios), -uc_op_price[b][2]/length(scenarios))
-    # end
-
+    
     # net load = load - wind - solar - hydro
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys)
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe,RenewableGen, sys) 
@@ -156,8 +128,8 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
                 for g in wind_gens)
             forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
         end
-    elseif theta == 100
-        forecast_solar, forecast_wind, forecast_load = _get_worst_forecast_ED(first(solar_gens), first(wind_gens), load, start_time, time_steps)
+    # elseif theta == 100
+    #     forecast_solar, forecast_wind, forecast_load = _get_worst_forecast_ED(first(solar_gens), first(wind_gens), load, start_time, time_steps)
     else
         forecast_solar = Dict(get_name(g) =>
             get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps))[:, theta]
@@ -203,6 +175,10 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
     @constraint(model, bind_pg[g in thermal_gen_names, s in scenarios], pg[g,s,1] == t_pg[g])
     @constraint(model, bind_rg[g in thermal_gen_names, r in reserve_types, s in scenarios], rg[g,r,s,1] == t_rg[g,r])
     
+    storage_names = PSY.get_name.(get_components(PSY.GenericBattery, sys))
+    kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, sys, b))[:max] for b in storage_names)
+    kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(GenericBattery, sys, b))[:max] for b in storage_names)
+    eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, sys, b)) for b in storage_names)
     # Binding storage variables
     @variable(model, t_kb_charge[b in storage_names], lower_bound = 0, upper_bound = kb_charge_max[b])
     @variable(model, t_kb_discharge[b in storage_names], lower_bound = 0, upper_bound = kb_discharge_max[b])
@@ -233,13 +209,13 @@ function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing
     return model
 end
 
-function _get_worst_forecast_ED(solar_gen::RenewableGen, wind_gen::RenewableGen, load::StaticLoad, start_time::DateTime, time_steps)
-    fcst_solar = get_time_series_values(Scenarios, solar_gen, "solar_power", start_time = start_time, len = length(time_steps))
-    fcst_wind = get_time_series_values(Scenarios, wind_gen, "wind_power", start_time = start_time, len = length(time_steps))
-    fcst_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
-    fcst_netload = fcst_load .- fcst_solar .- fcst_wind
-    worst_index = argmax(fcst_netload, dims = 2)
-    fcst_solar_worst = Dict(get_name(solar_gen) => fcst_solar[worst_index])
-    fcst_wind_worst = Dict(get_name(wind_gen) => fcst_wind[worst_index])
-    return fcst_solar_worst, fcst_wind_worst, fcst_load[worst_index]
-end
+# function _get_worst_forecast_ED(solar_gen::RenewableGen, wind_gen::RenewableGen, load::StaticLoad, start_time::DateTime, time_steps)
+#     fcst_solar = get_time_series_values(Scenarios, solar_gen, "solar_power", start_time = start_time, len = length(time_steps))
+#     fcst_wind = get_time_series_values(Scenarios, wind_gen, "wind_power", start_time = start_time, len = length(time_steps))
+#     fcst_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
+#     fcst_netload = fcst_load .- fcst_solar .- fcst_wind
+#     worst_index = argmax(fcst_netload, dims = 2)
+#     fcst_solar_worst = Dict(get_name(solar_gen) => fcst_solar[worst_index])
+#     fcst_wind_worst = Dict(get_name(wind_gen) => fcst_wind[worst_index])
+#     return fcst_solar_worst, fcst_wind_worst, fcst_load[worst_index]
+# end
