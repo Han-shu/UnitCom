@@ -15,15 +15,15 @@ include("src/get_uc_op_price.jl")
     "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
     "MF": mean forecast
     "BNR": Biased forecast (rank scenarios by net load sum, theta = 11)
-    "BF": Biased forecast (rank scenarios by net load, theta = 7)
+    "BF": Biased forecast (rank scenarios by net load, theta = 9)
     "WF": Worst forecast (highest net load case, theta = 11)
     "FR": Fixed reserve requirement
     "DR": Dynamic reserve requirement
 =#
 
 # Specify the policy and running date
-POLICY = "WF"
-run_date = Date(2024,10,30) #Dates.today() #Dates.today() # or Specify running date Date(2024,5,1)
+POLICY = "BF2"
+run_date = Date(2024,10,25) #Dates.today() # or Specify running date Date(2024,5,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
@@ -39,6 +39,7 @@ ed_horizon = 12 # 12*5 minutes = 1 hour
 UCsys = build_ny_system(base_power = 100)
 @info "Build NY system for ED"
 EDsys = build_ny_system(base_power = 100)
+
 
 # Add time series data
 @info "Adding scenarios time series data for UC"
@@ -71,7 +72,7 @@ if init_fr_ED_flag
         mkdir(joinpath(result_dir, master_folder, uc_folder))
         mkdir(joinpath(result_dir, master_folder, ed_folder))
     end
-    init_time = DateTime(2019,6,30,15)
+    init_time = DateTime(2018, 12, 31, 21)
     uc_sol = init_solution_uc(UCsys)
     ed_sol = init_ed_solution(EDsys)
     UC_init_value = _get_init_value_for_UC(UCsys; init_fr_ED_flag = true)
@@ -98,7 +99,7 @@ for t in 1:8760
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if t > 1500 || uc_time > DateTime(2019,9,1,1) 
+    if t > 500 || uc_time > DateTime(2019,9,1,1) 
         break
     end
     
@@ -165,12 +166,12 @@ end
 end
 
 # # save the solution
-# save_date = Date(year(uc_time), month(uc_time), 1)
-# uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
-# ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(save_date).json")
-# @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
-# write_json(uc_sol_file, uc_sol)
-# write_json(ed_sol_file, ed_sol)
+save_date = Date(year(uc_time), month(uc_time), 1)
+uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
+ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(save_date).json")
+@info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
+write_json(uc_sol_file, uc_sol)
+write_json(ed_sol_file, ed_sol)
 @info "Running rolling horizon $(POLICY) is completed at $(uc_time)"
 @info "Current time is $(now())"
 

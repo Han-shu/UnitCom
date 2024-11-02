@@ -53,8 +53,8 @@ res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 run_dates = Dict("DR" => Dates.Date(2024,10,18),
                 "SB" => Dates.Date(2024,10,19), 
                 "PF" => Dates.Date(2024,10,19),
-                "MF" => Dates.Date(2024,10,18), 
-                "BNR" => Dates.Date(2024,10,18),
+                "NR" => Dates.Date(2024,10,18),
+                "BF" => Dates.Date(2024,10,20),
                 "WF" => Dates.Date(2024,10,18)) 
 
 policies = collect(keys(run_dates))

@@ -85,7 +85,7 @@ end
     "DR": Dynamic reserve requirement
 """
 function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::String, isED::Bool)::Vector{Float64}
-    if policy in ["SB", "MF", "BNR", "WF", "BF", "PF"]
+    if policy in ["SB", "MF", "BNR", "WF", "BF", "PF", "BF2"]
         return [0.0 for t in model[:param].time_steps]
     elseif policy == "FR"
         start_time = model[:param].start_time

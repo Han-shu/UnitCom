@@ -84,7 +84,9 @@ function build_ny_system(; base_power = 100)::System
     df_genprop = CSV.read(joinpath(data_dir, "gen_prop.csv"), DataFrame)
     df_nygen = CSV.read(joinpath(data_dir, "NY_gen.csv"), DataFrame)
     for (gen_id, gen) in enumerate(eachrow(df_gen))
-        if gen_id > 233 #1-227: Thermal, 228-233: Nuclear
+        # 1-227: Thermal, 228-233: Nuclear, 
+        # 232, 233 (Nuclear_H_0 and H_1) do not consider as Indian Point were shut down in 2020 and 2021
+        if gen_id > 231 # 233
             break
         end
         if gen_id <= size(df_geninfo, 1)
@@ -103,11 +105,11 @@ function build_ny_system(; base_power = 100)::System
         pm = map_UnitType[genprop.GEN_FUEL]
         # ThreePartCost(variable, fixed, start_up, shut_down) 
         if fuel == ThermalFuels.NUCLEAR
-            # cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, genprop.StartUpCost*100)
-            cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.StartUpCost, genprop.StartUpCost*100)
+            cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, genprop.StartUpCost*100)
+            # cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.StartUpCost, genprop.StartUpCost*100)
         else
-            cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.StartUpCost, 0.0)
-            # cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
+            # cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.StartUpCost, 0.0)
+            cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
         end
         type = _thermal_type(pm, fuel, pmax)
         uptime, downtime = duration_lims[type][:up], duration_lims[type][:down]

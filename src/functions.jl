@@ -55,10 +55,13 @@ function policy_theta_parameter(POLICY::String)
         theta = 11
         scenario_cnt = 1
     elseif POLICY == "WF"
-        theta = 11
+        theta = 11 # worst scenario
+        scenario_cnt = 1
+    elseif POLICY == "BF2"
+        theta = 9 # 3rd worst scenario
         scenario_cnt = 1
     elseif POLICY == "BF"
-        theta = 9
+        theta = 0 # (1-p)*mean + p*worst where p = 0.5 by default
         scenario_cnt = 1
     elseif POLICY in ["MF", "FR", "DR"] # use mean forecast
         theta = nothing

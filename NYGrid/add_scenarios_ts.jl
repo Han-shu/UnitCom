@@ -54,13 +54,13 @@ function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bo
             load_forecast = load_forecast[:, net_load_rank] 
         end
 
-        if POLICY == "WF" || POLICY == "BF" # rank by net load at each time step
+        if POLICY in ["WF", "BF2"] # rank by net load at each time step
             net_load = load_forecast - solar_forecast - wind_forecast
-            for i in 1:size(net_load, 2)
-                net_load_rank = sortperm(net_load[:, i])
-                solar_forecast[:, i] = solar_forecast[net_load_rank, i]
-                wind_forecast[:, i] = wind_forecast[net_load_rank, i]
-                load_forecast[:, i] = load_forecast[net_load_rank, i]
+            for i in 1:size(net_load, 1)
+                rank = sortperm(net_load[i, :])
+                solar_forecast[i, :] = solar_forecast[i, rank]
+                wind_forecast[i, :] = wind_forecast[i, rank]
+                load_forecast[i, :] = load_forecast[i, rank]
             end
         end
 
