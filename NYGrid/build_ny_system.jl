@@ -86,7 +86,7 @@ function build_ny_system(; base_power = 100)::System
     for (gen_id, gen) in enumerate(eachrow(df_gen))
         # 1-227: Thermal, 228-233: Nuclear, 
         # 232, 233 (Nuclear_H_0 and H_1) do not consider as Indian Point were shut down in 2020 and 2021
-        if gen_id > 231 # 233
+        if gen_id > 231 #233 
             break
         end
         if gen_id <= size(df_geninfo, 1)
@@ -106,9 +106,9 @@ function build_ny_system(; base_power = 100)::System
         # ThreePartCost(variable, fixed, start_up, shut_down) 
         if fuel == ThermalFuels.NUCLEAR
             cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, genprop.StartUpCost*100)
-            # cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.StartUpCost, genprop.StartUpCost*100)
+            # cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, genprop.PERC_StartUpCost*100)
         else
-            # cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.StartUpCost, 0.0)
+            # cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, 0.0)
             cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
         end
         type = _thermal_type(pm, fuel, pmax)
@@ -118,19 +118,6 @@ function build_ny_system(; base_power = 100)::System
 
     # Add aggregate hydro
     _add_hydro(system, bus; name = "Hydro", pmin = 0.0, pmax = 5000.0, ramp_10 = 300.0, ramp_30 = 3000.0, cost = TwoPartCost(VariableCost(0.0), 0.0))
-
-    # reserve = PSY.StaticReserve(
-    #     name = "60Totoal",
-    #     available = true,
-    #     time_frame = 60, # saturation time frame = 60min
-    #     requirement = 1.0,
-    #     sustained_time = 14400, # reserve must be sustanined 4 hours
-    #     max_output_fraction = 1.0,
-    #     max_participation_factor = 1.0,
-    #     deployed_fraction = 0.0,
-    #     ext = Dict{String, Any}(),
-    # )
-    # PSY.add_component!(system, reserve)
 
     return system
 end

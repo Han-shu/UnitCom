@@ -1,5 +1,23 @@
 # UnitCom
 
+# Result Description
+- 2024-10-18 (presented on INFORMS)
+    - VOLL = 5,000, solar*1, wind*1
+    - cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, 0.0)
+- 2024-11-01
+    - VOLL = 5,000, solar*10, wind*1.38
+    - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
+- 2024-11-02
+    - VOLL = 200,000, solar*10, wind*1.38
+    - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
+    - Exclude nuclear to provide reserve
+- NEXT
+    - Decrease ramp rate
+    - Increase VOLL
+    - Increase reserve requirement
+
+
+
 # TODO
 - function _extract_fcst_matrix: ~~_read_h5_file: attach scenarios 2:12 time series~~
 - function _extract_fcst_matrix: ~~UC: Use from 2nd time point, ED: Use from 1st time point~~

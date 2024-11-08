@@ -14,9 +14,9 @@ include("compute_conflict.jl")
 include("../NYGrid/manual_data_entries.jl")
 
 function stochastic_uc(
-    sys::System, optimizer; 
+    sys::System, optimizer, VOLL; 
     start_time = DateTime(2019,1,1,0), scenario_count = 11, horizon = 24, 
-    VOLL=5000, use_must_run=true, init_value=nothing, theta=nothing,
+    use_must_run=true, init_value=nothing, theta=nothing,
     )
     
     model = Model(optimizer)

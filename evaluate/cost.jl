@@ -3,8 +3,8 @@ function _compute_ed_curtailment(sys::System, model::JuMP.Model)::Dict
     curtailment = Dict()
     curtailment["load"] = value(model[:curtailment][1,1])
     forecast_solar, forecast_wind = _get_forecast_renewables(sys, model)
-    curtailment["wind"] = forecast_wind["wind"][1,1] - value(model[:pW]["wind",1,1])
-    curtailment["solar"] = forecast_solar["solar"][1,1] - value(model[:pS]["solar",1,1])
+    curtailment["wind"] = 1.38*forecast_wind["wind"][1,1] - value(model[:pW]["wind",1,1])
+    curtailment["solar"] = 10*forecast_solar["solar"][1,1] - value(model[:pS]["solar",1,1])
     return curtailment
 end
 

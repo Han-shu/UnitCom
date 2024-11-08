@@ -1,6 +1,7 @@
 function _add_stroage!(sys::System, model::JuMP.Model; isED = false, uc_op_price = nothing)::Nothing
     time_steps = model[:param].time_steps
     scenarios = model[:param].scenarios
+    spin_reserve_types = model[:param].spin_reserve_types
     storage_names = PSY.get_name.(get_components(PSY.GenericBattery, sys))
     @assert length(get_components(BatteryEMS, sys)) == 0
     duration = isED ? 1/12 : 1
@@ -20,16 +21,12 @@ function _add_stroage!(sys::System, model::JuMP.Model; isED = false, uc_op_price
     @variable(model, kb_charge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_charge_max[b])
     @variable(model, kb_discharge[b in storage_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = kb_discharge_max[b])
     @variable(model, eb[b in storage_names, s in scenarios, t in time_steps], lower_bound = eb_lim[b].min, upper_bound = eb_lim[b].max)
-    @variable(model, battery_reserve[b in storage_names, r in ["10S", "30S", "60S"], s in scenarios, t in time_steps], lower_bound = 0)
+    @variable(model, battery_reserve[b in storage_names, r in spin_reserve_types, s in scenarios, t in time_steps], lower_bound = 0)
 
     # Constraints
     # Sustainable time limits for reserves
-    @constraint(model, eq_battery_res10S[b in storage_names, s in scenarios, t in time_steps], 
-                    (1/η[b].out)*battery_reserve[b,"10S",s,t]/6 <= eb[b,s,t] - eb_lim[b].min)
-    @constraint(model, eq_battery_res30S[b in storage_names, s in scenarios, t in time_steps],
-                    (1/η[b].out)*battery_reserve[b,"30S",s,t]/2 <= eb[b,s,t] - eb_lim[b].min)
-    @constraint(model, eq_battery_res60S[b in storage_names, s in scenarios, t in time_steps],
-                    (1/η[b].out)*battery_reserve[b,"60S",s,t]*4 <= eb[b,s,t] - eb_lim[b].min)
+    @constraint(model, eq_battery_res[b in storage_names, s in scenarios, t in time_steps], 
+        (1/η[b].out)*(battery_reserve[b,"10S",s,t]/6 + battery_reserve[b,"30S",s,t]/2 + battery_reserve[b,"60S",s,t]*4) <= eb[b,s,t] - eb_lim[b].min)
     # Battery discharge
     @constraint(model, battery_discharge[b in storage_names, s in scenarios, t in time_steps], 
                     kb_discharge[b,s,t] + battery_reserve[b,"10S",s,t] + battery_reserve[b,"30S",s,t] + battery_reserve[b,"60S",s,t] <= kb_discharge_max[b])

@@ -14,16 +14,15 @@ include("src/get_uc_op_price.jl")
     "PF": Perfect forecast
     "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
     "MF": mean forecast
-    "BNR": Biased forecast (rank scenarios by net load sum, theta = 11)
-    "BF": Biased forecast (rank scenarios by net load, theta = 9)
+    "BF": Biased forecast ((1-p)*mean + p*WF, p = 0.5)
     "WF": Worst forecast (highest net load case, theta = 11)
-    "FR": Fixed reserve requirement
+    ~~"FR": Fixed reserve requirement~~
     "DR": Dynamic reserve requirement
 =#
 
 # Specify the policy and running date
-POLICY = "BF2"
-run_date = Date(2024,10,25) #Dates.today() # or Specify running date Date(2024,5,1)
+POLICY = "PF" #"MF", "BF", "WF", "DR"
+run_date = Date(2024,11,2)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
@@ -61,16 +60,17 @@ if !ispath(joinpath(result_dir, master_folder))
 end
 
 # Determine the initial flag: run from beginning or continue from previous solution
-init_fr_ED_flag, init_fr_file_flag = determine_init_flag(result_dir, master_folder, uc_folder, ed_folder)
+init_fr_ED_flag, init_fr_file_flag = determine_init_flag(result_dir, master_folder, POLICY, uc_folder, ed_folder)
 
 if init_fr_ED_flag
 # 1. Run rolling horizon without solution from beginning
     @info "Running rolling horizon $(POLICY) from beginning"  
     # Create folders if not exist
-    if !ispath(joinpath(result_dir, master_folder, uc_folder))
-        @info "Create folders $(joinpath(result_dir, master_folder, uc_folder)) and $(joinpath(result_dir, master_folder, ed_folder))"
-        mkdir(joinpath(result_dir, master_folder, uc_folder))
-        mkdir(joinpath(result_dir, master_folder, ed_folder))
+    if !ispath(joinpath(result_dir, master_folder, POLICY))
+        mkdir(joinpath(result_dir, master_folder, POLICY))
+        @info "Create folders $(joinpath(result_dir, master_folder, POLICY, uc_folder)) and $(joinpath(result_dir, master_folder, POLICY, ed_folder))"
+        mkdir(joinpath(result_dir, master_folder, POLICY, uc_folder))
+        mkdir(joinpath(result_dir, master_folder, POLICY, ed_folder))
     end
     init_time = DateTime(2018, 12, 31, 21)
     uc_sol = init_solution_uc(UCsys)
@@ -78,9 +78,9 @@ if init_fr_ED_flag
     UC_init_value = _get_init_value_for_UC(UCsys; init_fr_ED_flag = true)
 else
 # 2. Run rolling horizon with solution from previous time point
-    @info "Find path $(joinpath(result_dir, master_folder, uc_folder))"
+    @info "Find path $(joinpath(result_dir, master_folder, POLICY, uc_folder))"
     # Find the latest solution file
-    uc_sol_file, ed_sol_file = find_sol_files(result_dir, master_folder, uc_folder, ed_folder)
+    uc_sol_file, ed_sol_file = find_sol_files(result_dir, master_folder, POLICY, uc_folder, ed_folder)
     @info "Find the latest solution file $(uc_sol_file) and $(ed_sol_file)"
     uc_sol = read_json(uc_sol_file)
     ed_sol = read_json(ed_sol_file)
@@ -99,7 +99,7 @@ for t in 1:8760
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if t > 500 || uc_time > DateTime(2019,9,1,1) 
+    if t > 1500 || uc_time > DateTime(2019,3,1,2) 
         break
     end
     
@@ -107,8 +107,8 @@ for t in 1:8760
     if day(uc_time) == 1 && hour(uc_time) == 0
         # save the solution only if final hour of last month has been solved
         if length(uc_sol["Time"]) > 0 && uc_sol["Time"][end] == uc_time - Hour(1)
-            uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(Date(uc_time - Month(1))).json")
-            ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(Date(uc_time - Month(1))).json")
+            uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Month(1))).json")
+            ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time - Month(1))).json")
             @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
             write_json(uc_sol_file, uc_sol)
             write_json(ed_sol_file, ed_sol)
@@ -128,7 +128,7 @@ for t in 1:8760
     else
         UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model)  
     end
-    uc_model = stochastic_uc(UCsys, Gurobi.Optimizer; init_value = UC_init_value, theta = theta,
+    uc_model = stochastic_uc(UCsys, Gurobi.Optimizer, VOLL; init_value = UC_init_value, theta = theta,
                         start_time = uc_time, scenario_count = scenario_cnt, horizon = uc_horizon)
     end
     @info "$(POLICY)-UC model at $(uc_time) is solved in $(one_uc_time) seconds"
@@ -143,7 +143,7 @@ for t in 1:8760
         ed_time = uc_time + Minute(5*(i-1))
         @info "Solving ED model at $(ed_time)"
         ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
-        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_count = scenario_cnt, theta = theta, start_time = ed_time, horizon = ed_horizon)
+        ed_model = stochastic_ed(EDsys, Gurobi.Optimizer, VOLL; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_count = scenario_cnt, theta = theta, start_time = ed_time, horizon = ed_horizon)
         ed_hour_sol = get_ed_hour_solution(EDsys, ed_model, ed_hour_sol)
         if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
             @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"
@@ -166,12 +166,12 @@ end
 end
 
 # # save the solution
-save_date = Date(year(uc_time), month(uc_time), 1)
-uc_sol_file = joinpath(result_dir, master_folder, uc_folder, "UC_$(save_date).json")
-ed_sol_file = joinpath(result_dir, master_folder, ed_folder, "ED_$(save_date).json")
-@info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
-write_json(uc_sol_file, uc_sol)
-write_json(ed_sol_file, ed_sol)
+# save_date = Date(year(uc_time), month(uc_time), 1)
+# uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(save_date).json")
+# ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(save_date).json")
+# @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
+# write_json(uc_sol_file, uc_sol)
+# write_json(ed_sol_file, ed_sol)
 @info "Running rolling horizon $(POLICY) is completed at $(uc_time)"
 @info "Current time is $(now())"
 

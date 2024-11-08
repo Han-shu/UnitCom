@@ -40,7 +40,7 @@ function get_gen_capacity_by_type()
         thermal_gen_capacity += pg_lim.max
     end
     return Dict("Fast" => fast_gen_capacity, "Nuclear" => nuclear_gen_capacity, "Thermal" => thermal_gen_capacity,
-                "BA" => 1500, "PH" => 1170, "wind" => 1800, "solar" => 450, "hydro" => 4738)
+                "BA" => 1500, "PH" => 1170, "wind" => 2736, "solar" => 5227, "hydro" => 4800)
 end
 
 function extract_LMP(res_dir::AbstractString, POLICY::AbstractString, run_date)::Tuple{Array{Float64}, Array{Float64}}
@@ -98,7 +98,6 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
         GenIntegerCosts += geninteger_cost
         Gen_profit[g] -= (genfuel_cost + geninteger_cost)
     end
-    VOLL = 5000
     load_curtailment_penalty = load_curtailment*VOLL
     TotalCosts = GenFuelCosts + GenIntegerCosts + load_curtailment_penalty
     
@@ -124,32 +123,51 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
 end
 
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-run_dates = Dict("SB" => Dates.Date(2024,10,19),
-                "PF" => Dates.Date(2024,10,19),
-                "NR" => Dates.Date(2024,10,18), 
-                "BF" => Dates.Date(2024,10,25),
-                "WF" => Dates.Date(2024,10,18),
-                "DR" => Dates.Date(2024,10,20),) 
+run_dates = Dict(
+                "PF" => Dates.Date(2024,11,1),
+                "MF" => Dates.Date(2024,11,1), 
+                "BF" => Dates.Date(2024,11,1),
+                "WF" => Dates.Date(2024,11,1),
+                "DR" => Dates.Date(2024,11,1)) 
+
+# INFORMS results 
+# run_dates = Dict("SB" => Dates.Date(2024,10,19),
+#                 "PF" => Dates.Date(2024,10,19),
+#                 "NR" => Dates.Date(2024,10,18), 
+#                 "BF" => Dates.Date(2024,10,25),
+#                 "WF" => Dates.Date(2024,10,18),
+#                 "DR" => Dates.Date(2024,10,20)) 
                 
 
-uc_sol = read_json("/Users/hanshu/Desktop/Price_formation/Result/Master_NR/NR_2024-10-18/UC_2019-01-01.json")
-extract_len = length(uc_sol["Time"])
-# extract_len = nothing
 
-Costs = Dict()
-GenEnergyRevenues = Dict()
-GenReserveRevenues = Dict()
-GenProfits = Dict()
-GenCosts = Dict()
+extract_len = nothing
+
+Costs = OrderedDict()
+GenEnergyRevenues = OrderedDict()
+GenReserveRevenues = OrderedDict()
+GenProfits = OrderedDict()
+GenCosts = OrderedDict()
 for POLICY in collect(keys(run_dates))
     run_date = run_dates[POLICY]
     file_date = Dates.Date(2019,1,1)
-    ans, Gen_energy_revenue, Gen_reserve_revenue, Gen_cost, Gen_profit = calc_cost_fr_uc_sol(POLICY, res_dir, run_date, file_date, extract_len = extract_len)
-    Costs[POLICY] = ans
-    GenEnergyRevenues[POLICY] = Gen_energy_revenue
-    GenReserveRevenues[POLICY] = Gen_reserve_revenue
-    GenProfits[POLICY] = Gen_profit
-    GenCosts[POLICY] = Gen_cost
+    if typeof(run_date) == Vector
+        for i in 1:length(run_date)
+            day = run_date[i]
+            ans, Gen_energy_revenue, Gen_reserve_revenue, Gen_cost, Gen_profit = calc_cost_fr_uc_sol(POLICY, res_dir, day, file_date, extract_len = extract_len)
+            Costs[POLICY*string(i)] = ans
+            GenEnergyRevenues[POLICY*string(i)] = Gen_energy_revenue
+            GenReserveRevenues[POLICY*string(i)] = Gen_reserve_revenue
+            GenProfits[POLICY*string(i)] = Gen_profit
+            GenCosts[POLICY*string(i)] = Gen_cost
+        end
+    else
+        ans, Gen_energy_revenue, Gen_reserve_revenue, Gen_cost, Gen_profit = calc_cost_fr_uc_sol(POLICY, res_dir, run_date, file_date, extract_len = extract_len)
+        Costs[POLICY] = ans
+        GenEnergyRevenues[POLICY] = Gen_energy_revenue
+        GenReserveRevenues[POLICY] = Gen_reserve_revenue
+        GenProfits[POLICY] = Gen_profit
+        GenCosts[POLICY] = Gen_cost
+    end 
 end
 
 fast_gen_names, nuclear_gen_names, thermal_gen_names = get_gen_names_by_type()
@@ -198,7 +216,7 @@ cost_df = DataFrame(POLICY = collect(keys(run_dates)),
                 Solar_curt = [Costs[POLICY]["Solar curtailment"] for POLICY in collect(keys(run_dates))])
 
 df = leftjoin(revenue_df, cost_df, on = :POLICY)
-# CSV.write(joinpath(res_dir, "revenue_cost.csv"), df)
+CSV.write(joinpath(res_dir, "revenue_cost.csv"), df)
 
 PerUnitProfit_df = DataFrame(POLICY = collect(keys(run_dates)), 
                 Fast = [PerUnitProfit[POLICY]["Fast"] for POLICY in collect(keys(run_dates))],
@@ -210,7 +228,8 @@ PerUnitProfit_df = DataFrame(POLICY = collect(keys(run_dates)),
                 solar = [PerUnitProfit[POLICY]["solar"] for POLICY in collect(keys(run_dates))],
                 hydro = [PerUnitProfit[POLICY]["hydro"] for POLICY in collect(keys(run_dates))])
 CSV.write(joinpath(res_dir, "PerUnitProfit.csv"), PerUnitProfit_df)
-                
+      
+
 # thermal_gen_names = get_name.(get_components(ThermalGen, sys))
 # fixed_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
 # startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalStandard, sys, g))) for g in thermal_gen_names)

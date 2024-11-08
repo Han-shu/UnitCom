@@ -1,6 +1,6 @@
 using JuMP
 
-function stochastic_ed(sys::System, optimizer; uc_op_price, init_value = nothing, scenario_count = 11, theta = nothing, VOLL = 5000, start_time = DateTime(Date(2019, 1, 1)), horizon = 12)
+function stochastic_ed(sys::System, optimizer, VOLL; uc_op_price, init_value = nothing, scenario_count = 11, theta = nothing, start_time = DateTime(Date(2019, 1, 1)), horizon = 12)
     model = Model(optimizer)
     set_silent(model)
     model[:obj] = QuadExpr()

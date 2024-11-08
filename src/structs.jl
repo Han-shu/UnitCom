@@ -9,6 +9,8 @@ mutable struct Parameters
     time_steps::UnitRange{Int}
     scenarios::UnitRange{Int}
     reserve_types::Vector{String}
+    spin_reserve_types::Vector{String}
+    nonspin_reserve_types::Vector{String}
     start_time::DateTime
     VOLL::Int
     reserve_products::Vector{String}
@@ -17,7 +19,7 @@ mutable struct Parameters
 end
 
 function _construct_model_parameters(horizon::Int, scenario_cnt::Int, start_time::DateTime, VOLL::Int)
-    return Parameters(1:horizon, 1:scenario_cnt, reserve_types, start_time, VOLL, reserve_products, nyca_reserve_requirement, reserve_short_penalty)
+    return Parameters(1:horizon, 1:scenario_cnt, reserve_types, spin_reserve_types, nonspin_reserve_types, start_time, VOLL, reserve_products, nyca_reserve_requirement, reserve_short_penalty)
 end
 
 

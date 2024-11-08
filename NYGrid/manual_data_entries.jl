@@ -1,6 +1,9 @@
 include("../src/structs.jl")
 
+VOLL = 200000
 reserve_types = ["10S", "10N", "30S", "30N", "60S", "60N"]
+spin_reserve_types = ["10S", "30S", "60S"]
+nonspin_reserve_types = ["10N", "30N", "60N"]
 reserve_products = ["10Spin", "10Total", "30Total", "60Total"]
 
 """
