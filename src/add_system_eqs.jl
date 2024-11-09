@@ -52,17 +52,27 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
         sum(reserve_short["10Total",s,t,k] for k in 1:length(penalty["10Total"])) 
         >= reserve_requirements["10Total"])
     
-    @constraint(model, eq_reserve_30Total[s in scenarios, t in time_steps],
-        sum(model[:rg][g,"10S",s,t] + model[:rg][g,"10N",s,t] + model[:rg][g,"30S",s,t] + model[:rg][g,"30N",s,t] for g in thermal_gen_names) + 
-        sum(model[:battery_reserve][b,"10S",s,t] + model[:battery_reserve][b,"30S",s,t] for b in storage_names) + 
-        sum(reserve_short["30Total",s,t,k] for k in 1:length(penalty["30Total"])) 
-        >= reserve_requirements["30Total"])
+    if POLICY == "DR30"
+        @constraint(model, eq_reserve_30Total[s in scenarios, t in time_steps],
+            sum(model[:rg][g,"10S",s,t] + model[:rg][g,"10N",s,t] + model[:rg][g,"30S",s,t] + model[:rg][g,"30N",s,t] for g in thermal_gen_names) + 
+            sum(model[:battery_reserve][b,"10S",s,t] + model[:battery_reserve][b,"30S",s,t] for b in storage_names) + 
+            sum(reserve_short["30Total",s,t,k] for k in 1:length(penalty["30Total"])) 
+            >= reserve_requirements["30Total"] + new_reserve_requirement[t])
+    else
+        @constraint(model, eq_reserve_30Total[s in scenarios, t in time_steps],
+            sum(model[:rg][g,"10S",s,t] + model[:rg][g,"10N",s,t] + model[:rg][g,"30S",s,t] + model[:rg][g,"30N",s,t] for g in thermal_gen_names) + 
+            sum(model[:battery_reserve][b,"10S",s,t] + model[:battery_reserve][b,"30S",s,t] for b in storage_names) + 
+            sum(reserve_short["30Total",s,t,k] for k in 1:length(penalty["30Total"])) 
+            >= reserve_requirements["30Total"])
+    end
     
-    @constraint(model, eq_reserve_60Total[s in scenarios, t in time_steps],
-        sum(model[:rg][g,"60S",s,t] + model[:rg][g,"60N",s,t] for g in thermal_gen_names) + 
-        sum(model[:battery_reserve][b,"60S",s,t] for b in storage_names) + 
-        sum(reserve_short["60Total",s,t,k] for k in 1:length(penalty["60Total"])) 
-        >= new_reserve_requirement[t])
+    if POLICY == "DR"
+        @constraint(model, eq_reserve_60Total[s in scenarios, t in time_steps],
+            sum(model[:rg][g,"60S",s,t] + model[:rg][g,"60N",s,t] for g in thermal_gen_names) + 
+            sum(model[:battery_reserve][b,"60S",s,t] for b in storage_names) + 
+            sum(reserve_short["60Total",s,t,k] for k in 1:length(penalty["60Total"])) 
+            >= new_reserve_requirement[t])
+    end
 
     return
 end
@@ -93,7 +103,7 @@ function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::
         index = (Dates.hour(start_time), Dates.minute(start_time))
         subdic = isED ? reserve_requirement["ED"] : reserve_requirement["UC"]
         return subdic[index][time_steps]
-    elseif policy == "DR"
+    elseif policy == "DR" || policy == "DR30"
         netload_diff = _get_mean_fcst_netload_diff(sys, model)
         return netload_diff
     else

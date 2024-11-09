@@ -20,7 +20,7 @@ function build_ny_system(; base_power = 100)::System
     _build_bus(system, 1, "bus_1", 2, 345)
 
     # Add renewables
-    solar_rating, wind_rating = 1000, 1000
+    solar_rating, wind_rating = 5227, 2736
     solar = PSY.RenewableDispatch(
             name = "solar",  #sets name of solar component             
             available = true,   #marks the component as available       
@@ -117,7 +117,7 @@ function build_ny_system(; base_power = 100)::System
     end
 
     # Add aggregate hydro
-    _add_hydro(system, bus; name = "Hydro", pmin = 0.0, pmax = 5000.0, ramp_10 = 300.0, ramp_30 = 3000.0, cost = TwoPartCost(VariableCost(0.0), 0.0))
+    _add_hydro(system, bus; name = "Hydro", pmin = 0.0, pmax = 4800.0, ramp_10 = 300.0, ramp_30 = 3000.0, cost = TwoPartCost(VariableCost(0.0), 0.0))
 
     return system
 end

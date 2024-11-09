@@ -18,10 +18,11 @@ include("src/get_uc_op_price.jl")
     "WF": Worst forecast (highest net load case, theta = 11)
     ~~"FR": Fixed reserve requirement~~
     "DR": Dynamic reserve requirement
+    "DR30": Dynamic reserve requirement to be added to 30T
 =#
 
 # Specify the policy and running date
-POLICY = "PF" #"MF", "BF", "WF", "DR"
+POLICY = "MF" #, "BF", "WF", "DR"
 run_date = Date(2024,11,2)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 

@@ -7,14 +7,21 @@
 - 2024-11-01
     - VOLL = 5,000, solar*10, wind*1.38
     - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
-- 2024-11-02
+- 2024-11-02: Running NOW
     - VOLL = 200,000, solar*10, wind*1.38
     - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
     - Exclude nuclear to provide reserve
+    - Run new policy -- DR30: Add reserve requirment of DR to 30T
 - NEXT
+
+    - VOLL = 200,000, solar*10, wind*1.38
+    - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
+    - Exclude nuclear to provide reserve
+
     - Decrease ramp rate
     - Increase VOLL
-    - Increase reserve requirement
+    - Increase reserve requirement of DR
+    - Add reserve requirment of DR to 30T
 
 
 
