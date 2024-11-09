@@ -1,4 +1,4 @@
-function _add_stroage!(sys::System, model::JuMP.Model; isED = false, uc_op_price = nothing)::Nothing
+function _add_stroage!(sys::System, model::JuMP.Model; isED = false, eb_t0 = nothing, uc_op_price = nothing)::Nothing
     time_steps = model[:param].time_steps
     scenarios = model[:param].scenarios
     spin_reserve_types = model[:param].spin_reserve_types
@@ -6,10 +6,14 @@ function _add_stroage!(sys::System, model::JuMP.Model; isED = false, uc_op_price
     @assert length(get_components(BatteryEMS, sys)) == 0
     duration = isED ? 1/12 : 1
     # get initial energy level and other parameters
-    if haskey(model, :init_value)
-        eb_t0 = model[:init_value].eb_t0
+    if isnothing(eb_t0)
+        eb_t0 = Dict(b => get_initial_energy(get_component(PSY.GenericBattery, sys, b)) for b in storage_names)
     else
-        eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
+        if haskey(model, :init_value)
+            eb_t0 = model[:init_value].eb_t0
+        else
+            eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
+        end
     end
     
     eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, sys, b)) for b in storage_names)

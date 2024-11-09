@@ -72,6 +72,12 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
             sum(model[:battery_reserve][b,"60S",s,t] for b in storage_names) + 
             sum(reserve_short["60Total",s,t,k] for k in 1:length(penalty["60Total"])) 
             >= new_reserve_requirement[t])
+    else
+        @constraint(model, eq_reserve_60Total[s in scenarios, t in time_steps],
+            sum(model[:rg][g,"60S",s,t] + model[:rg][g,"60N",s,t] for g in thermal_gen_names) + 
+            sum(model[:battery_reserve][b,"60S",s,t] for b in storage_names) + 
+            sum(reserve_short["60Total",s,t,k] for k in 1:length(penalty["60Total"])) 
+            >= 0)
     end
 
     return

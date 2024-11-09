@@ -22,7 +22,7 @@ include("src/get_uc_op_price.jl")
 
 # Specify the policy and running date
 POLICY = "WF"
-run_date = Date(2024,11,2)
+run_date = Date(2024,11,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)

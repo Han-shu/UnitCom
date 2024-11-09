@@ -26,6 +26,7 @@ function stochastic_ed(sys::System, optimizer, VOLL; uc_op_price, init_value = n
         wg = init_value.wg_t0 # shutdown status, 2-element Vector
         Pg_t0 = init_value.Pg_t0
         eb_t0 = init_value.eb_t0
+        model[:init_value] = init_value
     end
 
     vg_min5 = Dict(g => zeros(horizon) for g in thermal_gen_names)
@@ -102,7 +103,7 @@ function stochastic_ed(sys::System, optimizer, VOLL; uc_op_price, init_value = n
     end
 
     # Storage
-    _add_stroage!(sys, model; isED = true, uc_op_price = uc_op_price)
+    _add_stroage!(sys, model; isED = true, eb_t0 = eb_t0, uc_op_price = uc_op_price)
     
     # net load = load - wind - solar - hydro
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys)
