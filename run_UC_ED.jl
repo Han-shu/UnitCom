@@ -22,8 +22,8 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "DR30" #, "BF", "WF", "DR"
-run_date = Date(2024,11,1)
+POLICY = "WF" # "WF", "DR",  "DR30"  
+run_date = Date(2024,11,9)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)

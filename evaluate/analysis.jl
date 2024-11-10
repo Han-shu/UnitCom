@@ -147,8 +147,9 @@ end
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 # INFORMS results run_date = Dates.Date(2024,10,18)
 
-run_date = Dates.Date(2024,11,1)
-policies = ["PF", "MF", "BF", "WF", "DR"]    
+run_date = Dates.Date(2024,11,2)
+policies = ["PF", "MF", "DR30"]
+# policies = ["PF", "MF", "BF", "WF", "DR"]    
 extract_len = nothing
 
 Costs = OrderedDict()
@@ -216,7 +217,7 @@ cost_df = DataFrame(POLICY = policies,
                 Solar_curt = [Costs[POLICY]["Solar curtailment"] for POLICY in policies])
 
 df = leftjoin(revenue_df, cost_df, on = :POLICY)
-# CSV.write(joinpath(res_dir, "$(run_date)", "revenue_cost.csv"), df)
+CSV.write(joinpath(res_dir, "$(run_date)", "revenue_cost.csv"), df)
 
 PerUnitProfit_df = DataFrame(POLICY = policies, 
                 Fast = [PerUnitProfit[POLICY]["Fast"] for POLICY in policies],
@@ -227,7 +228,7 @@ PerUnitProfit_df = DataFrame(POLICY = policies,
                 wind = [PerUnitProfit[POLICY]["wind"] for POLICY in policies],
                 solar = [PerUnitProfit[POLICY]["solar"] for POLICY in policies],
                 hydro = [PerUnitProfit[POLICY]["hydro"] for POLICY in policies])
-# CSV.write(joinpath(res_dir, "$(run_date)", "PerUnitProfit.csv"), PerUnitProfit_df)
+CSV.write(joinpath(res_dir, "$(run_date)", "PerUnitProfit.csv"), PerUnitProfit_df)
       
 
 # thermal_gen_names = get_name.(get_components(ThermalGen, sys))
