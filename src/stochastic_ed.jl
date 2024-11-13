@@ -142,8 +142,8 @@ function stochastic_ed(sys::System, optimizer, VOLL; uc_op_price, init_value = n
     end
     
     model[:forecast_load] = forecast_load
-    @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_solar[g][t,s]*10)
-    @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_wind[g][t,s]*1.38)
+    @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_solar[g][t,s])
+    @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_wind[g][t,s])
 
     @variable(model, curtailment[s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_load[t,s])
 

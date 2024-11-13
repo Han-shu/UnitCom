@@ -86,7 +86,7 @@ function build_ny_system(; base_power = 100)::System
     for (gen_id, gen) in enumerate(eachrow(df_gen))
         # 1-227: Thermal, 228-233: Nuclear, 
         # 232, 233 (Nuclear_H_0 and H_1) do not consider as Indian Point were shut down in 2020 and 2021
-        if gen_id > 231 #233 
+        if gen_id > 233 # 231 #233 
             break
         end
         if gen_id <= size(df_geninfo, 1)

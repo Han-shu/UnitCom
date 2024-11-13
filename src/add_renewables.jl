@@ -10,8 +10,8 @@ function _add_renewables!(sys::System, model::JuMP.Model; theta::Union{Nothing, 
     solar_gen_names = get_name.(solar_gens)
 
     forecast_solar, forecast_wind = _get_forecast_renewables(sys, model, theta = theta)
-    @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_solar[g][t,s]*10)
-    @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_wind[g][t,s]*1.38)
+    @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_solar[g][t,s])
+    @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_wind[g][t,s])
 
     for s in scenarios, t in time_steps
         add_to_expression!(expr_net_injection[s,t], sum(pS[g,s,t] for g in solar_gen_names), 1.0)

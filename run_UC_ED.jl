@@ -22,8 +22,8 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "WF" # "WF", "DR",  "DR30"  
-run_date = Date(2024,11,9)
+POLICY = "PF" # -"PF", "SB", -"MF", -"BF", -"WF", -"DR", "DR30" 
+run_date = Date(2024,11,11)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
@@ -105,6 +105,7 @@ for t in 1:8760
     end
     
     # For the first hour of the month, save the solution and reinitialize
+    # if day(uc_time) in [1, 11, 21] && hour(uc_time) == 0
     if day(uc_time) == 1 && hour(uc_time) == 0
         # save the solution only if final hour of last month has been solved
         if length(uc_sol["Time"]) > 0 && uc_sol["Time"][end] == uc_time - Hour(1)

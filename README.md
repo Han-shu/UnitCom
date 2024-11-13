@@ -7,7 +7,7 @@
 - 2024-11-01
     - VOLL = 5,000, solar*10, wind*1.38
     - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
-- 2024-11-02: Running NOW
+- 2024-11-02 
     - VOLL = 200,000, solar*10, wind*1.38
     - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
     - Exclude nuclear to provide reserve
@@ -17,6 +17,13 @@
     - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
     - Exclude nuclear to provide reserve
     - Modify energy storage eb_t0
+- 2024-11-11
+    - VOLL = 5,000
+    - solar*1, wind*1
+    - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
+    - Exclude nuclear to provide reserve
+    - Modify energy storage eb_t0
+    - Add back nuclear plants
 - NEXT
 
     - VOLL = 200,000, solar*10, wind*1.38

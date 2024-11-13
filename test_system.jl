@@ -45,3 +45,6 @@ horizon = 24
 VOLL=5000
 parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL)
 parameters.reserve_requirements
+
+total_thermal_cap = sum(pg_lim[g].max for g in thermal_gen_names)
+println("Total thermal capacity: ", total_thermal_cap)

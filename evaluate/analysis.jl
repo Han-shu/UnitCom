@@ -40,8 +40,8 @@ function get_gen_capacity_by_type()
         end
         thermal_gen_capacity += pg_lim.max
     end
-    solar_capacity = 5227
-    wind_capacity = 2736
+    solar_capacity = 522.7
+    wind_capacity = 1983 #2736
     hydro_capacity = 4800
     # solar_capacity = get_active_power_limits(get_component(RenewableDispatch, sys, "solar")).max
     # wind_capacity = get_active_power_limits(get_component(RenewableDispatch, sys, "wind")).max
@@ -147,9 +147,8 @@ end
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 # INFORMS results run_date = Dates.Date(2024,10,18)
 
-run_date = Dates.Date(2024,11,2)
-policies = ["PF", "MF", "DR30"]
-# policies = ["PF", "MF", "BF", "WF", "DR"]    
+run_date = Dates.Date(2024,11,11)
+policies = ["PF", "MF", "BF", "WF", "DR"]    
 extract_len = nothing
 
 Costs = OrderedDict()
@@ -158,6 +157,11 @@ GenReserveRevenues = OrderedDict()
 GenProfits = OrderedDict()
 GenCosts = OrderedDict()
 for POLICY in policies
+    path_dir = joinpath(res_dir, "$(run_date)", POLICY)
+    if !isdir(path_dir)
+        println("Directory not found for $(POLICY)")
+        continue
+    end
     summary, Gen_energy_revenue, Gen_reserve_revenue, Gen_cost, Gen_profit = calc_cost_fr_uc_sol(POLICY, res_dir, run_date, extract_len = extract_len)
     Costs[POLICY] = summary
     GenEnergyRevenues[POLICY] = Gen_energy_revenue
@@ -166,11 +170,11 @@ for POLICY in policies
     GenCosts[POLICY] = Gen_cost
 end
 
-for POLICY in policies
-    println("Policy: $(POLICY)")
-    println("BA energy revenue: $(GenEnergyRevenues[POLICY]["BA"]), BA reserve revenue: $(GenReserveRevenues[POLICY]["BA"])")
-    println("PH energy revenue: $(GenEnergyRevenues[POLICY]["PH"]), PH reserve revenue: $(GenReserveRevenues[POLICY]["PH"]) \n")
-end
+# for POLICY in policies
+#     println("Policy: $(POLICY)")
+#     println("BA energy revenue: $(GenEnergyRevenues[POLICY]["BA"]), BA reserve revenue: $(GenReserveRevenues[POLICY]["BA"])")
+#     println("PH energy revenue: $(GenEnergyRevenues[POLICY]["PH"]), PH reserve revenue: $(GenReserveRevenues[POLICY]["PH"]) \n")
+# end
 fast_gen_names, nuclear_gen_names, thermal_gen_names = get_gen_names_by_type()
 
 fast_gen_profits = OrderedDict(POLICY => sum(GenProfits[POLICY][g] for g in fast_gen_names) for POLICY in policies)
