@@ -29,7 +29,7 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
     
     for s in scenarios, t in time_steps
         expr_net_injection[s,t] = AffExpr()
-        add_to_expression!(expr_net_injection[s,t], load_matrix[t,s], -1.0)
+        add_to_expression!(expr_net_injection[s,t], load_matrix[t,s] - 2900, -1.0) # 2900MW is imports
     end
 
 

@@ -22,8 +22,8 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "PF" # -"PF", "SB", -"MF", -"BF", -"WF", -"DR", "DR30" 
-run_date = Date(2024,11,11)
+POLICY = "BF" # -"PF", -"SB", -"MF", "BF", -"WF", -"DR", -"DR30" 
+run_date = Date(2024,11,16)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
@@ -85,7 +85,7 @@ else
     @info "Find the latest solution file $(uc_sol_file) and $(ed_sol_file)"
     uc_sol = read_json(uc_sol_file)
     ed_sol = read_json(ed_sol_file)
-    init_time = DateTime(String(uc_sol["Time"][end]), "yyyy-mm-ddTHH:MM:SS")  + Dates.Hour(1)
+    init_time = DateTime(String(uc_sol["Time"][end]), "yyyy-mm-ddTHH:MM:SS") + Dates.Hour(1)
     @info "Continue running rolling horizon $(POLICY) starting from $(init_time)"
     UC_init_value = _get_init_value_for_UC(UCsys; uc_sol = uc_sol, ed_sol = ed_sol, init_fr_file_flag = true)
 end
@@ -100,8 +100,15 @@ for t in 1:8760
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if t > 1500 || uc_time > DateTime(2019,3,1,2) 
+    if t > 1500 || uc_time > DateTime(2019,2,1,2) 
         break
+    end
+
+    # Check the initial flag
+    if t == 1
+        @assert init_fr_ED_flag || init_fr_file_flag == true
+    else
+        @assert init_fr_ED_flag || init_fr_file_flag == false
     end
     
     # For the first hour of the month, save the solution and reinitialize

@@ -67,14 +67,25 @@ function stochastic_ed(sys::System, optimizer, VOLL; uc_op_price, init_value = n
     # ramping constraints and reserve constraints
     
     # Non-spinning reserve qualifications, time_limits[:up] > 1 are not eligible to provide non-spinning reserve
+    # Nuclear generators are not eligible to provide reserve
     non_faststart_gen_names = []
+    nuclear_gen_names = []
     for g in thermal_gen_names
-        time_limits = get_time_limits(get_component(ThermalGen, sys, g))
+        generator = get_component(ThermalGen, sys, g)
+        time_limits = get_time_limits(generator)
         if time_limits[:up] > 1
             push!(non_faststart_gen_names, g)
         end
+        if generator.fuel == ThermalFuels.NUCLEAR
+            push!(nuclear_gen_names, g)
+        end
     end
-    for g in non_faststart_gen_names, s in scenarios, t in time_steps, r in ["10N", "30N", "60N"]
+
+    for g in non_faststart_gen_names, s in scenarios, t in time_steps, r in nonspin_reserve_types
+        @constraint(model, rg[g,r,s,t] <= 0)
+    end
+
+    for g in nuclear_gen_names, s in scenarios, t in time_steps, r in reserve_types
         @constraint(model, rg[g,r,s,t] <= 0)
     end
 
@@ -152,7 +163,7 @@ function stochastic_ed(sys::System, optimizer, VOLL; uc_op_price, init_value = n
 
     @constraint(model, eq_power_balance[s in scenarios, t in time_steps], sum(pg[g,s,t] for g in thermal_gen_names) + 
             sum(model[:kb_discharge][b,s,t] - model[:kb_charge][b,s,t] for b in storage_names) 
-            + hydro_dispatch[t] + curtailment[s,t] + 
+            + hydro_dispatch[t] + curtailment[s,t] + 2900 +
             sum(pS[g,s,t] for g in solar_gen_names) + sum(pW[g,s,t] for g in wind_gen_names) == forecast_load[t,s])
 
     if variable_cost[thermal_gen_names[1]] isa Float64

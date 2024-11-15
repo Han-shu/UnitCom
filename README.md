@@ -24,6 +24,21 @@
     - Exclude nuclear to provide reserve
     - Modify energy storage eb_t0
     - Add back nuclear plants
+- 2024-11-13 (INFORMS results setting but Exclude nuclear to provide reserve and Modify energy storage eb_t0)
+    - VOLL = 5,000
+    - solar*1, wind*1
+    - cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, 0.0)
+    - Add back nuclear plants
+- 2024-11-14 (INFORMS results setting but Exclude nuclear to provide reserve and Modify energy storage eb_t0)
+    - VOLL = 5,000
+    - solar*1, wind*1
+    - cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, 0.0)
+    - Add back nuclear plants
+    - Add 2900 MW imports
+- 2024-11-15
+    - Only consider variable cost in UC, no start-up cost, no-load cost
+- 2024-11-16
+    - Remove minup and mindown constraints
 - NEXT
 
     - VOLL = 200,000, solar*10, wind*1.38

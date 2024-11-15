@@ -103,13 +103,13 @@ function build_ny_system(; base_power = 100)::System
         ramp_10 = gen.RAMP_10
         ramp_30 = gen.RAMP_30
         pm = map_UnitType[genprop.GEN_FUEL]
-        # ThreePartCost(variable, fixed, start_up, shut_down) 
+        # ThreePartCost defined in Sienna: ThreePartCost(variable, fixed, start_up, shut_down) 
         if fuel == ThermalFuels.NUCLEAR
-            cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, genprop.StartUpCost*100)
-            # cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, genprop.PERC_StartUpCost*100)
+            # cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, genprop.StartUpCost*100)
+            cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, genprop.PERC_StartUpCost*100)
         else
-            # cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, 0.0)
-            cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
+            cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, 0.0)
+            # cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
         end
         type = _thermal_type(pm, fuel, pmax)
         uptime, downtime = duration_lims[type][:up], duration_lims[type][:down]

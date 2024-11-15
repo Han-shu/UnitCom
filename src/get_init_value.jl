@@ -118,25 +118,25 @@ end
 
 
 
-function init_rolling_uc(sys::System; theta::Union{Nothing, Int64} = nothing, solution_file = nothing)
-    if isnothing(solution_file)
-        init_value = _get_init_value_for_UC(sys, theta)
-        solution = _initiate_solution_uc_t(sys)
-    else     
-        solution = read_json(solution_file)
-        init_value = _get_init_value_for_UC(sys, solution)
-    end
-    return init_value, solution
-end
+# function init_rolling_uc(sys::System; theta::Union{Nothing, Int64} = nothing, solution_file = nothing)
+#     if isnothing(solution_file)
+#         init_value = _get_init_value_for_UC(sys, theta)
+#         solution = _initiate_solution_uc_t(sys)
+#     else     
+#         solution = read_json(solution_file)
+#         init_value = _get_init_value_for_UC(sys, solution)
+#     end
+#     return init_value, solution
+# end
 
-#TODO
-function _get_init_value_for_UC(sys::System, solution::OrderedDict)::UCInitValue
-    storage_names = PSY.get_name.(get_components(GenericBattery, sys))
-    thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
-    history_wg = Dict(g => solution["Shut down"][g] for g in thermal_gen_names)
-    history_vg = Dict(g => solution["Start up"][g] for g in thermal_gen_names)
-    ug_t0 = Dict(g => solution["Commitment status"][g][end] for g in thermal_gen_names)
-    Pg_t0 = Dict(g => solution["Generator Dispatch"][g][end] for g in thermal_gen_names)
-    eb_t0 = Dict(b => solution["Batter energy"][b][end] for b in storage_names)
-    return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
-end
+# #TODO
+# function _get_init_value_for_UC(sys::System, solution::OrderedDict)::UCInitValue
+#     storage_names = PSY.get_name.(get_components(GenericBattery, sys))
+#     thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
+#     history_wg = Dict(g => solution["Shut down"][g] for g in thermal_gen_names)
+#     history_vg = Dict(g => solution["Start up"][g] for g in thermal_gen_names)
+#     ug_t0 = Dict(g => solution["Commitment status"][g][end] for g in thermal_gen_names)
+#     Pg_t0 = Dict(g => solution["Generator Dispatch"][g][end] for g in thermal_gen_names)
+#     eb_t0 = Dict(b => solution["Batter energy"][b][end] for b in storage_names)
+#     return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
+# end
