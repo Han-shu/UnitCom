@@ -10,7 +10,7 @@ function init_ed_hour_solution(sys::System)::OrderedDict
     sol["LMP"] = []
     # sol["Operation Cost"] = []
     sol["Charge consumers"] = []
-    sol["Net load"] = []
+    # sol["Net load"] = []
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
@@ -48,12 +48,12 @@ function get_ed_hour_solution(sys::System, model::JuMP.Model, sol::OrderedDict):
     push!(sol["LMP"], _get_ED_dual_price(model, :eq_power_balance))
     # push!(sol["Operation Cost"], _compute_ed_cost(sys, model))
     push!(sol["Charge consumers"], _compute_ed_charge(sys, model))
-    push!(sol["Net load"], _compute_ed_net_load(sys, model))
+    # push!(sol["Net load"], _compute_ed_net_load(sys, model))
 
     push!(sol["Load Curtailment"], value(model[:curtailment][1,1]))
-    push!(sol["Renewable Generation"]["wind"], value(model[:pW][1,1]))
-    push!(sol["Renewable Generation"]["solar"], value(model[:pS][1,1]))
-    
+    push!(sol["Renewable Generation"]["wind"], value(model[:pW]["wind",1,1]))
+    push!(sol["Renewable Generation"]["solar"], value(model[:pS]["solar",1,1]))
+
     EnergyRevenues, ReserveRevenues = _compute_ed_gen_revenue(sys, model)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))

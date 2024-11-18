@@ -21,7 +21,7 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "MF" # -"PF", -"SB", "MF", "BF", "WF", -"DR", -"DR30" 
+POLICY = "WF" # -"PF", -"SB", "MF", "BF", "WF", -"DR", -"DR30" 
 run_date = Date(2024,11,18)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
@@ -75,7 +75,7 @@ if init_fr_ED_flag
     init_time = DateTime(2018, 12, 31, 21)
     uc_sol = init_solution_uc(UCsys)
     ed_sol = init_ed_solution(EDsys)
-    UC_init_value = _get_init_value_for_UC(UCsys; init_fr_ED_flag = true)
+    UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, init_fr_ED_flag = true)
 else
 # 2. Run rolling horizon with solution from previous time point
     @info "Find path $(joinpath(result_dir, master_folder, POLICY, uc_folder))"
@@ -86,7 +86,7 @@ else
     ed_sol = read_json(ed_sol_file)
     init_time = DateTime(String(uc_sol["Time"][end]), "yyyy-mm-ddTHH:MM:SS") + Dates.Hour(1)
     @info "Continue running rolling horizon $(POLICY) starting from $(init_time)"
-    UC_init_value = _get_init_value_for_UC(UCsys; uc_sol = uc_sol, ed_sol = ed_sol, init_fr_file_flag = true)
+    UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, uc_sol = uc_sol, ed_sol = ed_sol, init_fr_file_flag = true)
 end
 ed_model = nothing
 
@@ -99,7 +99,7 @@ for t in 1:8760
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if t > 1500 || uc_time > DateTime(2019,2,1,2) 
+    if t > 1500 || uc_time > DateTime(2019,1,4,2) 
         break
     end
 
@@ -134,7 +134,7 @@ for t in 1:8760
         init_fr_file_flag = false
         init_fr_ED_flag = false
     else
-        UC_init_value = _get_init_value_for_UC(UCsys; uc_model = uc_model, ed_model = ed_model)  
+        UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, uc_model = uc_model, ed_model = ed_model)  
     end
     uc_model = stochastic_uc(UCsys, Gurobi.Optimizer, VOLL; init_value = UC_init_value, theta = theta,
                         start_time = uc_time, scenario_count = scenario_cnt, horizon = uc_horizon)

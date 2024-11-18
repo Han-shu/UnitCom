@@ -141,21 +141,26 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     @constraint(model, eq_downtime[g in thermal_gen_names, t in time_steps], lhs_off[g,t] + ug[g,t] <= 1.0)
                                                                     
     # Add variable cost to objective function
-    if isa(variable_cost[thermal_gen_names[1]], Float64) # constant variable cost
-        add_to_expression!(model[:obj], sum(
-                   pg[g,s,t]*variable_cost[g]
-                   for g in thermal_gen_names, s in scenarios, t in time_steps), 1/length(scenarios))
-    elseif isa(variable_cost[thermal_gen_names[1]], Tuple) # quadratic variable cost
-        add_to_expression!(model[:obj], sum(
-                    pg[g,s,t]^2*variable_cost[g][1] + pg[g,s,t]*variable_cost[g][2]
-                    for g in thermal_gen_names, s in scenarios, t in time_steps), 1/length(scenarios))
-    else # others, need to be implemented
-        error("Different variable cost type other than Float64 or Tuple")
-    end   
-    
+    @assert isa(variable_cost[thermal_gen_names[1]], Float64)
+    for g in thermal_gen_names, s in scenarios, t in time_steps
+        add_to_expression!(model[:obj], pg[g,s,t]*variable_cost[g], 1/length(scenarios))
+    end
     # Add fixed, startup, shutdown to objective function
-    add_to_expression!(model[:obj], sum(ug[g,t]*fixed_cost[g] + vg[g,t]*startup_cost[g] + 
-                   wg[g,t]*shutdown_cost[g] for g in thermal_gen_names, t in time_steps))
+    for g in thermal_gen_names, t in time_steps
+        add_to_expression!(model[:obj], ug[g,t]*fixed_cost[g] + vg[g,t]*startup_cost[g] + 
+                       wg[g,t]*shutdown_cost[g])
 
+    # if isa(variable_cost[thermal_gen_names[1]], Float64) # constant variable cost
+    #     add_to_expression!(model[:obj], sum(
+    #                pg[g,s,t]*variable_cost[g]
+    #                for g in thermal_gen_names, s in scenarios, t in time_steps), 1/length(scenarios))
+    # elseif isa(variable_cost[thermal_gen_names[1]], Tuple) # quadratic variable cost
+    #     add_to_expression!(model[:obj], sum(
+    #                 pg[g,s,t]^2*variable_cost[g][1] + pg[g,s,t]*variable_cost[g][2]
+    #                 for g in thermal_gen_names, s in scenarios, t in time_steps), 1/length(scenarios))
+    # else # others, need to be implemented
+    #     error("Different variable cost type other than Float64 or Tuple")
+    # end   
+    
     return
 end

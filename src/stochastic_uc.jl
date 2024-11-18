@@ -5,7 +5,6 @@ include("structs.jl")
 include("stochastic_ed.jl")
 include("get_init_value.jl")
 include("add_net_injection.jl")
-include("add_renewables.jl")
 include("add_hydro.jl")
 include("add_thermal.jl")
 include("add_storage.jl")
@@ -15,7 +14,7 @@ include("../NYGrid/manual_data_entries.jl")
 
 function stochastic_uc(
     sys::System, optimizer, VOLL; 
-    start_time = DateTime(2019,1,1,0), scenario_count = 11, horizon = 24, 
+    start_time = DateTime(2019,1,1,0), scenario_count, horizon, 
     use_must_run=true, init_value=nothing, theta=nothing,
     )
     
@@ -34,7 +33,7 @@ function stochastic_uc(
     
     _add_thermal_generators!(sys, model, use_must_run)
     
-    _add_renewables!(sys, model; theta = theta)
+    # _add_renewables!(sys, model; theta = theta)
 
     _add_hydro!(sys, model)
 

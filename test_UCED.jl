@@ -54,7 +54,7 @@ uc_sol = read_json(uc_sol_file)
 ed_sol = read_json(ed_sol_file)
 
 @info "Solving UC model at $(uc_time)"
-UC_init_value = _get_init_value_for_UC(UCsys; uc_sol = uc_sol, ed_sol = ed_sol, init_fr_file_flag = true, init_fr_file_time = uc_time-Hour(1))
+UC_init_value = _get_init_value_for_UC(UCsys; scenario_cnt = scenario_cnt, horizon = uc_horizon, uc_sol = uc_sol, ed_sol = ed_sol, init_fr_file_flag = true, init_fr_file_time = uc_time-Hour(1))
 uc_model = stochastic_uc(UCsys, Gurobi.Optimizer, VOLL; init_value = UC_init_value, theta = theta,
                     start_time = uc_time, scenario_count = scenario_cnt, horizon = uc_horizon)
 @info "$(POLICY)-UC model at $(uc_time) is solved" # in $(one_uc_time) seconds"
