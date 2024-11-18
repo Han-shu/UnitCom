@@ -109,7 +109,11 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
         load_curtailment += sum(uc_sol["Curtailment"]["load"][1:extract_len])
         wind_curtailment += sum(uc_sol["Curtailment"]["wind"][1:extract_len])
         solar_curtailment += sum(uc_sol["Curtailment"]["solar"][1:extract_len])
-    
+
+        # load_curtailment += sum(uc_sol["Load Curtailment"][1:extract_len])
+        # wind_generation += sum(uc_sol["Renewable Generation"]["wind"][1:extract_len])
+        # solar_generation += sum(uc_sol["Renewable Generation"]["solar"][1:extract_len])
+
         for g in thermal_gen_names
             genfuel_cost = variable_cost[g]*sum(uc_sol["Generator Dispatch"][g][1:extract_len]) + fixed_cost[g]*sum(uc_sol["Commitment status"][g][1:extract_len])
             geninteger_cost = startup_cost[g]*sum(uc_sol["Start up"][g][1:extract_len]) + shutdown_cost[g]*sum(uc_sol["Shut down"][g][1:extract_len]) 

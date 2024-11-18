@@ -7,14 +7,22 @@ function _add_stroage!(sys::System, model::JuMP.Model; isED = false, eb_t0 = not
     duration = isED ? 1/12 : 1
     # get initial energy level and other parameters
     if isnothing(eb_t0)
-        eb_t0 = Dict(b => get_initial_energy(get_component(PSY.GenericBattery, sys, b)) for b in storage_names)
-    else
         if haskey(model, :init_value)
             eb_t0 = model[:init_value].eb_t0
         else
-            eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
+            println("No initial value for storage, using default value (Half of the capacity)")
+            eb_t0 = Dict(b => get_initial_energy(get_component(PSY.GenericBattery, sys, b)) for b in storage_names)
         end
     end
+    # if isnothing(eb_t0)
+    #     eb_t0 = Dict(b => get_initial_energy(get_component(PSY.GenericBattery, sys, b)) for b in storage_names)
+    # else
+    #     if haskey(model, :init_value)
+    #         eb_t0 = model[:init_value].eb_t0
+    #     else
+    #         eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
+    #     end
+    # end
     
     eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, sys, b)) for b in storage_names)
     η = Dict(b => get_efficiency(get_component(GenericBattery, sys, b)) for b in storage_names)

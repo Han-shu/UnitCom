@@ -39,6 +39,10 @@
     - Only consider variable cost in UC, no start-up cost, no-load cost
 - 2024-11-16
     - Remove minup and mindown constraints
+- 2024-11-17
+    - Initialize eb_t0 in UC and ED
+- 2024-11-18
+    - Remove storage 
 - NEXT
 
     - VOLL = 200,000, solar*10, wind*1.38

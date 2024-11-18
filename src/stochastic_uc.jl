@@ -39,9 +39,7 @@ function stochastic_uc(
     _add_hydro!(sys, model)
 
     # Storage
-    has_storage = false
     if length(get_components(GenericBattery, sys)) != 0 || length(get_components(BatteryEMS, sys)) != 0
-        has_storage = true
         _add_stroage!(sys::System, model::JuMP.Model)   
     end
 

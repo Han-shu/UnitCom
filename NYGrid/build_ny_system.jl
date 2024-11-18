@@ -69,11 +69,12 @@ function build_ny_system(; base_power = 100)::System
     rating = 15 # 1500MW, 4 hour battery
     energy_capacity = rating*4 # 6000 MWh
     bus = get_bus(system, 1)
-    _build_battery(system, GenericBattery, bus, "BA", energy_capacity, rating, eff)  # Call build battery function
+    # _build_battery(system, GenericBattery, bus, "BA", energy_capacity, rating, eff)  # Call build battery function
     
-        # Aggregate Pumped hydro (treat as 10h battery): 1170 MW, 11700 MWh
-    _build_battery(system, GenericBattery, bus, "PH", 117, 11.7, 0.8)
+    #     # Aggregate Pumped hydro (treat as 10h battery): 1170 MW, 11700 MWh
+    # _build_battery(system, GenericBattery, bus, "PH", 117, 11.7, 0.8)
 
+    _build_battery(system, GenericBattery, bus, "BA", 0, 0, eff)  
 
     # Add thermal generators
     gen_header = ["GEN_BUS", "PG", "QG", "QMAX", "QMIN", "VG", "MBASE", "GEN_STATUS", "PMAX", "PMIN", "PC1", "PC2", "QC1MIN", "QC1MAX", "QC2MIN", "QC2MAX", "RAMP_AGC", "RAMP_10", "RAMP_30", "RAMP_Q", "APF"]

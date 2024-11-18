@@ -1,6 +1,5 @@
 include("NYGrid/build_ny_system.jl") # function to build the NYGrid system
 include("NYGrid/add_scenarios_ts.jl") # function to add scenario time series data
-include("NYGrid/add_quantile_ts.jl") # function to add quantile time series data
 include("NYGrid/comp_new_reserve_req.jl")
 include("src/stochastic_uc.jl")
 include("src/stochastic_ed.jl")
@@ -22,8 +21,8 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "BF" # -"PF", -"SB", -"MF", "BF", -"WF", -"DR", -"DR30" 
-run_date = Date(2024,11,16)
+POLICY = "MF" # -"PF", -"SB", "MF", "BF", "WF", -"DR", -"DR30" 
+run_date = Date(2024,11,18)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
