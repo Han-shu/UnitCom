@@ -149,7 +149,7 @@ function _add_thermal_generators!(sys::System, model::Model, use_must_run::Bool)
     for g in thermal_gen_names, t in time_steps
         add_to_expression!(model[:obj], ug[g,t]*fixed_cost[g] + vg[g,t]*startup_cost[g] + 
                        wg[g,t]*shutdown_cost[g])
-
+    end
     # if isa(variable_cost[thermal_gen_names[1]], Float64) # constant variable cost
     #     add_to_expression!(model[:obj], sum(
     #                pg[g,s,t]*variable_cost[g]

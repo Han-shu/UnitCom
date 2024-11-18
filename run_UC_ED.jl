@@ -21,8 +21,8 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "WF" # -"PF", -"SB", "MF", "BF", "WF", -"DR", -"DR30" 
-run_date = Date(2024,11,18)
+POLICY = "MF" # -"PF", -"SB", "MF", "BF", "WF", -"DR", -"DR30" 
+run_date = Date(2024,11,17)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
@@ -99,7 +99,7 @@ for t in 1:8760
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if t > 1500 || uc_time > DateTime(2019,1,4,2) 
+    if t > 1500 || uc_time > DateTime(2019,2,3,1) 
         break
     end
 
@@ -164,7 +164,7 @@ for t in 1:8760
     end
     end
     @info "$(POLICY)-ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
-    uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol)
+    uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol, uc_op_price)
     @info "$(POLICY)-UC solution is updated"
 
     ed_sol = merge_ed_solution(ed_sol, ed_hour_sol)
@@ -174,12 +174,12 @@ end
 end
 
 # # save the solution
-# save_date = Date(year(uc_time), month(uc_time), 1)
-# uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(save_date).json")
-# ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(save_date).json")
-# @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
-# write_json(uc_sol_file, uc_sol)
-# write_json(ed_sol_file, ed_sol)
+save_date = Date(year(uc_time), month(uc_time), 1)
+uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(save_date).json")
+ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(save_date).json")
+@info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
+write_json(uc_sol_file, uc_sol)
+write_json(ed_sol_file, ed_sol)
 @info "Running rolling horizon $(POLICY) is completed at $(uc_time)"
 @info "Current time is $(now())"
 

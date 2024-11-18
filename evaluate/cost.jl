@@ -1,5 +1,3 @@
-include("../src/add_renewables.jl")
-
 # compute the total production cost at time t 
 # binary var from UC and op var from ED
 function _compute_ed_cost(sys::System, model::JuMP.Model)::Float64
@@ -18,8 +16,8 @@ end
 
 
 function _get_ED_dual_price(model::JuMP.Model, key::Symbol)::Float64
-    # Multiply 12 to ensure price is with unit of $/MWh
-    price = sum(dual(model[key][s,1]) for s in model[:param].scenarios)*12
+    # Unit is $/MWh
+    price = sum(dual(model[key][s,1]) for s in model[:param].scenarios)
     return price
 end
 

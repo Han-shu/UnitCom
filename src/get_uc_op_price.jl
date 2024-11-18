@@ -17,7 +17,7 @@ function get_uc_op_price(sys::System, model::JuMP.Model)::OrderedDict
     end 
     optimize!(model)
     storage_names = get_name.(get_components(GenericBattery, sys))
-    op_price = OrderedDict(b => [sum(dual(model[:eq_storage_energy][b,s,t]) for s in scenarios) for t in time_steps] for b in storage_names)
+    op_price = OrderedDict(b => sum(dual(model[:eq_storage_energy][b,s,t]) for s in scenarios, t in time_steps)/length(time_steps) for b in storage_names)
     return op_price
 end
 

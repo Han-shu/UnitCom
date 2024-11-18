@@ -41,7 +41,7 @@ function _add_stroage!(sys::System, model::JuMP.Model; isED = false, eb_t0 = not
     if isED
          # Add residual value of storage
         for b in storage_names
-            add_to_expression!(model[:obj], sum(eb[b,s,last(time_steps)] for s in scenarios), -uc_op_price[b][2]/length(scenarios))
+            add_to_expression!(model[:obj], sum(eb[b,s,last(time_steps)] for s in scenarios), -uc_op_price[b]*12/length(scenarios))
         end
     end
 
