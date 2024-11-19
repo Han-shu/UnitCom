@@ -112,7 +112,7 @@ function init_solution_uc(sys::System)::OrderedDict
     sol["Hourly average reserve price 10Total"] = []
     sol["Hourly average reserve price 30Total"] = []
     sol["Hourly average reserve price 60Total"] = []
-    sol["SOC Dual Mean"] = []
+    sol["SOC Dual Mean"] = OrderedDict(b => [] for b in storage_names)
     sol["Charge consumers"] = []
     sol["Load Curtailment"] = []
     sol["Renewable Generation"] = OrderedDict(i => [] for i in ["wind", "solar"])
@@ -127,7 +127,7 @@ function init_solution_uc(sys::System)::OrderedDict
     return sol
 end
 
-function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict, uc_op_price::Float64)::OrderedDict
+function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict, uc_op_price::OrderedDict)::OrderedDict
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
 
@@ -137,7 +137,7 @@ function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, so
     push!(sol["Hourly average reserve price 10Total"], mean(ed_sol["Reserve price 10Total"]))
     push!(sol["Hourly average reserve price 30Total"], mean(ed_sol["Reserve price 30Total"]))
     push!(sol["Hourly average reserve price 60Total"], mean(ed_sol["Reserve price 60Total"]))
-    push!(sol["SOC Dual Mean"], uc_op_price)
+
     # sys_cost = mean(ed_sol["Operation Cost"])
     push!(sol["Charge consumers"], mean(ed_sol["Charge consumers"]))
     # gen_profits, sys_cost = minus_uc_integer_cost_thermal_gen(sys, model, ed_sol["Generator Profits"], sys_cost)
@@ -163,6 +163,7 @@ function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, so
         push!(sol["Storage Energy"][b], mean(ed_sol["Storage Energy"][b]))
         push!(sol["Energy Revenues"][b], mean(ed_sol["Energy Revenues"][b]))
         push!(sol["Reserve Revenues"][b], mean(ed_sol["Reserve Revenues"][b]))
+        push!(sol["SOC Dual Mean"][b], uc_op_price[b])
     end
     return sol
 end

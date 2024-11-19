@@ -14,35 +14,23 @@ function stochastic_ed(sys::System, optimizer, VOLL; uc_op_price, init_value = n
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
 
-    # Get initial conditions
-    if isnothing(init_value)
-        ug = Dict(g => [1, 1] for g in thermal_gen_names) # Assume all thermal generators are on
-        vg = Dict(g => [0, 0] for g in thermal_gen_names) # Assume all thermal generators are started up before
-        wg = Dict(g => [0, 0] for g in thermal_gen_names)
-        Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names) # all 0
-        eb_t0 = Dict(b => get_initial_energy(get_component(GenericBattery, sys, b)) for b in storage_names)
-    else
-        ug = init_value.ug_t0 # commitment status, 2-element Vector, 1 for on, 0 for off
-        vg = init_value.vg_t0 # startup status, 2-element Vector
-        wg = init_value.wg_t0 # shutdown status, 2-element Vector
-        Pg_t0 = init_value.Pg_t0
-        eb_t0 = init_value.eb_t0
+    if !isnothing(init_value)
         model[:init_value] = init_value
     end
 
-    # net load = load - wind - solar - hydro
-    _add_net_injection!(sys, model; isED = true, theta = theta)
+    # net load = load - wind - solar
+    _add_net_injection!(sys, model; theta = theta)
+
+    _add_hydro!(sys, model)
 
     # Thermal generators
-    _add_thermal_generators_ED!(sys, model, ug, vg, wg, Pg_t0)
+    _add_thermal_generators_ED!(sys, model)
 
     # Storage
     if length(get_components(GenericBattery, sys)) != 0 || length(get_components(BatteryEMS, sys)) != 0
-        _add_stroage!(sys, model; isED = true, eb_t0 = eb_t0, uc_op_price = uc_op_price)
+        _add_stroage!(sys, model; isED = true, uc_op_price = uc_op_price)
     end
     
-    _add_hydro!(sys, model)
-
     # Power balance constraints
     _add_power_balance_eq!(model)
 
@@ -120,7 +108,7 @@ function _add_binding_constraints!(sys::System, model::JuMP.Model)
 end
 
 
-function _add_thermal_generators_ED!(sys::System, model::JuMP.Model, ug, vg, wg, Pg_t0, init_value = nothing)
+function _add_thermal_generators_ED!(sys::System, model::JuMP.Model)
     time_steps = model[:param].time_steps
     scenarios = model[:param].scenarios
     horizon = length(time_steps)
@@ -128,6 +116,21 @@ function _add_thermal_generators_ED!(sys::System, model::JuMP.Model, ug, vg, wg,
     spin_reserve_types = model[:param].spin_reserve_types
     min_step = minute(model[:param].start_time)/5
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+
+    # initial value
+    init_value = nothing
+    if !haskey(model, :init_value)
+        ug = Dict(g => [1, 1] for g in thermal_gen_names) # Assume all thermal generators are on
+        vg = Dict(g => [0, 0] for g in thermal_gen_names) # Assume all thermal generators are started up before
+        wg = Dict(g => [0, 0] for g in thermal_gen_names)
+        Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names) # all 0
+    else
+        init_value = model[:init_value]
+        ug = init_value.ug_t0 # commitment status, 2-element Vector, 1 for on, 0 for off
+        vg = init_value.vg_t0 # startup status, 2-element Vector
+        wg = init_value.wg_t0 # shutdown status, 2-element Vector
+        Pg_t0 = init_value.Pg_t0
+    end
         
     vg_min5 = Dict(g => zeros(horizon) for g in thermal_gen_names)
     wg_min5 = Dict(g => zeros(horizon) for g in thermal_gen_names)
@@ -150,6 +153,7 @@ function _add_thermal_generators_ED!(sys::System, model::JuMP.Model, ug, vg, wg,
     @variable(model, rg[g in thermal_gen_names, r in reserve_types, s in scenarios, t in time_steps] >= 0)
 
     must_run_gen_names = get_name.(get_components(x -> PSY.get_must_run(x), ThermalGen, sys))
+
     for g in thermal_gen_names, s in scenarios, t in time_steps
         i = Int(div(min_step+t-1, 12)+1) # determine the commitment status index
         if isnothing(init_value)

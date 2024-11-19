@@ -21,8 +21,8 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "MF" # -"PF", -"SB", "MF", "BF", "WF", -"DR", -"DR30" 
-run_date = Date(2024,11,17)
+POLICY = "PF" # -"PF", -"SB", "MF", "BF", "WF", -"DR", -"DR30" 
+run_date = Date(2024,11,19)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
@@ -76,7 +76,7 @@ if init_fr_ED_flag
     uc_sol = init_solution_uc(UCsys)
     ed_sol = init_ed_solution(EDsys)
     UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, init_fr_ED_flag = true)
-else
+elseif init_fr_file_flag
 # 2. Run rolling horizon with solution from previous time point
     @info "Find path $(joinpath(result_dir, master_folder, POLICY, uc_folder))"
     # Find the latest solution file
@@ -87,6 +87,8 @@ else
     init_time = DateTime(String(uc_sol["Time"][end]), "yyyy-mm-ddTHH:MM:SS") + Dates.Hour(1)
     @info "Continue running rolling horizon $(POLICY) starting from $(init_time)"
     UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, uc_sol = uc_sol, ed_sol = ed_sol, init_fr_file_flag = true)
+else
+    error("The initial flag is not properly set")
 end
 ed_model = nothing
 
@@ -99,7 +101,7 @@ for t in 1:8760
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if t > 1500 || uc_time > DateTime(2019,2,3,1) 
+    if t > 1500 || uc_time > DateTime(2019,2,1,1) 
         break
     end
 

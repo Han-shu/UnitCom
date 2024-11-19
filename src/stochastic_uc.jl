@@ -30,12 +30,10 @@ function stochastic_uc(
     model[:init_value] = init_value
 
     _add_net_injection!(sys, model; theta = theta)
-    
-    _add_thermal_generators!(sys, model, use_must_run)
-    
-    # _add_renewables!(sys, model; theta = theta)
 
     _add_hydro!(sys, model)
+    
+    _add_thermal_generators!(sys, model, use_must_run)
 
     # Storage
     if length(get_components(GenericBattery, sys)) != 0 || length(get_components(BatteryEMS, sys)) != 0

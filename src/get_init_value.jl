@@ -58,7 +58,7 @@ end
 
 function _init_fr_ed_model(sys::System; scenario_cnt, horizon, theta::Union{Nothing, Int64} = nothing)
     @info "Running ED model for the first time to get ug_t0"
-    model = stochastic_ed(sys, Gurobi.Optimizer, VOLL; scenario_count = scenario_cnt, horizon = horizon, uc_op_price = OrderedDict("BA" => 30,"PH" => 30), theta = theta, start_time = DateTime(2018,12,31,21))
+    model = stochastic_ed(sys, Gurobi.Optimizer, VOLL; scenario_count = scenario_cnt, horizon = horizon, uc_op_price = OrderedDict("BA" => 35,"PH" => 35), theta = theta, start_time = DateTime(2018,12,31,21))
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
     pg_lim = Dict(g => get_active_power_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
@@ -79,7 +79,7 @@ function _init_fr_ed_model(sys::System; scenario_cnt, horizon, theta::Union{Noth
     vg_t0 = Dict(g => 0 for g in thermal_gen_names)
     ED_init_value = EDInitValue(ug_t0, vg_t0, wg_t0,Pg_t00, eb_t0)
     @info "Running ED model for the second time to get Pg_t0" 
-    model = stochastic_ed(sys, Gurobi.Optimizer, VOLL; horizon = horizon, scenario_count = scenario_cnt, uc_op_price = OrderedDict("BA" => 30,"PH" => 30), init_value = ED_init_value, theta = theta, start_time = DateTime(2018,12,31,21))
+    model = stochastic_ed(sys, Gurobi.Optimizer, VOLL; horizon = horizon, scenario_count = scenario_cnt, uc_op_price = OrderedDict("BA" => 35,"PH" => 35), init_value = ED_init_value, theta = theta, start_time = DateTime(2018,12,31,21))
     Pg_t0 = Dict(g => value(model[:pg][g,1,1]) for g in thermal_gen_names)
     return ug_t0, Pg_t0, eb_t0
 end
