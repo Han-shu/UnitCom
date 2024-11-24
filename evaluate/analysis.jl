@@ -90,8 +90,8 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
 
     # Initialization
     load_curtailment = 0
-    wind_curtailment = 0
-    solar_curtailment = 0
+    wind_generation = 0
+    solar_generation = 0
 
     GenFuelCosts = 0
     GenIntegerCosts = 0
@@ -100,19 +100,16 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
     Gen_energy_revenue = DefaultDict{String, Float64}(0)
     Gen_reserve_revenue = DefaultDict{String, Float64}(0)
 
-    filedates = [Dates.Date(2019,1,1), Dates.Date(2019,2,1)]
+    filedates = [Dates.Date(2019,1,1)]
     for filename in filedates
         uc_file =  joinpath(path_dir, "UC_$(filename).json")
         println("Extracting cost from $(uc_file)")
         uc_sol = read_json(uc_file)
         extract_len = length(uc_sol["Time"])
-        load_curtailment += sum(uc_sol["Curtailment"]["load"][1:extract_len])
-        wind_curtailment += sum(uc_sol["Curtailment"]["wind"][1:extract_len])
-        solar_curtailment += sum(uc_sol["Curtailment"]["solar"][1:extract_len])
 
-        # load_curtailment += sum(uc_sol["Load Curtailment"][1:extract_len])
-        # wind_generation += sum(uc_sol["Renewable Generation"]["wind"][1:extract_len])
-        # solar_generation += sum(uc_sol["Renewable Generation"]["solar"][1:extract_len])
+        load_curtailment += sum(uc_sol["Load Curtailment"][1:extract_len])
+        wind_generation += sum(uc_sol["Renewable Generation"]["wind"][1:extract_len])
+        solar_generation += sum(uc_sol["Renewable Generation"]["solar"][1:extract_len])
 
         for g in thermal_gen_names
             genfuel_cost = variable_cost[g]*sum(uc_sol["Generator Dispatch"][g][1:extract_len]) + fixed_cost[g]*sum(uc_sol["Commitment status"][g][1:extract_len])
@@ -139,20 +136,21 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
     TotalCosts = GenFuelCosts + GenIntegerCosts + load_curtailment_penalty
 
     println("Run date: $(run_date), Policy: $(POLICY)")
-    println("Load curtailment: $(load_curtailment), Wind curtailment: $(wind_curtailment), Solar curtailment: $(solar_curtailment)")
+    println("Load curtailment: $(load_curtailment)")
+    print("Wind generation: $(wind_generation), Solar generation: $(solar_generation)")
     println("Generation fuel costs: $(GenFuelCosts), Generation integer costs: $(GenIntegerCosts)")
     println("Total cost: $(TotalCosts)")
     summary = OrderedDict("Generation fuel cost" => GenFuelCosts, "Generation integer cost"=> GenIntegerCosts, "Load curtailment penalty" => load_curtailment_penalty, "Total cost" => TotalCosts, 
                     "Load curtailment" => load_curtailment, "Generation energy revenue" => sum(values(Gen_energy_revenue)), "Generation reserve revenue" => sum(values(Gen_reserve_revenue)),
-                    "Wind curtailment" => wind_curtailment, "Solar curtailment" => solar_curtailment)
+                    "Wind generation" => wind_generation, "Solar generation" => solar_generation)
     return summary, Gen_energy_revenue, Gen_reserve_revenue, Gen_cost_dict, Gen_profit
 end
 
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 # INFORMS results run_date = Dates.Date(2024,10,18)
 
-run_date = Dates.Date(2024,11,11)
-policies = ["PF", "MF", "BF", "WF", "DR"]    
+run_date = Dates.Date(2024,11,19)
+policies = ["PF", "MF", "BF", "WF", "DR", "DR30"]    
 extract_len = nothing
 
 Costs = OrderedDict()
@@ -221,8 +219,8 @@ cost_df = DataFrame(POLICY = policies,
                 Genfuel_cost = [Costs[POLICY]["Generation fuel cost"] for POLICY in policies],
                 Gen_integer_cost = [Costs[POLICY]["Generation integer cost"] for POLICY in policies],
                 Load_curtailment_penalty = [Costs[POLICY]["Load curtailment penalty"] for POLICY in policies],
-                Wind_curt = [Costs[POLICY]["Wind curtailment"] for POLICY in policies],
-                Solar_curt = [Costs[POLICY]["Solar curtailment"] for POLICY in policies])
+                Wind_curt = [Costs[POLICY]["Wind generation"] for POLICY in policies],
+                Solar_curt = [Costs[POLICY]["Solar generation"] for POLICY in policies])
 
 df = leftjoin(revenue_df, cost_df, on = :POLICY)
 CSV.write(joinpath(res_dir, "$(run_date)", "revenue_cost.csv"), df)

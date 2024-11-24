@@ -21,7 +21,7 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "PF" # -"PF", -"SB", "MF", "BF", "WF", -"DR", -"DR30" 
+POLICY = "DR30" # "PF", -"SB", "MF", "BF", "WF", "DR", "DR30" 
 run_date = Date(2024,11,19)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
@@ -176,12 +176,12 @@ end
 end
 
 # # save the solution
-save_date = Date(year(uc_time), month(uc_time), 1)
-uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(save_date).json")
-ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(save_date).json")
-@info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
-write_json(uc_sol_file, uc_sol)
-write_json(ed_sol_file, ed_sol)
+# save_date = Date(year(uc_time), month(uc_time), 1)
+# uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(save_date).json")
+# ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(save_date).json")
+# @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
+# write_json(uc_sol_file, uc_sol)
+# write_json(ed_sol_file, ed_sol)
 @info "Running rolling horizon $(POLICY) is completed at $(uc_time)"
 @info "Current time is $(now())"
 
