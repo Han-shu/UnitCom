@@ -29,13 +29,20 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
 
     for s in scenarios, t in time_steps   
         add_to_expression!(expr_net_injection[s,t], curtailment[s,t], 1.0)
-        add_to_expression!(model[:obj], curtailment[s,t], VOLL)
+        add_to_expression!(model[:obj], curtailment[s,t], VOLL/length(scenarios))
     end
 
     return
 end
 
-function _get_biased_forecast(solar_gen::RenewableGen, wind_gen::RenewableGen, load::StaticLoad, start_time::DateTime, time_steps; p = 0.5)
+function _get_biased_forecast(solar_gen::RenewableGen, wind_gen::RenewableGen, load::StaticLoad, start_time::DateTime, time_steps)
+    @assert POLICY[1:2] == "BF" || error("Policy $POLICY is not a biased forecast policy")
+    if length(POLICY) == 2
+        p = 0.5
+    else
+        p = parse(Int64, POLICY[3:end])/10
+    end
+    @info "Biased forecast with p = $p"
     fcst_solar = get_time_series_values(Scenarios, solar_gen, "solar_power", start_time = start_time, len = length(time_steps))
     fcst_wind = get_time_series_values(Scenarios, wind_gen, "wind_power", start_time = start_time, len = length(time_steps))
     fcst_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))

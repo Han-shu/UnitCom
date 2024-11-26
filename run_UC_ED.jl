@@ -21,7 +21,7 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "DR30" # "PF", -"SB", "MF", "BF", "WF", "DR", "DR30" 
+POLICY = "SB" # "PF", -"SB", "MF", "BF", "WF", "DR", "DR30" 
 run_date = Date(2024,11,19)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
@@ -113,12 +113,12 @@ for t in 1:8760
     end
     
     # For the first hour of the month, save the solution and reinitialize
-    # if day(uc_time) in [1, 11, 21] && hour(uc_time) == 0
-    if day(uc_time) == 1 && hour(uc_time) == 0
+    if day(uc_time) in [1, 11, 21] && hour(uc_time) == 0
+    # if day(uc_time) == 1 && hour(uc_time) == 0
         # save the solution only if final hour of last month has been solved
         if length(uc_sol["Time"]) > 0 && uc_sol["Time"][end] == uc_time - Hour(1)
-            uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Month(1))).json")
-            ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time - Month(1))).json")
+            uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Hour(1))).json") #"UC_$(Date(uc_time - Month(1))).json")
+            ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time - Hour(1))).json")  #"ED_$(Date(uc_time - Month(1))).json")
             @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
             write_json(uc_sol_file, uc_sol)
             write_json(ed_sol_file, ed_sol)

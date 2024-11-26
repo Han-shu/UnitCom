@@ -43,9 +43,6 @@ function get_gen_capacity_by_type()
     solar_capacity = 522.7
     wind_capacity = 1983 #2736
     hydro_capacity = 4800
-    # solar_capacity = get_active_power_limits(get_component(RenewableDispatch, sys, "solar")).max
-    # wind_capacity = get_active_power_limits(get_component(RenewableDispatch, sys, "wind")).max
-    # hydro_capacity = get_active_power_limits(get_component(HydroDispatch, sys, "hydro")).max
 
     return Dict("Fast" => fast_gen_capacity, "Nuclear" => nuclear_gen_capacity, "Thermal" => thermal_gen_capacity,
                 "BA" => 1500, "PH" => 1170, "wind" => wind_capacity, "solar" => solar_capacity, "hydro" => hydro_capacity)
@@ -150,7 +147,7 @@ res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 # INFORMS results run_date = Dates.Date(2024,10,18)
 
 run_date = Dates.Date(2024,11,19)
-policies = ["PF", "MF", "BF", "WF", "DR", "DR30"]    
+policies = ["PF", "MF", "BF", "BF8", "WF", "DR", "DR30"]    
 extract_len = nothing
 
 Costs = OrderedDict()
@@ -219,8 +216,8 @@ cost_df = DataFrame(POLICY = policies,
                 Genfuel_cost = [Costs[POLICY]["Generation fuel cost"] for POLICY in policies],
                 Gen_integer_cost = [Costs[POLICY]["Generation integer cost"] for POLICY in policies],
                 Load_curtailment_penalty = [Costs[POLICY]["Load curtailment penalty"] for POLICY in policies],
-                Wind_curt = [Costs[POLICY]["Wind generation"] for POLICY in policies],
-                Solar_curt = [Costs[POLICY]["Solar generation"] for POLICY in policies])
+                Wind_gen = [Costs[POLICY]["Wind generation"] for POLICY in policies],
+                Solar_gen = [Costs[POLICY]["Solar generation"] for POLICY in policies])
 
 df = leftjoin(revenue_df, cost_df, on = :POLICY)
 CSV.write(joinpath(res_dir, "$(run_date)", "revenue_cost.csv"), df)

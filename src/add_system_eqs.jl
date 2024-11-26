@@ -1,7 +1,7 @@
 function _add_power_balance_eq!(model::JuMP.Model)::Nothing
     scenarios = model[:param].scenarios
     time_steps = model[:param].time_steps
-    @constraint(model, eq_power_balance[s in scenarios, t in time_steps], model[:expr_net_injection][s,t] >= 0)
+    @constraint(model, eq_power_balance[s in scenarios, t in time_steps], model[:expr_net_injection][s,t] == 0)
     return
 end
 
@@ -25,13 +25,13 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
             for k in eachindex(penalty[rr])
                 @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= penalty[rr][k].MW)
                 add_to_expression!(model[:obj], sum(reserve_short[rr,s,t,k] for s in scenarios, t in time_steps), 
-                                            penalty[rr][k].price)
+                                            penalty[rr][k].price/length(scenarios))
             end
         else # "60Total"
             for k in eachindex(penalty[rr])
                 @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= new_reserve_requirement[t])
                 add_to_expression!(model[:obj], sum(reserve_short[rr,s,t,k] for s in scenarios, t in time_steps), 
-                                                penalty[rr][k].price)
+                                                penalty[rr][k].price/length(scenarios))
             end
         end
     end
@@ -90,7 +90,9 @@ end
     "DR": Dynamic reserve requirement
 """
 function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::String, isED::Bool)::Vector{Float64}
-    if policy in ["SB", "MF", "BNR", "WF", "BF", "PF", "BF2"]
+    if policy in ["SB", "MF", "WF", "BF", "PF"]
+        return [0.0 for t in model[:param].time_steps]
+    elseif policy[1:2] =="BF"
         return [0.0 for t in model[:param].time_steps]
     elseif policy == "FR"
         start_time = model[:param].start_time

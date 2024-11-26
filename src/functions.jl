@@ -46,7 +46,10 @@ function policy_model_folder_name(policy::String, date::Date = Dates.today())
 end
 
 function policy_theta_parameter(POLICY::String)
-    if POLICY == "SB"
+    if POLICY[1:2] == "BF"
+        theta = 0 # (1-p)*mean + p*worst where p = 0.5 by default
+        scenario_cnt = 1
+    elseif POLICY == "SB"
         theta = nothing
         scenario_cnt = 11
     elseif POLICY == "PF"
@@ -60,9 +63,6 @@ function policy_theta_parameter(POLICY::String)
         scenario_cnt = 1
     elseif POLICY == "BF2"
         theta = 9 # 3rd worst scenario
-        scenario_cnt = 1
-    elseif POLICY == "BF"
-        theta = 0 # (1-p)*mean + p*worst where p = 0.5 by default
         scenario_cnt = 1
     elseif POLICY in ["MF", "FR", "DR", "DR30"] # use mean forecast
         theta = nothing
