@@ -8,6 +8,7 @@ function _get_init_value_for_UC(sys::System;
         init_fr_file_flag::Bool = false,
         init_fr_ED_flag::Bool = false,
         init_fr_file_time = nothing,
+        ed_hour_LMP = nothing
         )::UCInitValue
     thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
     storage_names = PSY.get_name.(get_components(GenericBattery, sys))
@@ -16,7 +17,8 @@ function _get_init_value_for_UC(sys::System;
         ug_t0, Pg_t0, eb_t0 = _init_fr_ed_model(sys; horizon = horizon, scenario_cnt = scenario_cnt)
         history_vg = Dict(g => zeros(24) for g in thermal_gen_names)
         history_wg = Dict(g => zeros(8) for g in thermal_gen_names)
-        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
+        history_LMP = Float64.([0, 0, 0, 0, 29, 31, 35, 70])
+        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
     elseif init_fr_file_flag # Initiate from solution
         if isnothing(init_fr_file_time)
             @info "Obtain initial conditions from existing solution files at the latest time"
@@ -31,11 +33,13 @@ function _get_init_value_for_UC(sys::System;
         eb_t0 = Dict(b => ed_sol["Storage Energy"][b][t][end] for b in storage_names)
         history_wg = Dict(g => uc_sol["Shut down"][g][t-7:t] for g in thermal_gen_names)
         history_vg = Dict(g => uc_sol["Start up"][g][t-23:t] for g in thermal_gen_names)
-        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
+        history_LMP = uc_sol["Hourly average LMP"]
+        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
     elseif length(all_variables(uc_model)) > 0 && length(all_variables(ed_model)) > 0 # Initiate from model
         @info "Obtain initial conditions from existing model"
         history_wg = uc_model[:init_value].history_wg
         history_vg = uc_model[:init_value].history_vg
+        history_LMP = uc_model[:init_value].history_LMP
         thermal_gen_names = PSY.get_name.(get_components(ThermalGen, sys))
         ug_t0 = Dict(g => value(uc_model[:ug][g,1]) for g in thermal_gen_names)
         #Get Pg_t0 and eb_t0 from ED model
@@ -44,7 +48,11 @@ function _get_init_value_for_UC(sys::System;
             _push_fix_len_vector!(history_vg[g], Int(round(value(uc_model[:vg][g,1]), digits = 0)))
             _push_fix_len_vector!(history_wg[g], Int(round(value(uc_model[:wg][g,1]), digits = 0)))
         end
-        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg)
+        push!(history_LMP, ed_hour_LMP)
+        if length(history_LMP) > 368
+            popfirst!(history_LMP)
+        end
+        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
     else
         error("The initial value is not properly set")
         return nothing

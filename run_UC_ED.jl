@@ -21,8 +21,8 @@ include("src/get_uc_op_price.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "SB" # "PF", -"SB", "MF", "BF", "WF", "DR", "DR30" 
-run_date = Date(2024,11,19)
+POLICY = "MF" # "PF", -"SB", "MF", "BF", "WF", "DR", "DR30" 
+run_date = Date(2024,11,27)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
@@ -96,7 +96,8 @@ ed_model = nothing
 # Run rolling horizon UC-ED
 for t in 1:8760
     global POLICY, reserve_requirement
-    global uc_model, ed_model, uc_sol, ed_sol, UC_init_value, ED_init_value
+    global uc_model, ed_model, uc_sol, ed_sol, ed_hour_sol
+    global UC_init_value, ED_init_value
     global uc_time, init_fr_file_flag, init_fr_ED_flag, uc_sol_file, ed_sol_file
     uc_time = init_time + Hour(1)*(t-1)
     
@@ -113,8 +114,8 @@ for t in 1:8760
     end
     
     # For the first hour of the month, save the solution and reinitialize
-    if day(uc_time) in [1, 11, 21] && hour(uc_time) == 0
-    # if day(uc_time) == 1 && hour(uc_time) == 0
+    # if day(uc_time) in [1, 11, 21] && hour(uc_time) == 0
+    if day(uc_time) == 1 && hour(uc_time) == 0
         # save the solution only if final hour of last month has been solved
         if length(uc_sol["Time"]) > 0 && uc_sol["Time"][end] == uc_time - Hour(1)
             uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Hour(1))).json") #"UC_$(Date(uc_time - Month(1))).json")
@@ -136,7 +137,7 @@ for t in 1:8760
         init_fr_file_flag = false
         init_fr_ED_flag = false
     else
-        UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, uc_model = uc_model, ed_model = ed_model)  
+        UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, uc_model = uc_model, ed_model = ed_model, ed_hour_LMP = mean(ed_hour_sol["LMP"]))  
     end
     uc_model = stochastic_uc(UCsys, Gurobi.Optimizer, VOLL; init_value = UC_init_value, theta = theta,
                         start_time = uc_time, scenario_count = scenario_cnt, horizon = uc_horizon)

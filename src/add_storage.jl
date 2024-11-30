@@ -41,6 +41,17 @@ function _add_stroage!(sys::System, model::JuMP.Model; isED = false, uc_op_price
         for b in storage_names
             add_to_expression!(model[:obj], sum(eb[b,s,last(time_steps)] for s in scenarios), uc_op_price[b]*12/length(scenarios))
         end
+    else
+        history_LMP = sort(model[:init_value].history_LMP, rev = true)
+        storage_segments = 1:4
+        @variable(model, eb_seg[s in scenarios, k in storage_segments], lower_bound = 0, upper_bound = eb_lim["PH"].max / length(storage_segments))
+        for s in scenarios
+            for k in storage_segments
+                value = history_LMP[k] - history_LMP[end-k+1]
+                add_to_expression!(model[:obj], eb_seg[s,k], - value/length(scenarios))
+            end
+            @constraint(model, sum(eb_seg[s,k] for k in storage_segments) == eb["PH", s, last(time_steps)])
+        end
     end
 
     # Net injection

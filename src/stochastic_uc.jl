@@ -5,6 +5,7 @@ include("structs.jl")
 include("stochastic_ed.jl")
 include("get_init_value.jl")
 include("add_net_injection.jl")
+include("add_imports.jl")
 include("add_hydro.jl")
 include("add_thermal.jl")
 include("add_storage.jl")
@@ -30,6 +31,8 @@ function stochastic_uc(
     model[:init_value] = init_value
 
     _add_net_injection!(sys, model; theta = theta)
+
+    _add_imports!(sys, model)
 
     _add_hydro!(sys, model)
     

@@ -21,6 +21,8 @@ function stochastic_ed(sys::System, optimizer, VOLL; uc_op_price, init_value = n
     # net load = load - wind - solar
     _add_net_injection!(sys, model; theta = theta)
 
+    _add_imports!(sys, model)
+
     _add_hydro!(sys, model)
 
     # Thermal generators

@@ -29,6 +29,7 @@ mutable struct UCInitValue
     eb_t0::Dict
     history_vg::Dict{String, Vector}
     history_wg::Dict{String, Vector}
+    history_LMP::Vector
 end
 
 

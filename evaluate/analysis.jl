@@ -97,7 +97,12 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
     Gen_energy_revenue = DefaultDict{String, Float64}(0)
     Gen_reserve_revenue = DefaultDict{String, Float64}(0)
 
-    filedates = [Dates.Date(2019,1,1)]
+    if POLICY == "SB"
+        filedates = [Dates.Date(2019,1,10), Dates.Date(2019,1,20), Dates.Date(2019,1,31)]
+    else
+        filedates = [Dates.Date(2019,1,1)]
+    end
+
     for filename in filedates
         uc_file =  joinpath(path_dir, "UC_$(filename).json")
         println("Extracting cost from $(uc_file)")
@@ -147,7 +152,7 @@ res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 # INFORMS results run_date = Dates.Date(2024,10,18)
 
 run_date = Dates.Date(2024,11,19)
-policies = ["PF", "MF", "BF", "BF8", "WF", "DR", "DR30"]    
+policies = ["SB", "PF", "MF", "BF", "BF8", "BF9", "WF", "DR", "DR30"]    
 extract_len = nothing
 
 Costs = OrderedDict()

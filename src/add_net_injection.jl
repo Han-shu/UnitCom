@@ -1,4 +1,4 @@
-# Add net injection, expr_net_injection = - forecast_load + curtaliment + pS + pW - 2900 = 0
+# Add net injection, expr_net_injection = - forecast_load + curtaliment + pS + pW + imports = 0
 function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothing, Int64} = nothing)::Nothing
     expr_net_injection = _init(model, :expr_net_injection)
 
@@ -19,7 +19,7 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
 
     for s in scenarios, t in time_steps
         expr_net_injection[s,t] = AffExpr()
-        add_to_expression!(expr_net_injection[s,t], forecast_load[t,s] - 2900, -1.0) # 2900MW is imports
+        add_to_expression!(expr_net_injection[s,t], forecast_load[t,s], -1.0)
         add_to_expression!(expr_net_injection[s,t], sum(pS[g,s,t] for g in solar_gen_names), 1.0)
         add_to_expression!(expr_net_injection[s,t], sum(pW[g,s,t] for g in wind_gen_names), 1.0)
     end
