@@ -1,13 +1,12 @@
 include("NYGrid/build_ny_system.jl") # function to build the NYGrid system
 include("NYGrid/add_scenarios_ts.jl") # function to add scenario time series data
-include("NYGrid/add_quantile_ts.jl") # function to add quantile time series data
 include("NYGrid/comp_new_reserve_req.jl")
 include("src/stochastic_uc.jl")
 include("src/stochastic_ed.jl")
 include("src/get_solution.jl")
 include("src/functions.jl")
 include("src/get_init_value.jl")
-include("src/get_uc_op_price.jl")
+include("src/get_uc_dual.jl")
 
 #=
     POLICY
@@ -60,7 +59,7 @@ uc_model = stochastic_uc(UCsys, Gurobi.Optimizer, VOLL; init_value = UC_init_val
 @info "$(POLICY)-UC model at $(uc_time) is solved" # in $(one_uc_time) seconds"
 # Get commitment status that will be passed to ED
 uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
-uc_op_price = get_uc_op_price(UCsys, uc_model)
+storage_value, uc_LMP = get_uc_dual(UCsys, uc_model)
 
 ed_hour_sol = init_ed_hour_solution(EDsys)
 ed_model = nothing
@@ -74,7 +73,7 @@ for i in 1:12
     end
     @info "Solving ED model at $(ed_time)"
     ED_init_value = _get_init_value_for_ED(EDsys, uc_status; UC_init_value = UC_init_value, ed_model = ed_model)
-    ed_model = stochastic_ed(EDsys, Gurobi.Optimizer, VOLL; uc_op_price = uc_op_price, init_value = ED_init_value, scenario_count = scenario_cnt, theta = theta, start_time = ed_time, horizon = ed_horizon)
+    ed_model = stochastic_ed(EDsys, Gurobi.Optimizer, VOLL; storage_value = storage_value, init_value = ED_init_value, scenario_count = scenario_cnt, theta = theta, start_time = ed_time, horizon = ed_horizon)
     ed_hour_sol = get_ed_hour_solution(EDsys, ed_model, ed_hour_sol)
     if primal_status(ed_model) != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
         @warn "ED model at $(ed_time) is with status $(primal_status(ed_model))"
@@ -83,6 +82,6 @@ for i in 1:12
 end
 
 @info "$(POLICY)-ED model at $(uc_time) is solved."
-uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol)
+uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol, storage_value, uc_LMP)
 @info "$(POLICY)-UC solution is updated"
 

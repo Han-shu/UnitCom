@@ -1,10 +1,10 @@
 """
-    get_uc_op_price(sys::System, model::JuMP.Model)::OrderedDict
+    get_uc_dual(sys::System, model::JuMP.Model)::OrderedDict
     Obtain the dual values of the energy storage energy balance constraints in the UC model.
     The dual values would be used to calculate as the residual value of storage
 """
 
-function get_uc_op_price(sys::System, model::JuMP.Model)::OrderedDict
+function get_uc_dual(sys::System, model::JuMP.Model)::OrderedDict
     @info "Reoptimize with fixed integer variables ..."
     fix!(sys, model)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
@@ -17,11 +17,10 @@ function get_uc_op_price(sys::System, model::JuMP.Model)::OrderedDict
     end 
     optimize!(model)
     storage_names = get_name.(get_components(GenericBattery, sys))
-    # Take the average
-    # op_price = OrderedDict(b => sum(dual(model[:eq_storage_energy][b,s,t]) for s in scenarios, t in time_steps)/length(time_steps) for b in storage_names)
     # Take a specific hour at hour 3
-    op_price = OrderedDict(b => sum(dual(model[:eq_storage_energy][b,s,3]) for s in scenarios) for b in storage_names)
-    return op_price
+    storage_value = OrderedDict(b => sum(dual(model[:eq_storage_energy][b,s,3]) for s in scenarios) for b in storage_names)
+    uc_LMP = [sum(dual(model[:eq_power_balance][s,t]) for s in scenarios) for t in time_steps]
+    return storage_value, uc_LMP
 end
 
 function get_integer_solution(model::JuMP.Model, thermal_gen_names::Vector)::OrderedDict

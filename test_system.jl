@@ -6,7 +6,7 @@ include("src/stochastic_ed.jl")
 include("src/get_solution.jl")
 include("src/functions.jl")
 include("src/get_init_value.jl")
-include("src/get_uc_op_price.jl")
+include("src/get_uc_dual.jl")
 
 
 @info "Build NY system"

@@ -107,6 +107,7 @@ function init_solution_uc(sys::System)::OrderedDict
     storage_names = get_name.(get_components(GenericBattery, sys))
     sol = OrderedDict()
     sol["Time"] = []
+    sol["UC LMP"] = []
     sol["Hourly average LMP"] = []
     sol["Hourly average reserve price 10Spin"] = []
     sol["Hourly average reserve price 10Total"] = []
@@ -127,11 +128,12 @@ function init_solution_uc(sys::System)::OrderedDict
     return sol
 end
 
-function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict, uc_op_price::OrderedDict)::OrderedDict
+function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict, storage_value::OrderedDict, uc_LMP)::OrderedDict
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
 
     push!(sol["Time"], model[:param].start_time)
+    push!(sol["UC LMP"], uc_LMP)
     push!(sol["Hourly average LMP"], mean(ed_sol["LMP"]))
     push!(sol["Hourly average reserve price 10Spin"], mean(ed_sol["Reserve price 10Spin"]))
     push!(sol["Hourly average reserve price 10Total"], mean(ed_sol["Reserve price 10Total"]))
@@ -163,87 +165,7 @@ function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, so
         push!(sol["Storage Energy"][b], mean(ed_sol["Storage Energy"][b]))
         push!(sol["Energy Revenues"][b], mean(ed_sol["Energy Revenues"][b]))
         push!(sol["Reserve Revenues"][b], mean(ed_sol["Reserve Revenues"][b]))
-        push!(sol["SOC Dual Mean"][b], uc_op_price[b])
+        push!(sol["SOC Dual Mean"][b], storage_value[b])
     end
     return sol
 end
-
-
-
-# function _initiate_solution_uc_t(sys::System)::OrderedDict
-#     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
-#     storage_names = get_name.(get_components(GenericBattery, sys))
-#     sol = OrderedDict()
-#     sol["Time"] = []
-#     sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
-#     sol["Commitment status"] = OrderedDict(g => [] for g in thermal_gen_names)
-#     sol["Start up"] = OrderedDict(g => [] for g in thermal_gen_names)
-#     sol["Shut down"] = OrderedDict(g => [] for g in thermal_gen_names)
-#     sol["Batter charge"] = OrderedDict(b => [] for b in storage_names)
-#     sol["Batter discharge"] = OrderedDict(b => [] for b in storage_names)
-#     sol["Batter energy"] = OrderedDict(b => [] for b in storage_names)
-#     sol["Wind energy"] = []
-#     sol["Solar energy"] = []
-#     sol["Curtailed energy"] = []
-#     sol["LMP"] = []
-#     return sol
-# end
-
-# function get_solution_uc_t(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
-#     @info "Reoptimize with fixed integer variables ..."
-#     fix!(sys, model)
-#     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
-#     for g in thermal_gen_names, t in model[:param].time_steps
-#         unset_binary(model[:ug][g,t])
-#     end 
-#     optimize!(model)
-
-#     storage_names = get_name.(get_components(GenericBattery, sys))
-#     push!(sol["Time"], model[:param].start_time)
-#     for g in thermal_gen_names
-#         push!(sol["Generator Dispatch"][g], value(model[:t_pg][g]))
-#         push!(sol["Commitment status"][g], value(model[:ug][g,1]))
-#         push!(sol["Start up"][g], value(model[:vg][g,1]))
-#         push!(sol["Shut down"][g], value(model[:wg][g,1]))
-#     end
-
-#     for b in storage_names
-#         push!(sol["Batter charge"][b], value(model[:t_kb_charge][b]))
-#         push!(sol["Batter discharge"][b], value(model[:t_kb_discharge][b]))
-#         push!(sol["Batter energy"][b], value(model[:t_eb][b]))
-#     end
-    
-#     # wind_gen_names = get_name.(get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys))
-#     # solar_gen_names = get_name.(get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys))
-#     # push!(sol["Wind energy"], value(model[:t_pW][wind_gen_names[1]]))
-#     # push!(sol["Solar energy"], value(model[:t_pS][solar_gen_names[1]]))
-#     push!(sol["Curtailed energy"], value.(model[:curtailment][:,1]))
-#     LMP = 0.0
-#     for s in model[:param].scenarios
-#         if abs(dual(model[:eq_power_balance][s,1])) > 0.0
-#             LMP = dual(model[:eq_power_balance][s,1])
-#             break
-#         end
-#     end
-#     push!(sol["LMP"], LMP)
-#     return sol
-# end
-
-# function get_integer_solution(model::JuMP.Model, thermal_gen_names::Vector)::OrderedDict
-#     time_steps = model[:param].time_steps
-#     sol = OrderedDict()
-#     sol["ug"] = OrderedDict(g => [value(model[:ug][g,t]) for t in time_steps] for g in thermal_gen_names)
-#     sol["vg"] = OrderedDict(g => [value(model[:vg][g,t]) for t in time_steps] for g in thermal_gen_names)
-#     sol["wg"] = OrderedDict(g => [value(model[:wg][g,t]) for t in time_steps] for g in thermal_gen_names)
-#     return sol
-# end
-
-# function get_solution_uc(sys::System, model::JuMP.Model)::OrderedDict
-#     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
-#     time_steps = model[:param].time_steps
-#     sol = OrderedDict()
-#     sol["ug"] = OrderedDict(g => [value(model[:ug][g,t]) for t in time_steps] for g in thermal_gen_names)
-#     sol["vg"] = OrderedDict(g => [value(model[:vg][g,t]) for t in time_steps] for g in thermal_gen_names)
-#     sol["wg"] = OrderedDict(g => [value(model[:wg][g,t]) for t in time_steps] for g in thermal_gen_names)
-#     return sol
-# end

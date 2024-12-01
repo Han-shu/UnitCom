@@ -1,6 +1,6 @@
 using JuMP
 
-function stochastic_ed(sys::System, optimizer, VOLL; uc_op_price, init_value = nothing, scenario_count, theta = nothing, start_time = DateTime(Date(2019, 1, 1)), horizon)
+function stochastic_ed(sys::System, optimizer, VOLL; storage_value, init_value = nothing, scenario_count, theta = nothing, start_time = DateTime(Date(2019, 1, 1)), horizon)
     model = Model(optimizer)
     set_silent(model)
     model[:obj] = QuadExpr()
@@ -30,7 +30,7 @@ function stochastic_ed(sys::System, optimizer, VOLL; uc_op_price, init_value = n
 
     # Storage
     if length(get_components(GenericBattery, sys)) != 0 || length(get_components(BatteryEMS, sys)) != 0
-        _add_stroage!(sys, model; isED = true, uc_op_price = uc_op_price)
+        _add_stroage!(sys, model; isED = true, storage_value = storage_value)
     end
     
     # Power balance constraints
