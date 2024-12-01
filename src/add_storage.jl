@@ -47,7 +47,7 @@ function _add_stroage!(sys::System, model::JuMP.Model; isED = false, storage_val
         @variable(model, eb_seg[s in scenarios, k in storage_segments], lower_bound = 0, upper_bound = eb_lim["PH"].max / length(storage_segments))
         for s in scenarios
             for k in storage_segments
-                value = history_LMP[k]*η[b] - history_LMP[end-k+1]/η[b]
+                value = history_LMP[k]*η["PH"] - history_LMP[end-k+1]/η["PH"]
                 add_to_expression!(model[:obj], eb_seg[s,k], - value/length(scenarios))
             end
             @constraint(model, sum(eb_seg[s,k] for k in storage_segments) == eb["PH", s, last(time_steps)])

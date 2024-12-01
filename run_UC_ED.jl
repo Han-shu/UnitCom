@@ -22,7 +22,7 @@ include("src/get_uc_dual.jl")
 
 # Specify the policy and running date
 POLICY = "MF" # "PF", -"SB", "MF", "BF", "WF", "DR", "DR30" 
-run_date = Date(2024,11,27)
+run_date = Date(2024,12,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)

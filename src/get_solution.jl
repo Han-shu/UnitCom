@@ -18,6 +18,7 @@ function init_ed_hour_solution(sys::System)::OrderedDict
     sol["Storage Energy"] = OrderedDict(b => [] for b in storage_names)
     sol["Load Curtailment"] = []
     sol["Renewable Generation"] = OrderedDict(i => [] for i in ["wind", "solar"])
+    sol["Imports"] = []
     sol["Energy Revenues"] = OrderedDict(g => [] for g in vcat(thermal_gen_names, storage_names))
     sol["Reserve Revenues"] = OrderedDict(g => [] for g in vcat(thermal_gen_names, storage_names))
     sol["Other Profits"] = OrderedDict(b => [] for b in ["wind", "solar", "hydro"])
@@ -37,6 +38,7 @@ function init_ed_solution(sys::System)::OrderedDict
     sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Storage Energy"] = OrderedDict(b => [] for b in storage_names)
     sol["Storage Action"] = OrderedDict(b => OrderedDict("Discharge" => [], "Charge" => []) for b in storage_names)
+    sol["Import"] = []
     return sol
 end
 
@@ -53,6 +55,7 @@ function get_ed_hour_solution(sys::System, model::JuMP.Model, sol::OrderedDict):
     push!(sol["Load Curtailment"], value(model[:curtailment][1,1]))
     push!(sol["Renewable Generation"]["wind"], value(model[:pW]["wind",1,1]))
     push!(sol["Renewable Generation"]["solar"], value(model[:pS]["solar",1,1]))
+    push!(sol["Imports"], value(model[:imports][1,1,1]) + value(model[:imports][1,1,2]) + value(model[:imports][1,1,3]))
 
     EnergyRevenues, ReserveRevenues = _compute_ed_gen_revenue(sys, model)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
@@ -93,6 +96,8 @@ function merge_ed_solution(ed_sol::OrderedDict, ed_hour_sol::OrderedDict)::Order
                     push!(ed_sol[key][b][action], ed_hour_sol[key][b][action])
                 end
             end
+        elseif key == "Imports"
+            push!(ed_sol[key], ed_hour_sol[key])
         else
             continue
         end
@@ -113,7 +118,7 @@ function init_solution_uc(sys::System)::OrderedDict
     sol["Hourly average reserve price 10Total"] = []
     sol["Hourly average reserve price 30Total"] = []
     sol["Hourly average reserve price 60Total"] = []
-    sol["SOC Dual Mean"] = OrderedDict(b => [] for b in storage_names)
+    sol["SOC Dual"] = OrderedDict(b => [] for b in storage_names)
     sol["Charge consumers"] = []
     sol["Load Curtailment"] = []
     sol["Renewable Generation"] = OrderedDict(i => [] for i in ["wind", "solar"])
@@ -165,7 +170,7 @@ function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, so
         push!(sol["Storage Energy"][b], mean(ed_sol["Storage Energy"][b]))
         push!(sol["Energy Revenues"][b], mean(ed_sol["Energy Revenues"][b]))
         push!(sol["Reserve Revenues"][b], mean(ed_sol["Reserve Revenues"][b]))
-        push!(sol["SOC Dual Mean"][b], storage_value[b])
+        push!(sol["SOC Dual"][b], storage_value[b])
     end
     return sol
 end

@@ -43,8 +43,10 @@
     - Initialize eb_t0 in UC and ED
 - 2024-11-18
     - Remove storage 
-- NEXT
+- 2024-12-01
+    - 
 
+- NEXT
     - VOLL = 200,000, solar*10, wind*1.38
     - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
     - Exclude nuclear to provide reserve
