@@ -100,7 +100,7 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
     if POLICY == "SB"
         filedates = [Dates.Date(2019,1,10), Dates.Date(2019,1,20), Dates.Date(2019,1,31)]
     else
-        filedates = [Dates.Date(2019,1,1)]
+        filedates = [Dates.Date(2019,1,31)]
     end
 
     for filename in filedates
@@ -151,7 +151,7 @@ end
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 # INFORMS results run_date = Dates.Date(2024,10,18)
 
-run_date = Dates.Date(2024,11,19)
+run_date = Dates.Date(2024,12,1)
 policies = ["SB", "PF", "MF", "BF", "BF8", "BF9", "WF", "DR", "DR30"]    
 extract_len = nothing
 
@@ -237,66 +237,3 @@ PerUnitProfit_df = DataFrame(POLICY = policies,
                 solar = [PerUnitProfit[POLICY]["solar"] for POLICY in policies],
                 hydro = [PerUnitProfit[POLICY]["hydro"] for POLICY in policies])
 CSV.write(joinpath(res_dir, "$(run_date)", "PerUnitProfit.csv"), PerUnitProfit_df)
-      
-
-# thermal_gen_names = get_name.(get_components(ThermalGen, sys))
-# fixed_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
-# startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalStandard, sys, g))) for g in thermal_gen_names)
-# shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
-# variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
-
-# uc_sol["Start up"]["Hellgate 1"]
-# sum(uc_sol["Shut down"]["Hellgate 1"])
-# gen_name = "Vernon Blvd 3"
-# sum(uc_sol["Commitment status"][gen_name])
-# integer_cost = fixed_cost[gen_name]*sum(uc_sol["Commitment status"][gen_name]) + startup_cost[gen_name]*sum(uc_sol["Start up"][gen_name]) + shutdown_cost[gen_name]*sum(uc_sol["Shut down"][gen_name])
-# integer_cost + variable_cost[gen_name]*sum(uc_sol["Generator Dispatch"][gen_name])
-
-# gen = get_component(ThermalGen, sys, "Hellgate 1")
-# sys = build_ny_system(base_power = 100)
-# thermal_gen_names = get_name.(get_components(ThermalGen, sys))
-# fixed_cost = Dict(g => get_fixed(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
-# startup_cost = Dict(g => get_start_up(get_operation_cost(get_component(ThermalStandard, sys, g))) for g in thermal_gen_names)
-# shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(ThermalGen, sys, g))) for g in thermal_gen_names)
-# variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
-
-
-# integer_cost = Dict()
-# for g in thermal_gen_names
-#     # genfuel_cost += variable_cost[g]*sum(uc_sol["Generator Dispatch"][g])
-#     geninteger_cost = fixed_cost[g]*sum(uc_sol["Commitment status"][g])
-#             + startup_cost[g]*sum(uc_sol["Start up"][g]) + shutdown_cost[g]*sum(uc_sol["Shut down"][g]) 
-#     integer_cost[g] = geninteger_cost
-# end
-
-
-# policies = policies
-# hour_LMPS = Dict{String, Vector{Float64}}()
-# min5_LMPS = Dict{String, Vector{Float64}}()
-# for POLICY in policies
-#     uc_LMP, ed_LMP = extract_LMP(res_dir, POLICY, run_dates[POLICY])
-#     hour_LMPS[POLICY] = uc_LMP
-#     min5_LMPS[POLICY] = ed_LMP
-# end
-
-# using Statistics
-# for key in keys(hour_LMPS)
-#     println("Policy: $(key), Average LMP: $(mean(hour_LMPS[key]))")
-# end
-
-# POLICY = "WF"
-# run_date = run_dates[POLICY]    
-# file_date = Dates.Date(2019,1,1)
-# path_dir = joinpath(res_dir, "Master_$(POLICY)")
-# @assert isdir(path_dir) error("Directory not found for $(POLICY)")
-# uc_file = joinpath(path_dir, "$(POLICY)_$(run_date)", "UC_$(file_date).json")
-# ed_file = joinpath(path_dir, "ED_$(POLICY)_$(run_date)", "ED_$(file_date).json")
-# @info "Extracting LMP for $(POLICY) with date $(file_date)"
-# uc_solution = read_json(uc_file)
-# ed_solution = read_json(ed_file)
-
-# for t in 1:length(ed_solution["Time"])
-#     if mean(ed_solution["LMP"][t]) > 60
-#         println("Time: $(ed_solution["Time"][t]), LMP: $(ed_solution["LMP"][t])")
-#     end
-# end

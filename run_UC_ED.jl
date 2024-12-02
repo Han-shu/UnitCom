@@ -13,7 +13,11 @@ include("src/get_uc_dual.jl")
     "PF": Perfect forecast
     "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
     "MF": mean forecast
-    "BF": Biased forecast ((1-p)*mean + p*WF, p = 0.5)
+    "BF": Biased forecast ((1-p)*mean + p*WF, p = 0.5 by default) 
+        Use different p by specifying $"BF(X)" where X::Int = 5, 6, 7, 8, 9
+        Example:
+            "BF8": Biased forecast with p = 0.8
+            "BF9": Biased forecast with p = 0.9
     "WF": Worst forecast (highest net load case, theta = 11)
     ~~"FR": Fixed reserve requirement~~
     "DR": Dynamic reserve requirement
@@ -21,17 +25,17 @@ include("src/get_uc_dual.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "WF" # "PF", "SB", -"MF", -"BF", -"WF", "DR", "DR30" 
+POLICY = "DR30" # "PF", "SB", -"MF", -"BF", -"WF", -"DR", "DR30" 
 run_date = Date(2024,12,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+uc_horizon = 36 # 36 hours
+ed_horizon = 12 # 12*5 minutes = 1 hour
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
 theta, scenario_cnt = policy_theta_parameter(POLICY)
-uc_horizon = 36 # 36 hours
-ed_horizon = 12 # 12*5 minutes = 1 hour
+
 @info "Policy: $(POLICY), Master folder: $(master_folder), UC folder: $(uc_folder), ED folder: $(ed_folder)"
 @info "UC horizon: $(uc_horizon), ED horizon: $(ed_horizon)"
-
 
 # Build NY system for UC and ED
 @info "Build NY system for UC"

@@ -1,9 +1,40 @@
 # UnitCom
 
+# Key model improvements compared with INFORMS results
+- Add imports supply curve as in add_imports.jl
+- Add residual value for PH in UC 
+- Energy storage eb_t0 initialization in UC and ED
+- Exclude nuclear to provide reserve
+
+# Other model improvements to consider
+    - Increase VOLL
+    - Increase renewable generaition 
+    - Imporve operational cost of thermal generators by using piecewise linear cost function
+    - Increase reserve requirement of DR
+    - Decrease ramp rate
+
 # Result Description
 - 2024-10-18 (presented on INFORMS)
     - VOLL = 5,000, solar*1, wind*1
     - cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, 0.0)
+- Before 2024-11-19
+    - Storage SOC is not initialized correctly in INFORMS results, leading to the high profits and same profits per MW for BA and PH
+    - After correcting the SOC initialization, BA and PH are not working as expected
+    - From results between 2024-11-15 and 2024-11-18, I found the residual value (dual of storage soc transition) used in the objective of ED is negative. Hence, BA and PH always discharge
+    - 2024-11-15: consider variable cost in UC, no start-up cost, no-load cost
+    - 2024-11-16: Remove minup and mindown constraints
+    - 2024-11-17: Initialize eb_t0 in UC and ED
+    - 2024-11-18: Remove storage 
+- 2024-11-19
+    - Change the sign of residual value of storage in ED objective function
+    - Constant imports 2900 MW in UC and ED
+    - Results: PH is always at low SOC
+- 2024-12-01
+    - Add imports supply curve as in add_imports.jl
+    - Add residual value for PH in UC 
+    - Results: Better PH action
+
+
 - 2024-11-01
     - VOLL = 5,000, solar*10, wind*1.38
     - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
@@ -35,27 +66,6 @@
     - cost = ThreePartCost(gen_cost.COST_1, gen_cost.COST_0, genprop.PERC_StartUpCost, 0.0)
     - Add back nuclear plants
     - Add 2900 MW imports
-- 2024-11-15
-    - Only consider variable cost in UC, no start-up cost, no-load cost
-- 2024-11-16
-    - Remove minup and mindown constraints
-- 2024-11-17
-    - Initialize eb_t0 in UC and ED
-- 2024-11-18
-    - Remove storage 
-- 2024-12-01
-    - Add imports supply curve as in add_imports.jl
-    - Add residual value for PH in UC 
-
-- NEXT
-    - VOLL = 200,000, solar*10, wind*1.38
-    - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)
-    - Exclude nuclear to provide reserve
-
-    - Decrease ramp rate
-    - Increase VOLL
-    - Increase reserve requirement of DR
-    - Add reserve requirment of DR to 30T
 
 
 
