@@ -1,4 +1,4 @@
-# Add net injection, expr_net_injection = - forecast_load + curtaliment + pS + pW + imports = 0
+# Add net injection, expr_net_injection = - forecast_load + curtaliment + pS + pW + hydro + imports + pg + (kb_discharge - kb_charge) = 0
 function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothing, Int64} = nothing)::Nothing
     expr_net_injection = _init(model, :expr_net_injection)
 
@@ -41,6 +41,7 @@ function _get_biased_forecast(solar_gen::RenewableGen, wind_gen::RenewableGen, l
         p = 0.5
     else
         p = parse(Int64, POLICY[3:end])/10
+        @assert 0 <= p <= 1 || error("Policy $POLICY is not a valid biased forecast policy")
     end
     @info "Biased forecast with p = $p"
     fcst_solar = get_time_series_values(Scenarios, solar_gen, "solar_power", start_time = start_time, len = length(time_steps))

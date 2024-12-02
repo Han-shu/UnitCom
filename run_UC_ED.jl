@@ -21,7 +21,7 @@ include("src/get_uc_dual.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "MF" # "PF", -"SB", "MF", "BF", "WF", "DR", "DR30" 
+POLICY = "WF" # "PF", "SB", -"MF", -"BF", -"WF", "DR", "DR30" 
 run_date = Date(2024,12,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 

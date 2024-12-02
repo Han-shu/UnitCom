@@ -38,7 +38,7 @@ function init_ed_solution(sys::System)::OrderedDict
     sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Storage Energy"] = OrderedDict(b => [] for b in storage_names)
     sol["Storage Action"] = OrderedDict(b => OrderedDict("Discharge" => [], "Charge" => []) for b in storage_names)
-    sol["Import"] = []
+    sol["Imports"] = []
     return sol
 end
 

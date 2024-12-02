@@ -44,7 +44,8 @@
 - 2024-11-18
     - Remove storage 
 - 2024-12-01
-    - 
+    - Add imports supply curve as in add_imports.jl
+    - Add residual value for PH in UC 
 
 - NEXT
     - VOLL = 200,000, solar*10, wind*1.38

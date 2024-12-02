@@ -1,10 +1,10 @@
 """
-    get_uc_dual(sys::System, model::JuMP.Model)::OrderedDict
-    Obtain the dual values of the energy storage energy balance constraints in the UC model.
+    get_uc_dual(sys::System, model::JuMP.Model)
+    Obtain the dual values of the energy storage energy balance constraints and power balamnce cosntraint in the UC model.
     The dual values would be used to calculate as the residual value of storage
 """
 
-function get_uc_dual(sys::System, model::JuMP.Model)::OrderedDict
+function get_uc_dual(sys::System, model::JuMP.Model)
     @info "Reoptimize with fixed integer variables ..."
     fix!(sys, model)
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
