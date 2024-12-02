@@ -152,7 +152,8 @@ res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 # INFORMS results run_date = Dates.Date(2024,10,18)
 
 run_date = Dates.Date(2024,12,1)
-policies = ["SB", "PF", "MF", "BF", "BF8", "BF9", "WF", "DR", "DR30"]    
+# policies = ["SB", "PF", "MF", "BF", "BF8", "BF9", "WF", "DR", "DR30"]    
+policies = ["PF", "MF", "BF", "WF", "DR", "DR30"]    
 extract_len = nothing
 
 Costs = OrderedDict()
