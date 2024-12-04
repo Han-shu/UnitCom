@@ -32,7 +32,7 @@ uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 
 # Save the solution when day is in save_date: save SB more frequently to release memory
-save_date = [1, 11, 21] if POLICY == "SB" else [1] 
+save_date = POLICY == "SB" ? [1, 11, 21] : [1] 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
 theta, scenario_cnt = policy_theta_parameter(POLICY)
 
