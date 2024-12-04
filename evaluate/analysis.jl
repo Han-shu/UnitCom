@@ -44,8 +44,10 @@ function get_gen_capacity_by_type()
     wind_capacity = 1983 #2736
     hydro_capacity = 4800
 
+    storage_names = get_name.(get_components(GenericBattery, sys))
+    kb_charge_max = Dict(b => get_input_active_power_limits(get_component(GenericBattery, sys, b))[:max] for b in storage_names)
     return Dict("Fast" => fast_gen_capacity, "Nuclear" => nuclear_gen_capacity, "Thermal" => thermal_gen_capacity,
-                "BA" => 1500, "PH" => 1170, "wind" => wind_capacity, "solar" => solar_capacity, "hydro" => hydro_capacity)
+                "BA" => kb_charge_max["BA"], "PH" => kb_charge_max["PH"], "wind" => wind_capacity, "solar" => solar_capacity, "hydro" => hydro_capacity)
 end
 
 function extract_LMP(res_dir::AbstractString, POLICY::AbstractString, run_date)::Tuple{Array{Float64}, Array{Float64}}
@@ -153,7 +155,7 @@ res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 run_date = Dates.Date(2024,12,1)
 # policies = ["SB", "PF", "MF", "BF", "BF8", "BF9", "WF", "DR", "DR30"]    
-policies = ["PF", "MF", "BF", "WF", "DR", "DR30"]    
+policies = ["SB","PF", "MF", "BF", "WF", "DR", "DR30"]    
 extract_len = nothing
 
 Costs = OrderedDict()

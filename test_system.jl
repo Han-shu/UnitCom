@@ -25,6 +25,14 @@ shutdown_cost = Dict(g => get_shut_down(get_operation_cost(get_component(Thermal
 variable_cost = Dict(g => get_cost(get_variable(get_operation_cost(get_component(ThermalGen, sys, g)))) for g in thermal_gen_names)
 time_limits = Dict(g => get_time_limits(get_component(ThermalGen, sys, g)) for g in thermal_gen_names)
 
+# Renewable generators
+# renewable_gen_names = get_name.(get_components(RenewableGen, sys))
+wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, sys)
+solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys)
+wind_gen_names = get_name.(wind_gens)
+solar_gen_names = get_name.(solar_gens)
+wind_capacity = Dict(g => get_capacity(get_component(RenewableGen, sys, g)) for g in wind_gen_names)
+
 # Storage
 storage_names = PSY.get_name.(get_components(PSY.GenericBattery, sys))
 eb_lim = Dict(b => get_state_of_charge_limits(get_component(GenericBattery, sys, b)) for b in storage_names)

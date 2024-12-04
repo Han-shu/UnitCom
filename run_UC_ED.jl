@@ -25,12 +25,14 @@ include("src/get_uc_dual.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "SB" # "PF", "SB", -"MF", -"BF", -"WF", -"DR", "DR30" 
-run_date = Date(2024,12,1)
+POLICY = "PF" # "PF", "SB", -"MF", -"BF", -"WF", -"DR", "DR30" 
+run_date = Date(2024,12,3)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 
+# Save the solution when day is in save_date: save SB more frequently to release memory
+save_date = [1, 11, 21] if POLICY == "SB" else [1] 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
 theta, scenario_cnt = policy_theta_parameter(POLICY)
 
@@ -118,8 +120,7 @@ for t in 1:8760
     end
     
     # For the first hour of the month, save the solution and reinitialize
-    if day(uc_time) in [1, 11, 21] && hour(uc_time) == 0
-    # if day(uc_time) == 1 && hour(uc_time) == 0
+    if day(uc_time) in save_date && hour(uc_time) == 0
         # save the solution only if final hour of last month has been solved
         if length(uc_sol["Time"]) > 0 && uc_sol["Time"][end] == uc_time - Hour(1)
             uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Hour(1))).json") #"UC_$(Date(uc_time - Month(1))).json")
@@ -183,13 +184,6 @@ end
     @info "One iteration takes $(one_iter) seconds"
 end
 
-# # save the solution
-# save_date = Date(year(uc_time), month(uc_time), 1)
-# uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(save_date).json")
-# ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(save_date).json")
-# @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
-# write_json(uc_sol_file, uc_sol)
-# write_json(ed_sol_file, ed_sol)
 @info "Running rolling horizon $(POLICY) is completed at $(uc_time)"
 @info "Current time is $(now())"
 

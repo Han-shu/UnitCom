@@ -1,14 +1,14 @@
 # UnitCom
 
 # Key model improvements compared with INFORMS results
-- Add imports supply curve as in add_imports.jl
-- Add residual value for PH in UC 
-- Energy storage eb_t0 initialization in UC and ED
-- Exclude nuclear to provide reserve
+    - Add imports supply curve as in add_imports.jl
+    - Add residual value for PH in UC 
+    - Energy storage eb_t0 initialization in UC and ED
+    - Exclude nuclear to provide reserve
 
 # Other model improvements to consider
-    - Increase VOLL
-    - Increase renewable generaition 
+    - Increase VOLL: 5,000 -> 200,000
+    - Increase renewable generaition: solar*10, wind*1.38
     - Imporve operational cost of thermal generators by using piecewise linear cost function
     - Increase reserve requirement of DR
     - Decrease ramp rate
@@ -32,8 +32,10 @@
 - 2024-12-01
     - Add imports supply curve as in add_imports.jl
     - Add residual value for PH in UC 
-    - Results: Better PH action
-
+    - Results: Better PH action, PH is more profitable (per unit) than BA
+- 2024-12-03
+    - Overestimate the residual value
+    - ED obj: storage_value[b]*12 -> storage_value[b]
 
 - 2024-11-01
     - VOLL = 5,000, solar*10, wind*1.38
@@ -68,44 +70,34 @@
     - Add 2900 MW imports
 
 
-
-# TODO
-- function _extract_fcst_matrix: ~~_read_h5_file: attach scenarios 2:12 time series~~
-- function _extract_fcst_matrix: ~~UC: Use from 2nd time point, ED: Use from 1st time point~~
-- Battery qualification for the new product
-- New reserve product requirement
-    - Fixed reserve (FR)
-    - Dynamic reserve (DR)
-- Add model configuration for different policies (SB, NR, BNR, FR, DR)
-- No need: Deterministic model: attach one scenario time series according to theta
-
-
 # Storage Capacity
 "In 2019, New York passed the nation-leading Climate Leadership and Community Protection Act (Climate Act), which codified some of the most aggressive energy and climate goals in the country, including 1,500 MW of energy storage by 2025 and 3,000 MW by 2030. In June 2024, New York’s Public Service Commission expanded the goal to 6,000 MW by 2030." (https://www.nyserda.ny.gov/All-Programs/Energy-Storage-Program)
-- Pumped hydro (treat as 10h battery): 1170 MWh
-- 4h battery: 1500 MWh
+- PH => Pumped hydro (treat as 10h battery): 1170 MWh
+    approximately how many cycles the Blenheim-Gilboa plant has per year
+    281.7 GWh/(10 hrs*1160 MW)=24 cycles
+- BA => 4h battery: 1500 MWh
 
-# September 20 2024, meeting
+
+# Limitations
+- Reserve qualification
+    - Spinning reserve: Online thermal generators and all batteries
+    - Non-spinning reserve: Offline fast-start thermal generators (min up time <= 1 hr)
+    - Thermal generators are not allowed to provide any reserve
+- Variable cost of thermal generators is assumed to be constant
+- No minimum run time and notification time
+- Hydro power plants are modeled by SingleTimeSeries historical dispatch
+
+# Problems
+- RLMP (fix integer variables) v.s. ELMP (relax integer variables)
+
+# Log
+September 20 2024
 - Update data
 - Add solar/wind/hydro profits
 - Add curtailment 
 - Stochastic without reserve
 - 50 percentile of the net load or 50 percentile load and 50 percentile solar/wind respectively
 - Reserve tunning (new product to address forecast error)
-
-
-# Limitations
-- All thermal generators and batteries are assumed to be eligible to provide reserve
-- Reserve is provided by thermal generators and batteries only
-- Variable cost of thermal generators is assumed to be constant
-- No minimum run time and notification time
-- Hydro power plants are modeled by SingleTimeSeries historical dispatch
-
-# Problems
-- UC infeasibility if starting from existing solution files
-- RLMP (fix integer variables) v.s. ELMP (relax integer variables)
-
-# Log
 September 28
 - Add new reserve products (60T)
 May 13
@@ -146,10 +138,7 @@ April
             shut-down = 0 or 0.2*start_up 
     - heat rate * fuel cost
     - differenciate nuclear, thermal_st, thermal
-- ~~ThermalGen time_limits (min up and down time)~~
-- ~~Battery~~
-- Hydro
-- ~~Time series data (wind, solar, load)~~
+- Update to be compatible with the latest version of PowerSystems.jl
 
 
 

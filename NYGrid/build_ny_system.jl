@@ -20,7 +20,8 @@ function build_ny_system(; base_power = 100)::System
     _build_bus(system, 1, "bus_1", 2, 345)
 
     # Add renewables
-    solar_rating, wind_rating = 5227, 2736
+    # solar_rating, wind_rating = 5227, 2736
+    solar_rating, wind_rating = 522.7, 1983 
     solar = PSY.RenewableDispatch(
             name = "solar",  #sets name of solar component             
             available = true,   #marks the component as available       
