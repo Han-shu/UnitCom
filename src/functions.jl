@@ -85,25 +85,24 @@ function write_model_txt(model::JuMP.Model, model_name::AbstractString, result_d
 end
 
 function find_sol_files(result_dir::AbstractString, master_folder::AbstractString, POLICY::AbstractString, uc_folder::AbstractString, ed_folder::AbstractString)
-    uc_time = Dates.Date(2019,12,1)
-    while true
+    uc_time = Dates.Date(2019,12,29)
+    month = 12
+    while month >= 1
         uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time)).json")
         ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time)).json")
         if (isfile(uc_sol_file) && isfile(ed_sol_file))
+            if month == 12
+                error("The solution of year 2019 is complete, no need to continue")
+            end
             uc_sol = read_json(uc_sol_file)
             if length(uc_sol["Time"]) >= 24 # check if the solution is at least for 24 hours
                 return uc_sol_file, ed_sol_file
-            else
-                uc_time -= Dates.Month(1)
             end
-        else
-            uc_time -= Dates.Month(1)
         end
-        if uc_time < Dates.Date(2019,1,1)
-            error("No solution files found")
-        end
+        uc_time = Dates.Date(2019, month, 1) - Dates.Day(1) # the last day of the month
+        month -= 1
     end
-    return uc_sol_file, ed_sol_file
+    error("No solution files found")
 end
 
 function determine_init_flag(result_dir::AbstractString, master_folder::AbstractString, POLICY::AbstractString, uc_folder::AbstractString, ed_folder::AbstractString)

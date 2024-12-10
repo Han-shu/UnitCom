@@ -31,7 +31,6 @@ wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableG
 solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys)
 wind_gen_names = get_name.(wind_gens)
 solar_gen_names = get_name.(solar_gens)
-wind_capacity = Dict(g => get_capacity(get_component(RenewableGen, sys, g)) for g in wind_gen_names)
 
 # Storage
 storage_names = PSY.get_name.(get_components(PSY.GenericBattery, sys))
@@ -56,6 +55,18 @@ end
 # CSV.write(joinpath(res_dir, output_file), df)
 # println("Output written to ", joinpath(res_dir, output_file))
 
+nuclear_gen_capacity = 0
+for g in thermal_gen_names
+    global nuclear_gen_capacity
+    generator = get_component(ThermalGen, sys, g)
+    time_limits = get_time_limits(get_component(ThermalGen, sys, g))
+    pg_lim = get_active_power_limits(get_component(ThermalGen, sys, g))
+    if generator.fuel == ThermalFuels.NUCLEAR
+        nuclear_gen_capacity += pg_lim.max
+        println("Nuclear generator: ", g)
+    end
+end
+println("Total nuclear capacity: ", nuclear_gen_capacity)
 
 
 # start_time = DateTime(2019,1,1,0)

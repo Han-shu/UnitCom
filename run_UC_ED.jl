@@ -25,8 +25,8 @@ include("src/get_uc_dual.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "PF" # "PF", "SB", -"MF", -"BF", -"WF", -"DR", "DR30" 
-run_date = Date(2024,12,3)
+POLICY = "BF" # "PF", "SB", -"MF", -"BF", -"WF", -"DR", "DR30" 
+run_date = Date(2024,12,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
@@ -108,7 +108,7 @@ for t in 1:8760
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if t > 1500 || uc_time > DateTime(2019,2,1,1) 
+    if uc_time > DateTime(2019,12,29,21) 
         break
     end
 
@@ -186,5 +186,12 @@ end
 
 @info "Running rolling horizon $(POLICY) is completed at $(uc_time)"
 @info "Current time is $(now())"
+
+# Save the last solution
+uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Hour(1))).json") #"UC_$(Date(uc_time - Month(1))).json")
+ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time - Hour(1))).json")  #"ED_$(Date(uc_time - Month(1))).json")
+@info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
+write_json(uc_sol_file, uc_sol)
+write_json(ed_sol_file, ed_sol)
 
 # write_model_txt(uc_model, "uc_model", result_dir)

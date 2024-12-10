@@ -40,8 +40,8 @@ function get_gen_capacity_by_type()
         end
         thermal_gen_capacity += pg_lim.max
     end
-    solar_capacity = 522.7
-    wind_capacity = 1983 #2736
+    solar_capacity = 800 #522.7
+    wind_capacity = 3250 #1983 #2736
     hydro_capacity = 4800
 
     storage_names = get_name.(get_components(GenericBattery, sys))
@@ -125,14 +125,17 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
         end
         
         for key in keys(uc_sol["Energy Revenues"])
-            Gen_energy_revenue[key] += sum(uc_sol["Energy Revenues"][key][1:extract_len]) 
-            Gen_reserve_revenue[key] += sum(uc_sol["Reserve Revenues"][key][1:extract_len]) 
-            Gen_profit[key] += Gen_energy_revenue[key] + Gen_reserve_revenue[key]
+            energy_revenue = sum(uc_sol["Energy Revenues"][key][1:extract_len])
+            reserve_revenue = sum(uc_sol["Reserve Revenues"][key][1:extract_len])
+            Gen_energy_revenue[key] +=  energy_revenue
+            Gen_reserve_revenue[key] += reserve_revenue
+            Gen_profit[key] += energy_revenue + reserve_revenue
         end
 
         for key in keys(uc_sol["Other Profits"])
-            Gen_energy_revenue[key] += sum(uc_sol["Other Profits"][key][1:extract_len])
-            Gen_profit[key] += Gen_energy_revenue[key]
+            profit = sum(uc_sol["Other Profits"][key][1:extract_len])
+            Gen_energy_revenue[key] += profit
+            Gen_profit[key] += profit
         end
     end
     
