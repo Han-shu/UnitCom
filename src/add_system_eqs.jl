@@ -63,7 +63,7 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
             >= reserve_requirements["30Total"])
     end
     
-    if POLICY == "DR"
+    if POLICY == "DR60"
         @constraint(model, eq_reserve_60Total[s in scenarios, t in time_steps],
             sum(model[:rg][g,"60S",s,t] + model[:rg][g,"60N",s,t] for g in thermal_gen_names) + 
             sum(model[:battery_reserve][b,"60S",s,t] for b in storage_names) + 
@@ -87,7 +87,7 @@ end
     "MF": 50 percentile forecast
     "BNR": Biased forecast
     "FR": Fixed reserve requirement
-    "DR": Dynamic reserve requirement
+    "DR60": Dynamic reserve requirement
 """
 function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::String, isED::Bool)::Vector{Float64}
     if policy in ["SB", "MF", "WF", "BF", "PF"]
@@ -100,7 +100,7 @@ function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::
         index = (Dates.hour(start_time), Dates.minute(start_time))
         subdic = isED ? reserve_requirement["ED"] : reserve_requirement["UC"]
         return subdic[index][time_steps]
-    elseif policy == "DR" || policy == "DR30"
+    elseif policy == "DR60" || policy == "DR30"
         netload_diff = _get_mean_fcst_netload_diff(sys, model)
         return netload_diff
     else

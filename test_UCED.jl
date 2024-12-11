@@ -16,7 +16,7 @@ include("src/get_uc_dual.jl")
     "WF": Worst forecast (highest net load case, theta = 100)
     "MLF": Most likely forecast (theta = 1 without ranking)
     "FR": Fixed reserve requirement
-    "DR": Dynamic reserve requirement
+    "DR60": Dynamic reserve requirement
 =#
 
 # Specify the policy and running date

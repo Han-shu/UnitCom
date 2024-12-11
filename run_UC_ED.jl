@@ -20,12 +20,12 @@ include("src/get_uc_dual.jl")
             "BF9": Biased forecast with p = 0.9
     "WF": Worst forecast (highest net load case, theta = 11)
     ~~"FR": Fixed reserve requirement~~
-    "DR": Dynamic reserve requirement
+    "DR60": Dynamic reserve requirement to be added to 60T
     "DR30": Dynamic reserve requirement to be added to 30T
 =#
 
 # Specify the policy and running date
-POLICY = "BF" # "PF", "SB", -"MF", -"BF", -"WF", -"DR", "DR30" 
+POLICY = "DR30" # "PF", "SB", -"MF", -"BF", -"WF", -"DR60", "DR30" 
 run_date = Date(2024,12,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 uc_horizon = 36 # 36 hours

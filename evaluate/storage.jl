@@ -91,7 +91,7 @@ end
 sys = build_ny_system(base_power = 100)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 run_date = Date(2024,12,3)
-# policies = ["SB", "PF", "MF", "BF", "WF", "DR", "DR30"]
+# policies = ["SB", "PF", "MF", "BF", "WF", "DR60", "DR30"]
 policies = ["PF"]
 
 # ba_profits, ph_profits = Dict(), Dict()

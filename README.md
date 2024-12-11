@@ -33,9 +33,7 @@
     - Add imports supply curve as in add_imports.jl
     - Add residual value for PH in UC 
     - Results: Better PH action, PH is more profitable (per unit) than BA
-- 2024-12-03
-    - Overestimate the residual value
-    - ED obj: storage_value[b]*12 -> storage_value[b]
+    - Run BF and DR30 for a whole year
 
 - 2024-11-01
     - VOLL = 5,000, solar*10, wind*1.38

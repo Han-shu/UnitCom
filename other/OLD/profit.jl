@@ -140,7 +140,7 @@ run_dates = Dict("SB" => Dates.Date(2024,10,2),
                 "MF" => Dates.Date(2024,10,4),
                 "BNR" => Dates.Date(2024,10,4), 
                 "WF" => Dates.Date(2024,10,5),
-                "DR" => Dates.Date(2024,10,16))
+                "DR60" => Dates.Date(2024,10,16))
 
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 df = DataFrame()

@@ -50,7 +50,7 @@ end
 
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
-run_dates = Dict("DR" => Dates.Date(2024,10,18),
+run_dates = Dict("DR60" => Dates.Date(2024,10,18),
                 "SB" => Dates.Date(2024,10,19), 
                 "PF" => Dates.Date(2024,10,19),
                 "NR" => Dates.Date(2024,10,18),
@@ -83,10 +83,10 @@ p = plot_mult_policies_hour_LMP(hour_LMPS)
 # plot!(p, hour_x, hour_LMPS[key][1:x_end], label = "$(key)")
 
 
-# run_dates = Dict("DR" => [Dates.Date(2024,10,9), Dates.Date(2024,10,18)])
+# run_dates = Dict("DR60" => [Dates.Date(2024,10,9), Dates.Date(2024,10,18)])
 # hour_LMPS = Dict{String, Vector{Float64}}()
 # min5_LMPS = Dict{String, Vector{Float64}}()
-# POLICY = "DR"
+# POLICY = "DR60"
 # for rundate in run_dates[POLICY]
 #     uc_LMP, ed_LMP = extract_LMP(res_dir, POLICY, rundate)
 #     hour_LMPS[POLICY*"$(rundate)"] = uc_LMP
