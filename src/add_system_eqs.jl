@@ -81,14 +81,7 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
 end
 
 
-"""
-    policy
-    "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
-    "MF": 50 percentile forecast
-    "BNR": Biased forecast
-    "FR": Fixed reserve requirement
-    "DR60": Dynamic reserve requirement
-"""
+
 function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::String, isED::Bool)::Vector{Float64}
     if policy in ["SB", "MF", "WF", "BF", "PF"]
         return [0.0 for t in model[:param].time_steps]
@@ -118,7 +111,14 @@ function _get_mean_fcst_netload_diff(sys::System, model::JuMP.Model)::Vector{Flo
     fcst_wind = get_time_series_values(Scenarios, wind_gen, "wind_power", start_time = start_time, len = length(time_steps))
     fcst_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
     fcst_netload = fcst_load .- fcst_solar .- fcst_wind
+    
     mean_fcst_netload = vec(mean(fcst_netload, dims = 2))
     max_fcst_netload = vec(maximum(fcst_netload, dims = 2))
-    return max_fcst_netload - mean_fcst_netload
+    fcst_netload_diff = max_fcst_netload - mean_fcst_netload
+
+    worst_index = argmax(fcst_netload, dims = 2)
+    fcst_netload_diff2 = fcst_netload[worst_index] .- mean(fcst_netload, dims = 2)
+    @assert abs(fcst_netload_diff .- fcst_netload_diff2) .< 1e-6 
+
+    return fcst_netload_diff
 end

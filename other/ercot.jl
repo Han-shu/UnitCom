@@ -59,7 +59,7 @@ wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableG
 solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe,RenewableGen, system)
 
 # add time series
-ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot"
+ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/time_series"
 solar_file = joinpath(ts_dir, "solar_scenarios.h5")
 wind_file = joinpath(ts_dir, "wind_scenarios.h5")
 load_file = joinpath(ts_dir, "load_scenarios.h5")

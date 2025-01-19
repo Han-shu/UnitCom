@@ -7,8 +7,9 @@ function _read_h5_by_idx(file::String, time::Dates.DateTime)
 end
 
 function _extract_fcst_matrix(file::String, time::Dates.DateTime, min5_flag::Bool)
+    # matrix is a 2D array = # time steps (rows) x # scenarios (columns)
     matrix = _read_h5_by_idx(file, time)
-    # println(size(matrix))
+    
     # the first scenario is the historical data, so we skip it
     if min5_flag
         # ED: Use from 1st time point
@@ -45,34 +46,6 @@ function policy_model_folder_name(policy::String, date::Date = Dates.today())
     return master_folder, uc_folder, ed_folder
 end
 
-function policy_theta_parameter(POLICY::String)
-    if POLICY[1:2] == "BF"
-        theta = 0 # (1-p)*mean + p*worst where p = 0.5 by default
-        scenario_cnt = 1
-    elseif POLICY == "SB"
-        theta = nothing
-        scenario_cnt = 11
-    elseif POLICY == "PF"
-        theta = 1
-        scenario_cnt = 1
-    elseif POLICY == "BNR"
-        theta = 11
-        scenario_cnt = 1
-    elseif POLICY == "WF"
-        theta = 11 # worst scenario
-        scenario_cnt = 1
-    elseif POLICY == "BF2"
-        theta = 9 # 3rd worst scenario
-        scenario_cnt = 1
-    elseif POLICY in ["MF", "FR", "DR60", "DR30"] # use mean forecast
-        theta = nothing
-        scenario_cnt = 1
-    else
-        error("Policy $POLICY is not defined")
-    end
-    return theta, scenario_cnt
-end
-
 """
 Write the model to a text file
 """
@@ -91,9 +64,6 @@ function find_sol_files(result_dir::AbstractString, master_folder::AbstractStrin
         uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time)).json")
         ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time)).json")
         if (isfile(uc_sol_file) && isfile(ed_sol_file))
-            if month == 12
-                error("The solution of year 2019 is complete, no need to continue")
-            end
             uc_sol = read_json(uc_sol_file)
             if length(uc_sol["Time"]) >= 24 # check if the solution is at least for 24 hours
                 return uc_sol_file, ed_sol_file
@@ -106,15 +76,15 @@ function find_sol_files(result_dir::AbstractString, master_folder::AbstractStrin
 end
 
 function determine_init_flag(result_dir::AbstractString, master_folder::AbstractString, POLICY::AbstractString, uc_folder::AbstractString, ed_folder::AbstractString)
-    init_fr_ED_flag, init_fr_file_flag = true, false
+    init_fr_ED_flag = true
     if ispath(joinpath(result_dir, master_folder, POLICY, uc_folder)) && !isempty(readdir(joinpath(result_dir, master_folder, POLICY, uc_folder)))
         try 
             find_sol_files(result_dir, master_folder, POLICY, uc_folder, ed_folder)
         catch e
-            return init_fr_ED_flag, init_fr_file_flag
+            return true
         end
-        init_fr_ED_flag, init_fr_file_flag = false, true
+        init_fr_ED_flag = false
     end
     
-    return init_fr_ED_flag, init_fr_file_flag 
+    return init_fr_ED_flag
 end

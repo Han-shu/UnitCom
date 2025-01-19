@@ -8,24 +8,13 @@ include("src/functions.jl")
 include("src/get_init_value.jl")
 include("src/get_uc_dual.jl")
 
-#=
-    POLICY
-    "SB": Stochastic benchmark, contingency reserve only, no new reserve requirement
-    "MF": 50 percentile forecast
-    "BNR": Biased forecast (theta = 11)
-    "WF": Worst forecast (highest net load case, theta = 100)
-    "MLF": Most likely forecast (theta = 1 without ranking)
-    "FR": Fixed reserve requirement
-    "DR60": Dynamic reserve requirement
-=#
-
 # Specify the policy and running date
 POLICY = "WF"
 run_date = Date(2024,11,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
-theta, scenario_cnt = policy_theta_parameter(POLICY)
+
 uc_horizon = 36 # 36 hours
 ed_horizon = 12 # 12*5 minutes = 1 hour
 @info "Policy: $(POLICY), Master folder: $(master_folder), UC folder: $(uc_folder), ED folder: $(ed_folder)"
@@ -58,7 +47,7 @@ uc_model = stochastic_uc(UCsys, Gurobi.Optimizer, VOLL; init_value = UC_init_val
                     start_time = uc_time, scenario_count = scenario_cnt, horizon = uc_horizon)
 @info "$(POLICY)-UC model at $(uc_time) is solved" # in $(one_uc_time) seconds"
 # Get commitment status that will be passed to ED
-uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = 2)
+uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour =  Int(ed_horizon / 2) + 1)
 storage_value, uc_LMP = get_uc_dual(UCsys, uc_model)
 
 ed_hour_sol = init_ed_hour_solution(EDsys)

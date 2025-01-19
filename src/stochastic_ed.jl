@@ -1,6 +1,9 @@
 include("add_thermal_ED.jl")
 
-function stochastic_ed(sys::System, optimizer, VOLL; storage_value, init_value = nothing, scenario_count, theta = nothing, start_time = DateTime(Date(2019, 1, 1)), horizon)
+function stochastic_ed(sys::System, optimizer, VOLL; 
+    storage_value, init_value = nothing, 
+    scenario_count, start_time, horizon)
+
     model = Model(optimizer)
     set_silent(model)
     model[:obj] = QuadExpr()
@@ -19,7 +22,7 @@ function stochastic_ed(sys::System, optimizer, VOLL; storage_value, init_value =
     end
 
     # net load = load - wind - solar
-    _add_net_injection!(sys, model; theta = theta)
+    _add_net_injection!(sys, model)
 
     _add_imports!(sys, model)
 

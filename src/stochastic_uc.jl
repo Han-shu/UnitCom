@@ -15,8 +15,8 @@ include("../NYGrid/manual_data_entries.jl")
 
 function stochastic_uc(
     sys::System, optimizer, VOLL; 
-    start_time = DateTime(2019,1,1,0), scenario_count, horizon, 
-    use_must_run=true, init_value=nothing, theta=nothing,
+    start_time, scenario_count, horizon, 
+    use_must_run=true, init_value=nothing,
     )
     
     model = Model(optimizer)
@@ -25,12 +25,9 @@ function stochastic_uc(
     parameters = _construct_model_parameters(horizon, scenario_count, start_time, VOLL)
     model[:param] = parameters
 
-    if isnothing(init_value)
-        init_value = _get_init_value_for_UC(sys, theta)
-    end
     model[:init_value] = init_value
 
-    _add_net_injection!(sys, model; theta = theta)
+    _add_net_injection!(sys, model)
 
     _add_imports!(sys, model)
 

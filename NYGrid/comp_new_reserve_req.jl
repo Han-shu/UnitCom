@@ -2,15 +2,13 @@ include("../src/functions.jl")
 
 using Dates, HDF5, Statistics
 
-function _get_forecats_error(min5_flag::Bool, theta::Int64)
-    if min5_flag
-        ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Min5"
-    else
-        ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Hour"
-    end
-    solar_file = joinpath(ts_dir, "solar_scenarios.h5")
-    wind_file = joinpath(ts_dir, "wind_scenarios.h5")
-    load_file = joinpath(ts_dir, "load_scenarios.h5")
+function _get_forecats_error(min5_flag::Bool, theta::Int)
+
+    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/time_series"
+    file_suffix = min5_flag ? "min5" : "hourly"
+    solar_file = joinpath(ts_dir, "solar_scenarios_multi_" * file_suffix * ".h5")
+    wind_file = joinpath(ts_dir, "wind_scenarios_multi_" * file_suffix * ".h5")
+    load_file = joinpath(ts_dir, "load_scenarios_multi_" * file_suffix * ".h5")
 
     num_idx = h5open(load_file, "r") do file
         return length(read(file))
@@ -37,6 +35,7 @@ function _get_forecats_error(min5_flag::Bool, theta::Int64)
         solar_forecast = solar_forecast[:, net_load_rank] # sort by rank
         wind_forecast = wind_forecast[:, net_load_rank]
         load_forecast = load_forecast[:, net_load_rank] 
+        
         mid_netload = load_forecast[:,theta] - solar_forecast[:, theta] - wind_forecast[:, theta]
         time_idx = (Dates.hour(curr_time), Dates.minute(curr_time))
         error = base_netload - mid_netload
@@ -45,7 +44,8 @@ function _get_forecats_error(min5_flag::Bool, theta::Int64)
     return forecast_error
 end
 
-function comp_fixed_reserve_requirement(theta::Int64; min5_flag::Bool)
+function comp_fixed_reserve_requirement(; min5_flag::Bool)
+    theta = 11 #TODO
     forecast_error = _get_forecats_error(min5_flag, theta)
     reserve_requrement = Dict()
     for (time_idx, error) in forecast_error

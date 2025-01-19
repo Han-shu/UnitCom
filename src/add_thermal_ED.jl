@@ -10,9 +10,9 @@ function _add_thermal_generators_ED!(sys::System, model::JuMP.Model)
     # initial value
     init_value = nothing
     if !haskey(model, :init_value)
-        ug = Dict(g => [1, 1] for g in thermal_gen_names) # Assume all thermal generators are on
-        vg = Dict(g => [0, 0] for g in thermal_gen_names) # Assume all thermal generators are started up before
-        wg = Dict(g => [0, 0] for g in thermal_gen_names)
+        ug = Dict(g => [1, 1, 1] for g in thermal_gen_names) # Assume all thermal generators are on
+        vg = Dict(g => [0, 0, 0] for g in thermal_gen_names) # Assume all thermal generators are started up before
+        wg = Dict(g => [0, 0, 0] for g in thermal_gen_names)
         Pg_t0 = Dict(g => get_active_power(get_component(ThermalGen, sys, g)) for g in thermal_gen_names) # all 0
     else
         init_value = model[:init_value]
@@ -25,14 +25,14 @@ function _add_thermal_generators_ED!(sys::System, model::JuMP.Model)
     vg_min5 = Dict(g => zeros(horizon) for g in thermal_gen_names)
     wg_min5 = Dict(g => zeros(horizon) for g in thermal_gen_names)
 
-    minute(model[:param].start_time) == 0 ? idx = 1 : idx = 2
+
     for t in time_steps
+        i = Int(div(min_step+t-1, 12)+1) # determine the hourly status index
         if minute(model[:param].start_time + Minute(5)*(t-1)) == 0
             for g in thermal_gen_names
-                vg_min5[g][t] = vg[g][idx]
-                wg_min5[g][t] = wg[g][idx]
+                vg_min5[g][t] = vg[g][i]
+                wg_min5[g][t] = wg[g][i]
             end
-            break
         end
     end
 

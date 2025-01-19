@@ -1,5 +1,5 @@
 # Add net injection, expr_net_injection = - forecast_load + curtaliment + pS + pW + hydro + imports + pg + (kb_discharge - kb_charge) = 0
-function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothing, Int64} = nothing)::Nothing
+function _add_net_injection!(sys::System, model::JuMP.Model)::Nothing
     expr_net_injection = _init(model, :expr_net_injection)
 
     scenarios = model[:param].scenarios
@@ -12,7 +12,7 @@ function _add_net_injection!(sys::System, model::JuMP.Model; theta::Union{Nothin
     wind_gen_names = get_name.(wind_gens)
     solar_gen_names = get_name.(solar_gens)
 
-    forecast_solar, forecast_wind, forecast_load = _get_forecast_by_policy(sys, model, theta = theta)
+    forecast_solar, forecast_wind, forecast_load = _get_forecast_by_policy(sys, model)
 
     @variable(model, pS[g in solar_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_solar[g][t,s])
     @variable(model, pW[g in wind_gen_names, s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_wind[g][t,s])
@@ -56,7 +56,7 @@ function _get_biased_forecast(solar_gen::RenewableGen, wind_gen::RenewableGen, l
 end
 
 # return forecast_solar, forecast_wind, forecast_load according to theta and length(scenarios)
-function _get_forecast_by_policy(sys::System, model::JuMP.Model; theta::Union{Nothing, Int64} = nothing)
+function _get_forecast_by_policy(sys::System, model::JuMP.Model)
     time_steps = model[:param].time_steps
     start_time = model[:param].start_time
     scenarios = model[:param].scenarios
@@ -65,27 +65,26 @@ function _get_forecast_by_policy(sys::System, model::JuMP.Model; theta::Union{No
     solar_gens = get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys)
     load = first(get_components(StaticLoad, sys))
 
-    if isnothing(theta)
-        if length(scenarios) == 1 
-            forecast_solar = Dict(get_name(g) => 
-                mean(get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps)), dims = 2)
-                for g in solar_gens)
-            forecast_wind = Dict(get_name(g) =>
-                mean(get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps)), dims = 2)
-                for g in wind_gens)
-            forecast_load = mean(get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps)), dims = 2)
-        else
-            forecast_solar = Dict(get_name(g) => 
+    if POLICY == "SB"
+        forecast_solar = Dict(get_name(g) => 
                 get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps))
                 for g in solar_gens)
-            forecast_wind = Dict(get_name(g) => 
-                get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))
-                for g in wind_gens)
-            forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
-        end
-    elseif theta == 0
+        forecast_wind = Dict(get_name(g) => 
+            get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))
+            for g in wind_gens)
+        forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))
+    elseif POLICY in ["MF", "DR60", "DR30"]
+        forecast_solar = Dict(get_name(g) => 
+            mean(get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps)), dims = 2)
+            for g in solar_gens)
+        forecast_wind = Dict(get_name(g) =>
+            mean(get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps)), dims = 2)
+            for g in wind_gens)
+        forecast_load = mean(get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps)), dims = 2)
+    elseif POLICY[1:2] == "BF"
         forecast_solar, forecast_wind, forecast_load = _get_biased_forecast(first(solar_gens), first(wind_gens), load, start_time, time_steps)
-    else
+    elseif POLICY in ["PF", "WF"]
+        theta = POLICY == "PF" ? 1 : 11
         forecast_solar = Dict(get_name(g) => 
             get_time_series_values(Scenarios, g, "solar_power", start_time = start_time, len = length(time_steps))[:, theta]
             for g in solar_gens)
@@ -93,7 +92,10 @@ function _get_forecast_by_policy(sys::System, model::JuMP.Model; theta::Union{No
             get_time_series_values(Scenarios, g, "wind_power", start_time = start_time, len = length(time_steps))[:, theta]
             for g in wind_gens)
         forecast_load = get_time_series_values(Scenarios, load, "load", start_time = start_time, len = length(time_steps))[:, theta]
+    else
+        error("Policy $POLICY is not defined")
     end
-
     return forecast_solar, forecast_wind, forecast_load
 end
+
+

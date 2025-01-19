@@ -10,18 +10,13 @@ using PowerSystems, Dates, HDF5, Statistics
     return solar_data, wind_data, load_data for forecast data in h5 files
     x_data: Dict{Dates.DateTime, Matrix{Float64}} where x = solar, wind, load
     key = time, value = forecast data indexed by time
-    if POLICY == "BNR", ranking senarios by sum of net load from low to high
 """
 function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bool)
-    if min5_flag
-        ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Min5"
-    else
-        ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/generate_fr_KBoot/NYISO_Hour"
-    end
-    initial_time = Dates.DateTime(2018, 12, 31, 21)
-    solar_file = joinpath(ts_dir, "solar_scenarios.h5")
-    wind_file = joinpath(ts_dir, "wind_scenarios.h5")
-    load_file = joinpath(ts_dir, "load_scenarios.h5")
+    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/time_series"
+    file_suffix = min5_flag ? "min5" : "hourly"
+    solar_file = joinpath(ts_dir, "solar_scenarios_multi_" * file_suffix * ".h5")
+    wind_file = joinpath(ts_dir, "wind_scenarios_multi_" * file_suffix * ".h5")
+    load_file = joinpath(ts_dir, "load_scenarios_multi_" * file_suffix * ".h5")
 
     num_idx = h5open(load_file, "r") do file
         return length(read(file))
@@ -31,6 +26,7 @@ function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bo
     wind_data = Dict{Dates.DateTime, Matrix{Float64}}()
     load_data = Dict{Dates.DateTime, Matrix{Float64}}()
 
+    initial_time = Dates.DateTime(2018, 12, 31, 21)
     for ix in 1:num_idx
         if min5_flag
             curr_time = initial_time + Minute(5)*(ix - 1)
@@ -45,17 +41,8 @@ function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bo
         history_wind, wind_forecast = _extract_fcst_matrix(wind_file, curr_time, min5_flag)
         history_load, load_forecast = _extract_fcst_matrix(load_file, curr_time, min5_flag)
 
-        if POLICY == "BNF" # ranking scenarios by sum of net load
-            net_load = load_forecast - solar_forecast - wind_forecast
-            net_load_path = sum(net_load, dims=1)
-            net_load_rank = sortperm(vec(net_load_path)) # from low to high
-            solar_forecast = solar_forecast[:, net_load_rank] # sort by rank
-            wind_forecast = wind_forecast[:, net_load_rank]
-            load_forecast = load_forecast[:, net_load_rank] 
-        end
-
-        if POLICY in ["WF", "BF2"] # rank by net load at each time step
-            net_load = load_forecast - solar_forecast - wind_forecast
+        if POLICY == "WF" # rank by net load at each time step
+            net_load = load_forecast .- solar_forecast .- wind_forecast
             for i in 1:size(net_load, 1)
                 rank = sortperm(net_load[i, :])
                 solar_forecast[i, :] = solar_forecast[i, rank]

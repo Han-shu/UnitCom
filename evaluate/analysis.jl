@@ -40,8 +40,8 @@ function get_gen_capacity_by_type()
         end
         thermal_gen_capacity += pg_lim.max
     end
-    solar_capacity = 800 #522.7
-    wind_capacity = 3250 #1983 #2736
+    solar_capacity = 766 #522.7
+    wind_capacity = 3498 #1983 #2736
     hydro_capacity = 4800
 
     storage_names = get_name.(get_components(GenericBattery, sys))
@@ -103,6 +103,10 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
         filedates = [Dates.Date(2019,1,10), Dates.Date(2019,1,20), Dates.Date(2019,1,31)]
     else
         filedates = [Dates.Date(2019,1,31)]
+        # Dates.Date(2019,2,28), Dates.Date(2019,3,31), 
+        #     Dates.Date(2019,4,30), Dates.Date(2019,5,31), Dates.Date(2019,6,30), 
+        #     Dates.Date(2019,7,31), Dates.Date(2019,8,31), Dates.Date(2019,9,30), 
+        #     Dates.Date(2019,10,31), Dates.Date(2019,11,30), Dates.Date(2019,12,29)]
     end
 
     for filename in filedates
@@ -156,9 +160,10 @@ end
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 # INFORMS results run_date = Dates.Date(2024,10,18)
 
-run_date = Dates.Date(2024,12,1)
-# policies = ["SB", "PF", "MF", "BF", "BF8", "BF9", "WF", "DR60", "DR30"]    
-policies = ["SB","PF", "MF", "BF", "WF", "DR60", "DR30"]    
+run_date = Dates.Date(2025,1,19)
+# policies = ["BF","DR30"]    
+# policies = ["PF", "MF", "BF", "WF", "DR60", "DR30"] 
+policies = ["BF10"]
 extract_len = nothing
 
 Costs = OrderedDict()
