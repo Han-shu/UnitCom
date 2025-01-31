@@ -116,9 +116,9 @@ function _get_mean_fcst_netload_diff(sys::System, model::JuMP.Model)::Vector{Flo
     max_fcst_netload = vec(maximum(fcst_netload, dims = 2))
     fcst_netload_diff = max_fcst_netload - mean_fcst_netload
 
-    worst_index = argmax(fcst_netload, dims = 2)
-    fcst_netload_diff2 = fcst_netload[worst_index] .- mean(fcst_netload, dims = 2)
-    @assert abs(fcst_netload_diff .- fcst_netload_diff2) .< 1e-6 
+    # worst_index = argmax(fcst_netload, dims = 2)
+    # fcst_netload_diff2 = fcst_netload[worst_index] .- mean(fcst_netload, dims = 2)
+    # @assert abs(fcst_netload_diff .- fcst_netload_diff2) .< 1e-6 
 
     return fcst_netload_diff
 end

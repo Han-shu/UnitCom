@@ -1,6 +1,5 @@
 include("../src/functions.jl")
 
-# Add scenarios data by ranking the total net load 
 
 using PowerSystems, Dates, HDF5, Statistics
 

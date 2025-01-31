@@ -25,11 +25,11 @@ include("src/get_uc_dual.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "WF" # -"PF", "SB", -"MF", -"BF", -"WF", -"DR60", -"DR30" 
-run_date = Date(2025,1,19)
+POLICY = "PF" # -"PF", "SB", "MF", "BF", "WF", "DR60", "DR30" 
+run_date = Date(2025,1,24)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-uc_horizon = 48 # 48 hours
-ed_horizon = 24 # 24*5 minutes = 2 hour
+uc_horizon = 36 # hours
+ed_horizon = 12 # n*5 minutes 
 
 # Save the solution when day is in save_date: save SB more frequently to release memory
 save_date = POLICY == "SB" ? [1, 11, 21] : [1] 
@@ -79,8 +79,8 @@ if init_fr_ED_flag
         mkdir(joinpath(result_dir, master_folder, POLICY, uc_folder))
         mkdir(joinpath(result_dir, master_folder, POLICY, ed_folder))
     end
-    # init_time = DateTime(2019, 7, 30, 0)
-    init_time = DateTime(2018, 12, 31, 21)
+    init_time = DateTime(2019, 1, 30, 0)
+    # init_time = DateTime(2018, 12, 31, 21)
     uc_sol = init_solution_uc(UCsys)
     ed_sol = init_ed_solution(EDsys)
     UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, init_fr_ED_flag = true, start_time = init_time)
@@ -105,10 +105,11 @@ for t in 1:8760
     global uc_model, ed_model, uc_sol, ed_sol, ed_hour_sol
     global UC_init_value, ED_init_value
     global uc_time, init_fr_ED_flag, uc_sol_file, ed_sol_file
+    
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if uc_time > DateTime(2019,2,1,2) 
+    if uc_time > DateTime(2019,3,1,1) 
         break
     end
 

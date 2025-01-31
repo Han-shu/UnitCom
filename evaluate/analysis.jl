@@ -74,8 +74,32 @@ function extract_LMP(res_dir::AbstractString, POLICY::AbstractString, run_date):
 end
 
 
+function _get_filedates(POLICY, _month)
+    # Dates.Date(2019,2,28), Dates.Date(2019,3,31), 
+        #     Dates.Date(2019,4,30), Dates.Date(2019,5,31), Dates.Date(2019,6,30), 
+        #     Dates.Date(2019,7,31), Dates.Date(2019,8,31), Dates.Date(2019,9,30), 
+        #     Dates.Date(2019,10,31), Dates.Date(2019,11,30), Dates.Date(2019,12,29)]
+    if POLICY == "SB"
+        if _month == "Feb"
+            filedates = [Dates.Date(2019,2,10), Dates.Date(2019,2,20), Dates.Date(2019,2,28)]
+        elseif _month == "Aug"
+            filedates = [Dates.Date(2019,8,10), Dates.Date(2019,8,20), Dates.Date(2019,8,31)] 
+        else
+            error("Month not supported")
+        end
+    else
+        if _month == "Feb"
+            filedates = [Dates.Date(2019,2,28)]
+        elseif _month == "Aug"
+            filedates = [Dates.Date(2019,8,31)]
+        else
+            error("Month not supported")
+        end
+    end
+    return filedates
+end
 
-function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Date; extract_len::Union{Nothing, Int64} = nothing)
+function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Date; _month, extract_len::Union{Nothing, Int64} = nothing)
     path_dir = joinpath(res_dir, "$(run_date)", POLICY, "$(POLICY)_$(run_date)")
     filenames = readdir(path_dir)
 
@@ -98,17 +122,8 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
     Gen_profit = DefaultDict{String, Float64}(0)
     Gen_energy_revenue = DefaultDict{String, Float64}(0)
     Gen_reserve_revenue = DefaultDict{String, Float64}(0)
-
-    if POLICY == "SB"
-        filedates = [Dates.Date(2019,1,10), Dates.Date(2019,1,20), Dates.Date(2019,1,31)]
-    else
-        filedates = [Dates.Date(2019,1,31)]
-        # Dates.Date(2019,2,28), Dates.Date(2019,3,31), 
-        #     Dates.Date(2019,4,30), Dates.Date(2019,5,31), Dates.Date(2019,6,30), 
-        #     Dates.Date(2019,7,31), Dates.Date(2019,8,31), Dates.Date(2019,9,30), 
-        #     Dates.Date(2019,10,31), Dates.Date(2019,11,30), Dates.Date(2019,12,29)]
-    end
-
+    
+    filedates = _get_filedates(POLICY, _month)
     for filename in filedates
         uc_file =  joinpath(path_dir, "UC_$(filename).json")
         println("Extracting cost from $(uc_file)")
@@ -160,10 +175,9 @@ end
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 # INFORMS results run_date = Dates.Date(2024,10,18)
 
-run_date = Dates.Date(2025,1,19)
-# policies = ["BF","DR30"]    
-# policies = ["PF", "MF", "BF", "WF", "DR60", "DR30"] 
-policies = ["BF10"]
+run_date = Dates.Date(2025,1,24) 
+policies = ["SB", "PF", "MF", "BF", "WF", "DR60", "DR30"] 
+_month = "Feb"
 extract_len = nothing
 
 Costs = OrderedDict()
@@ -177,7 +191,7 @@ for POLICY in policies
         println("Directory not found for $(POLICY)")
         continue
     end
-    summary, Gen_energy_revenue, Gen_reserve_revenue, Gen_cost, Gen_profit = calc_cost_fr_uc_sol(POLICY, res_dir, run_date, extract_len = extract_len)
+    summary, Gen_energy_revenue, Gen_reserve_revenue, Gen_cost, Gen_profit = calc_cost_fr_uc_sol(POLICY, res_dir, run_date, _month = _month, extract_len = extract_len)
     Costs[POLICY] = summary
     GenEnergyRevenues[POLICY] = Gen_energy_revenue
     GenReserveRevenues[POLICY] = Gen_reserve_revenue
@@ -236,7 +250,7 @@ cost_df = DataFrame(POLICY = policies,
                 Solar_gen = [Costs[POLICY]["Solar generation"] for POLICY in policies])
 
 df = leftjoin(revenue_df, cost_df, on = :POLICY)
-CSV.write(joinpath(res_dir, "$(run_date)", "revenue_cost.csv"), df)
+CSV.write(joinpath(res_dir, "$(run_date)", _month * "_revenue_cost.csv"), df)
 
 PerUnitProfit_df = DataFrame(POLICY = policies, 
                 Fast = [PerUnitProfit[POLICY]["Fast"] for POLICY in policies],
@@ -247,4 +261,4 @@ PerUnitProfit_df = DataFrame(POLICY = policies,
                 wind = [PerUnitProfit[POLICY]["wind"] for POLICY in policies],
                 solar = [PerUnitProfit[POLICY]["solar"] for POLICY in policies],
                 hydro = [PerUnitProfit[POLICY]["hydro"] for POLICY in policies])
-CSV.write(joinpath(res_dir, "$(run_date)", "PerUnitProfit.csv"), PerUnitProfit_df)
+CSV.write(joinpath(res_dir, "$(run_date)", _month * "_PerUnitProfit.csv"), PerUnitProfit_df)

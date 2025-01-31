@@ -34,7 +34,9 @@
     - Add residual value for PH in UC 
     - Results: Better PH action, PH is more profitable (per unit) than BA
     - Run BF and DR30 for a whole year
-
+- 2025-1-19
+    - uc_horizon = 48 (hours) and ed_horizon = 24 (24*5 minutes = 2 hours)
+    
 - 2024-11-01
     - VOLL = 5,000, solar*10, wind*1.38
     - cost = ThreePartCost(gen_cost.COST_1, max(-gen.PMIN*gen_cost.COST_1, gen_cost.COST_0), genprop.StartUpCost, 0.0)

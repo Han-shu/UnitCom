@@ -7,7 +7,9 @@ function _read_h5_by_idx(file::String, time::Dates.DateTime)
 end
 
 function _extract_fcst_matrix(file::String, time::Dates.DateTime, min5_flag::Bool)
-    # matrix is a 2D array = # time steps (rows) x # scenarios (columns)
+    # matrix is a 2D array 
+        # 49 time steps x 12 scenarios for hourly data
+        # 24 time steps x 12 scenarios for 5-min data
     matrix = _read_h5_by_idx(file, time)
     
     # the first scenario is the historical data, so we skip it
