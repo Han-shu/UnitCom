@@ -8,7 +8,7 @@ end
 function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = false)::Nothing
     scenarios = model[:param].scenarios
     time_steps = model[:param].time_steps
-    reserve_products = model[:param].reserve_products
+    reserve_products = model[:param].reserve_products # = ["10Spin", "10Total", "30Total", "60Total"]
     reserve_requirements = model[:param].reserve_requirements
     penalty = model[:param].reserve_short_penalty
     start_time = model[:param].start_time
@@ -20,14 +20,24 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
     @variable(model, reserve_short[rr in reserve_products, s in scenarios, t in time_steps, k in 1:length(penalty[rr])] >= 0)
 
     # reserve short constraints
-    for rr in reserve_products
-        if rr != "60Total"
+    for rr in reserve_products # ["10Spin", "10Total", "30Total", "60Total"]
+        if rr in ["10Spin", "10Total"] 
             for k in eachindex(penalty[rr])
                 @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= penalty[rr][k].MW)
                 add_to_expression!(model[:obj], sum(reserve_short[rr,s,t,k] for s in scenarios, t in time_steps), 
                                             penalty[rr][k].price/length(scenarios))
             end
-        else # "60Total"
+        elseif rr == "30Total"
+            for k in eachindex(penalty[rr])
+                if (POLICY == "DR30") && (k == length(penalty[rr]))
+                    @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= penalty[rr][k].MW + new_reserve_requirement[t])
+                else
+                    @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= penalty[rr][k].MW)
+                end
+                add_to_expression!(model[:obj], sum(reserve_short[rr,s,t,k] for s in scenarios, t in time_steps), 
+                                            penalty[rr][k].price/length(scenarios))
+            end
+        elseif (POLICY == "DR60") && (rr == "60Total")
             for k in eachindex(penalty[rr])
                 @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= new_reserve_requirement[t])
                 add_to_expression!(model[:obj], sum(reserve_short[rr,s,t,k] for s in scenarios, t in time_steps), 

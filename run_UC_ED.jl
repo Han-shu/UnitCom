@@ -25,8 +25,8 @@ include("src/get_uc_dual.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "PF" # -"PF", "SB", "MF", "BF", "WF", "DR60", "DR30" 
-run_date = Date(2025,1,24)
+POLICY = "DR60" # "SB", "PF", "MF", "BF", "WF", -"DR60", -"DR30" 
+run_date = Date(2025,2,1)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 uc_horizon = 36 # hours
 ed_horizon = 12 # n*5 minutes 
@@ -79,7 +79,7 @@ if init_fr_ED_flag
         mkdir(joinpath(result_dir, master_folder, POLICY, uc_folder))
         mkdir(joinpath(result_dir, master_folder, POLICY, ed_folder))
     end
-    init_time = DateTime(2019, 1, 30, 0)
+    init_time = DateTime(2019, 7, 30, 0)
     # init_time = DateTime(2018, 12, 31, 21)
     uc_sol = init_solution_uc(UCsys)
     ed_sol = init_ed_solution(EDsys)
@@ -109,7 +109,7 @@ for t in 1:8760
     uc_time = init_time + Hour(1)*(t-1)
     
     # Break condition
-    if uc_time > DateTime(2019,3,1,1) 
+    if uc_time > DateTime(2019,9,1,1) 
         break
     end
 

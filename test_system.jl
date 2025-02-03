@@ -41,19 +41,15 @@ kb_discharge_max = Dict(b => get_output_active_power_limits(get_component(Generi
 
 
 res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
-nocommit_g = ["Holtsville 04", "Barrett ST 02", "Holtsville 03", "Batavia", "Astoria GT 01", "Glenwood GT 02", "West Babylon 4", "Holtsville 06", "Oswego 6", "Nassau Energy Corporation", "General Mills Inc", "Rensselaer", "Carr St.-E. Syr", "Freeport 2-3", "Bethpage", "Wading River 1", "Ravenswood ST 03", "Hillburn GT", "Holtsville 05", "Barrett 08", "Danskammer 1", "Lockport", "Port Jefferson 4", "Ravenswood ST 01", "Flynn", "Barrett 10", "Ravenswood 01", "Glenwood GT 03", "Barrett 03", "Wading River 3", "East Hampton 2", "Holtsville 10", "Hudson Ave 3", "Oswego 5", "Barrett 11", "Kent", "Sterling", "Bethpage 3", "74 St.  GT 1", "Hudson Ave 4", "Hudson Ave 5", "South Cairo", "Northport 2", "Barrett GT 02", "Barrett 06", "Holtsville 02", "Roseton 1", "Barrett GT 01", "KIAC_JFK_GT2", "Pinelawn Power 1", "Holtsville 01", "Barrett 04", "Holtsville 09", "Coxsackie GT", "Barrett 05", "Brooklyn Navy Yard", "Arthur Kill GT 1", "Barrett ST 01", "Wading River 2", "Roseton 2", "Ravenswood ST 02", "Danskammer 2", "74 St.  GT 2", "Northport 4", "59 St.  GT 1", "Fortistar - N.Tonawanda", "East Hampton 3", "Port Jefferson 3", "Astoria 3", "Freeport CT 1", "East Hampton 4"]   
-output_file = "Gen_commit.csv"
-df = DataFrame(Gen = [], ramp10 = [], ramp30 = [], pg_min = [], pg_max = [], fixed_cost = [], startup_cost = [], variable_cost = [], minup = [], mindown = [], time_limits = [], commitment = [])
+# nocommit_g = ["Holtsville 04", "Barrett ST 02", "Holtsville 03", "Batavia", "Astoria GT 01", "Glenwood GT 02", "West Babylon 4", "Holtsville 06", "Oswego 6", "Nassau Energy Corporation", "General Mills Inc", "Rensselaer", "Carr St.-E. Syr", "Freeport 2-3", "Bethpage", "Wading River 1", "Ravenswood ST 03", "Hillburn GT", "Holtsville 05", "Barrett 08", "Danskammer 1", "Lockport", "Port Jefferson 4", "Ravenswood ST 01", "Flynn", "Barrett 10", "Ravenswood 01", "Glenwood GT 03", "Barrett 03", "Wading River 3", "East Hampton 2", "Holtsville 10", "Hudson Ave 3", "Oswego 5", "Barrett 11", "Kent", "Sterling", "Bethpage 3", "74 St.  GT 1", "Hudson Ave 4", "Hudson Ave 5", "South Cairo", "Northport 2", "Barrett GT 02", "Barrett 06", "Holtsville 02", "Roseton 1", "Barrett GT 01", "KIAC_JFK_GT2", "Pinelawn Power 1", "Holtsville 01", "Barrett 04", "Holtsville 09", "Coxsackie GT", "Barrett 05", "Brooklyn Navy Yard", "Arthur Kill GT 1", "Barrett ST 01", "Wading River 2", "Roseton 2", "Ravenswood ST 02", "Danskammer 2", "74 St.  GT 2", "Northport 4", "59 St.  GT 1", "Fortistar - N.Tonawanda", "East Hampton 3", "Port Jefferson 3", "Astoria 3", "Freeport CT 1", "East Hampton 4"]   
+output_file = "System_Gens.csv"
+df = DataFrame(Gen = [], pg_min = [], pg_max = [], startup_cost = [], fixed_cost = [], variable_cost = [], ramp10 = [], ramp30 = [], minup = [], mindown = [], fuel = [])
 for g in thermal_gen_names
-    if g in nocommit_g
-        commit_status = false
-    else
-        commit_status = true
-    end
-    push!(df, [g, ramp_10[g], ramp_30[g], pg_lim[g].min, pg_lim[g].max, fixed_cost[g], startup_cost[g], variable_cost[g], time_limits[g].up, time_limits[g].down, time_limits[g].down, commit_status])
+    generator = get_component(ThermalGen, sys, g)
+    push!(df, [g, pg_lim[g].min, pg_lim[g].max, startup_cost[g], fixed_cost[g], variable_cost[g], ramp_10[g], ramp_30[g], time_limits[g].up, time_limits[g].down, generator.fuel])
 end
-# CSV.write(joinpath(res_dir, output_file), df)
-# println("Output written to ", joinpath(res_dir, output_file))
+CSV.write(joinpath(res_dir, output_file), df)
+println("Output written to ", joinpath(res_dir, output_file))
 
 nuclear_gen_capacity = 0
 for g in thermal_gen_names
