@@ -84,7 +84,7 @@ for t in 1:8760
         end
 
         @info "Reinitialize the solution"
-        uc_sol = init_solution_uc(UCsys)
+        uc_sol = init_solution_uc_only(UCsys)
     end
 
     @info "Solving UC model at $(uc_time)"

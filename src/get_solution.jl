@@ -222,8 +222,5 @@ function init_solution_uc_only(sys::System)::OrderedDict
     sol["Start up"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Shut down"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Storage Energy"] = OrderedDict(b => [] for b in storage_names)
-    # sol["Energy Revenues"] = OrderedDict(g => [] for g in vcat(thermal_gen_names, storage_names))
-    # sol["Reserve Revenues"] = OrderedDict(g => [] for g in vcat(thermal_gen_names, storage_names))
-    # sol["Other Profits"] = OrderedDict(b => [] for b in ["wind", "solar", "hydro"])
     return sol
 end
