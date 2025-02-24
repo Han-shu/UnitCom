@@ -52,7 +52,7 @@ for i in 1:500
                     start_time = start_time, scenario_count = scenario_cnt, horizon = horizon)
         try
             init_value = _get_init_value_for_UC(system, model)  
-            solution = get_solution_uc_t(system, model, solution)
+            solution = get_solution_uc_ed_t(system, model, solution)
         catch e
             @warn "Error in solving $(model_name) for $(start_time): $e"
             break

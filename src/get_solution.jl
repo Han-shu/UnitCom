@@ -133,7 +133,7 @@ function init_solution_uc(sys::System)::OrderedDict
     return sol
 end
 
-function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict, storage_value::OrderedDict, uc_LMP)::OrderedDict
+function get_solution_uc_ed(sys::System, model::JuMP.Model, ed_sol::OrderedDict, sol::OrderedDict, storage_value::OrderedDict, uc_LMP)::OrderedDict
     thermal_gen_names = get_name.(get_components(ThermalGen, sys))
     storage_names = get_name.(get_components(GenericBattery, sys))
 
@@ -172,5 +172,58 @@ function get_solution_uc(sys::System, model::JuMP.Model, ed_sol::OrderedDict, so
         push!(sol["Reserve Revenues"][b], mean(ed_sol["Reserve Revenues"][b]))
         push!(sol["SOC Dual"][b], storage_value[b])
     end
+    return sol
+end
+
+function get_solution_uc(sys::System, model::JuMP.Model, sol::OrderedDict)::OrderedDict
+    push!(sol["Time"], model[:param].start_time)   
+   
+    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+    storage_names = get_name.(get_components(GenericBattery, sys))
+
+    for g in thermal_gen_names
+        push!(sol["Generator Dispatch"][g], [value(model[:pg][g,1,t]) for t in model[:param].time_steps])
+        push!(sol["Commitment status"][g], [Int(round(value(model[:ug][g,t]), digits=0)) for t in model[:param].time_steps])
+        push!(sol["Start up"][g], [Int(round(value(model[:vg][g,t]), digits=0)) for t in model[:param].time_steps])
+        push!(sol["Shut down"][g], [Int(round(value(model[:wg][g,t]), digits=0)) for t in model[:param].time_steps])
+    end
+    
+    for b in storage_names
+        push!(sol["Storage Energy"][b], [value(model[:eb][b,1,t]) for t in model[:param].time_steps])
+    end
+
+    fix_LMP, fix_10Spin, fix_10Total, fix_30Total, fix_60Total = get_uc_prices(sys, model, "fix")
+    relax_LMP, relax_10Spin, relax_10Total, relax_30Total, relax_60Total = get_uc_prices(sys, model, "relax")
+
+    push!(sol["LMP fix"], fix_LMP)
+    push!(sol["LMP relax"], relax_LMP)
+    push!(sol["UC 10Spin"], fix_10Spin)
+    push!(sol["UC 10Total"], fix_10Total)
+    push!(sol["UC 30Total"], fix_30Total)
+    push!(sol["UC 60Total"], fix_60Total)
+
+    return sol
+end
+
+function init_solution_uc_only(sys::System)::OrderedDict
+    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+    storage_names = get_name.(get_components(GenericBattery, sys))
+    sol = OrderedDict()
+    sol["Time"] = []
+    sol["LMP fix"] = []
+    sol["LMP relax"] = []
+    sol["UC 10Spin"] = []
+    sol["UC 10Total"] = []
+    sol["UC 30Total"] = []
+    sol["UC 60Total"] = []
+
+    sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Commitment status"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Start up"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Shut down"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Storage Energy"] = OrderedDict(b => [] for b in storage_names)
+    # sol["Energy Revenues"] = OrderedDict(g => [] for g in vcat(thermal_gen_names, storage_names))
+    # sol["Reserve Revenues"] = OrderedDict(g => [] for g in vcat(thermal_gen_names, storage_names))
+    # sol["Other Profits"] = OrderedDict(b => [] for b in ["wind", "solar", "hydro"])
     return sol
 end

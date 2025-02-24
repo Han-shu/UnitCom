@@ -6,8 +6,8 @@ function _add_imports!(sys::System, model::JuMP.Model)::Nothing
     # Define imports supply curve 
     imports_price = [25, 40, 100]
     imports_MW = [1500, 1500, 200]
-    # imports_price = [1000]
-    # imports_MW = [3500]
+    # imports_price = [2000]
+    # imports_MW = [100000]
     @assert length(imports_price) == length(imports_MW)
     imports_segments = 1:length(imports_price)
 

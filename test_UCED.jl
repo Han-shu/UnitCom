@@ -71,6 +71,6 @@ for i in 1:12
 end
 
 @info "$(POLICY)-ED model at $(uc_time) is solved."
-uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol, storage_value, uc_LMP)
+uc_sol = get_solution_uc_ed(UCsys, uc_model, ed_hour_sol, uc_sol, storage_value, uc_LMP)
 @info "$(POLICY)-UC solution is updated"
 

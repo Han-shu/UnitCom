@@ -25,8 +25,8 @@ include("src/get_uc_dual.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "DR60" # "SB", "PF", "MF", "BF", "WF", -"DR60", -"DR30" 
-run_date = Date(2025,2,1)
+POLICY = "DR60" # "SB", "PF", "MF", "BF", "WF", "DR60", "DR30" 
+run_date = Date(2025,2,5)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 uc_horizon = 36 # hours
 ed_horizon = 12 # n*5 minutes 
@@ -170,7 +170,7 @@ for t in 1:8760
     end
 
     @info "$(POLICY)-ED model at $(uc_time) is solved in $(one_hour_ed_time) seconds"
-    uc_sol = get_solution_uc(UCsys, uc_model, ed_hour_sol, uc_sol, storage_value, uc_LMP)
+    uc_sol = get_solution_uc_ed(UCsys, uc_model, ed_hour_sol, uc_sol, storage_value, uc_LMP)
     @info "$(POLICY)-UC solution is updated"
 
     ed_sol = merge_ed_solution(ed_sol, ed_hour_sol)
