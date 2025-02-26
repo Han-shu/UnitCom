@@ -10,7 +10,7 @@ using PowerSystems, Dates, HDF5, Statistics
     x_data: Dict{Dates.DateTime, Matrix{Float64}} where x = solar, wind, load
     key = time, value = forecast data indexed by time
 """
-function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bool)
+function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bool, uc_only_flag::Bool)
     ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/time_series"
     file_suffix = min5_flag ? "min5" : "hourly"
     solar_file = joinpath(ts_dir, "solar_scenarios_multi_" * file_suffix * ".h5")
@@ -36,9 +36,9 @@ function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bo
             curr_time = initial_time + Hour(ix - 1)
         end
 
-        history_solar, solar_forecast = _extract_fcst_matrix(solar_file, curr_time, min5_flag)
-        history_wind, wind_forecast = _extract_fcst_matrix(wind_file, curr_time, min5_flag)
-        history_load, load_forecast = _extract_fcst_matrix(load_file, curr_time, min5_flag)
+        history_solar, solar_forecast = _extract_fcst_matrix(solar_file, curr_time, min5_flag, uc_only_flag)
+        history_wind, wind_forecast = _extract_fcst_matrix(wind_file, curr_time, min5_flag, uc_only_flag)
+        history_load, load_forecast = _extract_fcst_matrix(load_file, curr_time, min5_flag, uc_only_flag)
 
         if POLICY == "WF" # rank by net load at each time step
             net_load = load_forecast .- solar_forecast .- wind_forecast
@@ -64,7 +64,7 @@ function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bo
 end
 
 
-function add_scenarios_time_series!(POLICY::String, system::System; min5_flag::Bool)::Nothing
+function add_scenarios_time_series!(POLICY::String, system::System; min5_flag::Bool, uc_only_flag::Bool = false)::Nothing
 
     loads = collect(get_components(StaticLoad, system))
     wind_gens = get_components(x -> x.prime_mover_type == PrimeMovers.WT, RenewableGen, system)
@@ -75,7 +75,7 @@ function add_scenarios_time_series!(POLICY::String, system::System; min5_flag::B
     resolution = min5_flag ? Dates.Minute(5) : Dates.Hour(1)
 
     #construct data dict according to the policy
-    solar_data, wind_data, load_data = _construct_fcst_data(POLICY, base_power; min5_flag = min5_flag)
+    solar_data, wind_data, load_data = _construct_fcst_data(POLICY, base_power; min5_flag = min5_flag, uc_only_flag = uc_only_flag)
 
     scenario_forecast_data = Scenarios(
         name = "solar_power",

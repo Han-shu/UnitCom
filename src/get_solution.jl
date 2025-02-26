@@ -183,6 +183,11 @@ function get_solution_uc(sys::System, model::JuMP.Model, sol::OrderedDict)::Orde
 
     for g in thermal_gen_names
         push!(sol["Generator Dispatch"][g], [value(model[:pg][g,1,t]) for t in model[:param].time_steps])
+        push!(sol["Reserve Dispatch"][g]["10S"], [value(model[:rg][g,"10S",1,t]) for t in model[:param].time_steps])
+        push!(sol["Reserve Dispatch"][g]["10T"], [value(model[:rg][g,"10S",1,t]) + value(model[:rg][g,"10N",1,t]) 
+                                                for t in model[:param].time_steps])
+        push!(sol["Reserve Dispatch"][g]["30T"], [value(model[:rg][g,"10S",1,t]) + value(model[:rg][g,"10N",1,t]) + value(model[:rg][g,"30S",1,t]) + value(model[:rg][g,"30N",1,t]) 
+                                                for t in model[:param].time_steps] )
         push!(sol["Commitment status"][g], [Int(round(value(model[:ug][g,t]), digits=0)) for t in model[:param].time_steps])
         push!(sol["Start up"][g], [Int(round(value(model[:vg][g,t]), digits=0)) for t in model[:param].time_steps])
         push!(sol["Shut down"][g], [Int(round(value(model[:wg][g,t]), digits=0)) for t in model[:param].time_steps])
@@ -196,11 +201,14 @@ function get_solution_uc(sys::System, model::JuMP.Model, sol::OrderedDict)::Orde
     relax_LMP, relax_10Spin, relax_10Total, relax_30Total, relax_60Total = get_uc_prices(sys, model, "relax")
 
     push!(sol["LMP fix"], fix_LMP)
+    push!(sol["10Spin fix"], fix_10Spin)
+    push!(sol["10Total fix"], fix_10Total)
+    push!(sol["30Total fix"], fix_30Total)
+
     push!(sol["LMP relax"], relax_LMP)
-    push!(sol["UC 10Spin"], fix_10Spin)
-    push!(sol["UC 10Total"], fix_10Total)
-    push!(sol["UC 30Total"], fix_30Total)
-    push!(sol["UC 60Total"], fix_60Total)
+    push!(sol["10Spin relax"], relax_10Spin)
+    push!(sol["10Total relax"], relax_10Total)
+    push!(sol["30Total relax"], relax_30Total)
 
     return sol
 end
@@ -211,13 +219,18 @@ function init_solution_uc_only(sys::System)::OrderedDict
     sol = OrderedDict()
     sol["Time"] = []
     sol["LMP fix"] = []
+    sol["10Spin fix"] = []
+    sol["10Total fix"] = []
+    sol["30Total fix"] = []
+
     sol["LMP relax"] = []
-    sol["UC 10Spin"] = []
-    sol["UC 10Total"] = []
-    sol["UC 30Total"] = []
-    sol["UC 60Total"] = []
+    sol["10Spin relax"] = []
+    sol["10Total relax"] = []
+    sol["30Total relax"] = []
 
     sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
+    sol["Reserve Dispatch"] = OrderedDict(g => OrderedDict(r => [] for r in ["10S", "10T", "30T"]) for g in thermal_gen_names)
+
     sol["Commitment status"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Start up"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Shut down"] = OrderedDict(g => [] for g in thermal_gen_names)

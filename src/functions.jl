@@ -6,17 +6,18 @@ function _read_h5_by_idx(file::String, time::Dates.DateTime)
     end
 end
 
-function _extract_fcst_matrix(file::String, time::Dates.DateTime, min5_flag::Bool)
+function _extract_fcst_matrix(file::String, time::Dates.DateTime, min5_flag::Bool, uc_only_flag::Bool)
     # matrix is a 2D array 
         # 49 time steps x 12 scenarios for hourly data
         # 24 time steps x 12 scenarios for 5-min data
     matrix = _read_h5_by_idx(file, time)
     
     # the first scenario is the historical data, so we skip it
-    if min5_flag
-        # ED: Use from 1st time point
+    if min5_flag || uc_only_flag
+        # ED or UC only : Use from 1st time point
         return matrix[:, 1], matrix[:, 2:end]
     else
+        # UC-ED
         # UC: Use from 2nd time point becase the first time point is the historical data
         return matrix[2:end, 1], matrix[2:end, 2:end]
     end

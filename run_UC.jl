@@ -25,8 +25,8 @@ include("src/get_uc_dual.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "DR30" # "SB", "PF", "MF", "BF", "WF", "DR60", "DR30" 
-run_date = Date(2025,2,22)
+POLICY = "BF" # "SB", "PF", "MF", "BF", "WF", "DR60", "DR30" 
+run_date = Date(2025,2,25)
 result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
 uc_horizon = 36 # hours
 
@@ -42,7 +42,7 @@ master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
 @info "Build NY system for UC"
 UCsys = build_ny_system(base_power = 100)
 @info "Adding scenarios time series data for UC"
-add_scenarios_time_series!(POLICY, UCsys; min5_flag = false)
+add_scenarios_time_series!(POLICY, UCsys; min5_flag = false, uc_only_flag = true)
 
 # Create Master Model folder if not exist
 if !ispath(joinpath(result_dir, master_folder))
