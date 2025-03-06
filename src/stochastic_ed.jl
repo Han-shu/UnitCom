@@ -52,7 +52,7 @@ function stochastic_ed(sys::System, optimizer, VOLL;
     model_status = JuMP.primal_status(model)
     if model_status != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
         println("The solution status is ", model_status)
-        print_conflict(model; write_iis = true, iis_path = "/Users/hanshu/Desktop/Price_formation/Result")
+        print_conflict(model; write_iis = true, iis_path = "Result")
     end
 
     return model

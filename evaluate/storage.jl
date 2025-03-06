@@ -48,13 +48,13 @@ function extract_prices(POLICY::AbstractString, run_date::Date)
     LMP = []
     reserve_prices = Dict("10S" => [], "30S" => [], "60S" => [])
     for filedate in filedates
-        # uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(filedate).json")
+        # uc_sol_file = joinpath(res_dir, master_folder, POLICY, uc_folder, "UC_$(filedate).json")
         # uc_sol = read_json(uc_sol_file)
         # append!(LMP, uc_sol["Hourly average LMP"])
         # append!(reserve_prices["10S"], uc_sol["Hourly average reserve price 10Spin"])
         # append!(reserve_prices["30S"], uc_sol["Hourly average reserve price 30Total"])
         # append!(reserve_prices["60S"], uc_sol["Hourly average reserve price 60Total"])
-        ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(filedate).json")
+        ed_sol_file = joinpath(res_dir, master_folder, POLICY, ed_folder, "ED_$(filedate).json")
         ed_sol = read_json(ed_sol_file)
         for i in 1:length(ed_sol["Time"])
             append!(LMP, ed_sol["LMP"][i])
@@ -89,7 +89,7 @@ end
 
 # Read history LMP
 sys = build_ny_system(base_power = 100)
-result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+res_dir = "Result"
 run_date = Date(2024,12,3)
 # policies = ["SB", "PF", "MF", "BF", "WF", "DR60", "DR30"]
 policies = ["PF"]
@@ -109,7 +109,7 @@ for POLICY in policies
     df[!, "$(POLICY)_PH_energy"] = energy["PH"]
 end
 
-CSV.write(joinpath(result_dir, "$(run_date)", "storage_energy.csv"), df)
+CSV.write(joinpath(res_dir, "$(run_date)", "storage_energy.csv"), df)
 
 # df = DataFrame(POLICY = policies, BA_profit = [ba_profits[p] for p in policies], PH_profit = [ph_profits[p] for p in policies],
 #         BA_energy_revenue = [ba_energy_revenues[p] for p in policies], PH_energy_revenue = [ph_energy_revenues[p] for p in policies],

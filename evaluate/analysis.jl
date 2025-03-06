@@ -172,7 +172,7 @@ function calc_cost_fr_uc_sol(POLICY::String, res_dir::String, run_date::Dates.Da
     return summary, Gen_energy_revenue, Gen_reserve_revenue, Gen_cost_dict, Gen_profit
 end
 
-res_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+res_dir = "Result"
 # INFORMS results run_date = Dates.Date(2024,10,18)
 
 run_date = Dates.Date(2025,1,24) 

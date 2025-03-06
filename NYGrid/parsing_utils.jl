@@ -13,8 +13,8 @@
 #   Modified by Gabriela Ackermann Logan, and Han Shu, Cornell University 
 #   Last modified in March, 2024
 
-# using PowerSystems
-# const PSY = PowerSystems
+using PowerSystems
+const PSY = PowerSystems
 
 #Function to generate a time array with hourly timestamps for a given year
 get_timestamp(year) = DateTime("$(year)-01-01T00:00:00"):Hour(1):DateTime("$(year)-12-31T23:55:00")

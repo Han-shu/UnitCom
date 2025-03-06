@@ -1,3 +1,8 @@
+using Dates, PowerSystems, InfrastructureSystems, TimeSeries
+using Gurobi, JuMP
+using JSON, HDF5, CSV, DataFrames, DataStructures, Statistics
+const PSY = PowerSystems
+    
 include("NYGrid/build_ny_system.jl") # function to build the NYGrid system
 include("NYGrid/add_scenarios_ts.jl") # function to add scenario time series data
 include("NYGrid/comp_new_reserve_req.jl")
@@ -26,8 +31,8 @@ include("src/get_uc_dual.jl")
 
 # Specify the policy and running date
 POLICY = "BF" # "SB", "PF", "MF", "BF", "WF", "DR60", "DR30" 
-run_date = Date(2025,2,25)
-result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+run_date = Date(2025,3,6)
+res_dir = "Result"
 uc_horizon = 36 # hours
 
 # Save the solution when day is in save_date: save SB more frequently to release memory
@@ -45,17 +50,17 @@ UCsys = build_ny_system(base_power = 100)
 add_scenarios_time_series!(POLICY, UCsys; min5_flag = false, uc_only_flag = true)
 
 # Create Master Model folder if not exist
-if !ispath(joinpath(result_dir, master_folder))
-    @info "Create Master folder for $(POLICY) at $(joinpath(result_dir, master_folder))"
-    mkdir(joinpath(result_dir, master_folder))
+if !ispath(joinpath(res_dir, master_folder))
+    @info "Create Master folder for $(POLICY) at $(joinpath(res_dir, master_folder))"
+    mkdir(joinpath(res_dir, master_folder))
 end
 
 @info "Running rolling horizon $(POLICY) from beginning"  
 # Create folders if not exist
-if !ispath(joinpath(result_dir, master_folder, POLICY))
-    mkdir(joinpath(result_dir, master_folder, POLICY))
-    @info "Create folders $(joinpath(result_dir, master_folder, POLICY, uc_folder))"
-    mkdir(joinpath(result_dir, master_folder, POLICY, uc_folder))
+if !ispath(joinpath(res_dir, master_folder, POLICY))
+    mkdir(joinpath(res_dir, master_folder, POLICY))
+    @info "Create folders $(joinpath(res_dir, master_folder, POLICY, uc_folder))"
+    mkdir(joinpath(res_dir, master_folder, POLICY, uc_folder))
 end
 
 init_time = DateTime(2019, 7, 30, 0)
@@ -77,7 +82,7 @@ for t in 1:8760
     if day(uc_time) in save_date && hour(uc_time) == 0
         # save the solution only if final hour of last month has been solved
         if length(uc_sol["Time"]) > 0 && uc_sol["Time"][end] == uc_time - Hour(1)
-            uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Hour(1))).json")
+            uc_sol_file = joinpath(res_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Hour(1))).json")
             @info "Saving the solutions to $(uc_sol_file)"
             write_json(uc_sol_file, uc_sol)
         end

@@ -50,7 +50,7 @@ function stochastic_uc(
 
     model_status = JuMP.primal_status(model)
     if model_status != MOI.FEASIBLE_POINT::MOI.ResultStatusCode
-        print_conflict(model; write_iis = true, iis_path = "/Users/hanshu/Desktop/Price_formation/Result")
+        print_conflict(model; write_iis = true, iis_path = "Result")
     end
 
     return model  

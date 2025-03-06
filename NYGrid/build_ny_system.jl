@@ -1,10 +1,6 @@
-using PowerSystems
-using CSV
-using DataFrames
-using Dates
-using TimeSeries
-using InfrastructureSystems
-using PowerSystems
+using PowerSystems, InfrastructureSystems
+using CSV, DataFrames, Dates, TimeSeries
+
 const PSY = PowerSystems
 
 

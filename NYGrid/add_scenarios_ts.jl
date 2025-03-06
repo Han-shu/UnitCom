@@ -1,7 +1,7 @@
 include("../src/functions.jl")
 
 
-using PowerSystems, Dates, HDF5, Statistics
+# using PowerSystems, Dates, HDF5, Statistics
 
 
 """
@@ -11,7 +11,7 @@ using PowerSystems, Dates, HDF5, Statistics
     key = time, value = forecast data indexed by time
 """
 function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bool, uc_only_flag::Bool)
-    ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/time_series"
+    # ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/time_series"
     file_suffix = min5_flag ? "min5" : "hourly"
     solar_file = joinpath(ts_dir, "solar_scenarios_multi_" * file_suffix * ".h5")
     wind_file = joinpath(ts_dir, "wind_scenarios_multi_" * file_suffix * ".h5")

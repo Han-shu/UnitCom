@@ -1,5 +1,5 @@
 using Dates, DataFrames, CSV
-file_dir = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid/FuelMix"
+# file_dir = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid/FuelMix"
 
 # Read CSV files and extract hydro generation data
 hydro_ts = DataFrame()

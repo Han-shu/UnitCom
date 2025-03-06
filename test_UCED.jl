@@ -11,7 +11,7 @@ include("src/get_uc_dual.jl")
 # Specify the policy and running date
 POLICY = "WF"
 run_date = Date(2024,11,1)
-result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+res_dir = "Result"
 
 master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
 
@@ -36,8 +36,8 @@ add_scenarios_time_series!(POLICY, UCsys; min5_flag = false, uc_only_flag = true
 # # Run a apecific time
 # uc_time = DateTime(2019,1,12,10)
 # file_time = DateTime(2019, month(uc_time),1)
-# uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(file_time)).json")
-# ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(Date(file_time)).json")
+# uc_sol_file = joinpath(res_dir, master_folder, POLICY, uc_folder, "UC_$(Date(file_time)).json")
+# ed_sol_file = joinpath(res_dir, master_folder, POLICY, ed_folder, "ED_$(Date(file_time)).json")
 # uc_sol = read_json(uc_sol_file)
 # ed_sol = read_json(ed_sol_file)
 

@@ -1,3 +1,5 @@
 .vscode
-#Mac temp ignores
+# Mac temp ignores
 .DS_Store
+# Results
+Result/

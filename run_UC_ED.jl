@@ -27,7 +27,7 @@ include("src/get_uc_dual.jl")
 # Specify the policy and running date
 POLICY = "DR60" # "SB", "PF", "MF", "BF", "WF", "DR60", "DR30" 
 run_date = Date(2025,2,5)
-result_dir = "/Users/hanshu/Desktop/Price_formation/Result"
+res_dir = "Result"
 uc_horizon = 36 # hours
 ed_horizon = 12 # n*5 minutes 
 
@@ -60,24 +60,24 @@ if POLICY == "FR"
 end
 
 # Create Master Model folder if not exist
-if !ispath(joinpath(result_dir, master_folder))
-    @info "Create Master folder for $(POLICY) at $(joinpath(result_dir, master_folder))"
-    mkdir(joinpath(result_dir, master_folder))
+if !ispath(joinpath(res_dir, master_folder))
+    @info "Create Master folder for $(POLICY) at $(joinpath(res_dir, master_folder))"
+    mkdir(joinpath(res_dir, master_folder))
 end
 
 # Determine the initial flag: run from beginning or continue from previous solution
-# init_fr_ED_flag = determine_init_flag(result_dir, master_folder, POLICY, uc_folder, ed_folder)
+# init_fr_ED_flag = determine_init_flag(res_dir, master_folder, POLICY, uc_folder, ed_folder)
 init_fr_ED_flag = true
 
 if init_fr_ED_flag
 # 1. Run rolling horizon by initializing from ED model
     @info "Running rolling horizon $(POLICY) from beginning"  
     # Create folders if not exist
-    if !ispath(joinpath(result_dir, master_folder, POLICY))
-        mkdir(joinpath(result_dir, master_folder, POLICY))
-        @info "Create folders $(joinpath(result_dir, master_folder, POLICY, uc_folder)) and $(joinpath(result_dir, master_folder, POLICY, ed_folder))"
-        mkdir(joinpath(result_dir, master_folder, POLICY, uc_folder))
-        mkdir(joinpath(result_dir, master_folder, POLICY, ed_folder))
+    if !ispath(joinpath(res_dir, master_folder, POLICY))
+        mkdir(joinpath(res_dir, master_folder, POLICY))
+        @info "Create folders $(joinpath(res_dir, master_folder, POLICY, uc_folder)) and $(joinpath(res_dir, master_folder, POLICY, ed_folder))"
+        mkdir(joinpath(res_dir, master_folder, POLICY, uc_folder))
+        mkdir(joinpath(res_dir, master_folder, POLICY, ed_folder))
     end
     init_time = DateTime(2019, 7, 30, 0)
     # init_time = DateTime(2018, 12, 31, 21)
@@ -86,9 +86,9 @@ if init_fr_ED_flag
     UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, init_fr_ED_flag = true, start_time = init_time)
 else
 # 2. Run rolling horizon with solution from previous time point
-    @info "Find path $(joinpath(result_dir, master_folder, POLICY, uc_folder))"
+    @info "Find path $(joinpath(res_dir, master_folder, POLICY, uc_folder))"
     # Find the latest solution file
-    uc_sol_file, ed_sol_file = find_sol_files(result_dir, master_folder, POLICY, uc_folder, ed_folder)
+    uc_sol_file, ed_sol_file = find_sol_files(res_dir, master_folder, POLICY, uc_folder, ed_folder)
     @info "Find the latest solution file $(uc_sol_file) and $(ed_sol_file)"
     uc_sol = read_json(uc_sol_file)
     ed_sol = read_json(ed_sol_file)
@@ -121,8 +121,8 @@ for t in 1:8760
     if day(uc_time) in save_date && hour(uc_time) == 0
         # save the solution only if final hour of last month has been solved
         if length(uc_sol["Time"]) > 0 && uc_sol["Time"][end] == uc_time - Hour(1)
-            uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Hour(1))).json") #"UC_$(Date(uc_time - Month(1))).json")
-            ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time - Hour(1))).json")  #"ED_$(Date(uc_time - Month(1))).json")
+            uc_sol_file = joinpath(res_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Hour(1))).json") #"UC_$(Date(uc_time - Month(1))).json")
+            ed_sol_file = joinpath(res_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time - Hour(1))).json")  #"ED_$(Date(uc_time - Month(1))).json")
             @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
             write_json(uc_sol_file, uc_sol)
             write_json(ed_sol_file, ed_sol)
@@ -183,10 +183,10 @@ end
 @info "Current time is $(now())"
 
 # Save the last solution
-# uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Hour(1))).json") #"UC_$(Date(uc_time - Month(1))).json")
-# ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time - Hour(1))).json")  #"ED_$(Date(uc_time - Month(1))).json")
+# uc_sol_file = joinpath(res_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time - Hour(1))).json") #"UC_$(Date(uc_time - Month(1))).json")
+# ed_sol_file = joinpath(res_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time - Hour(1))).json")  #"ED_$(Date(uc_time - Month(1))).json")
 # @info "Saving the solutions to $(uc_sol_file) and $(ed_sol_file)"
 # write_json(uc_sol_file, uc_sol)
 # write_json(ed_sol_file, ed_sol)
 
-# write_model_txt(uc_model, "uc_model", result_dir)
+# write_model_txt(uc_model, "uc_model", res_dir)

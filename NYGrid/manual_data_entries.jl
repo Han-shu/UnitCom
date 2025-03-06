@@ -1,5 +1,7 @@
 include("../src/structs.jl")
 
+file_dir = "../Data/NYGrid/FuelMix"
+ts_dir = "../Data/time_series" 
 VOLL = 5000
 reserve_types = ["10S", "10N", "30S", "30N", "60S", "60N"]
 spin_reserve_types = ["10S", "30S", "60S"]

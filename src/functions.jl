@@ -52,20 +52,20 @@ end
 """
 Write the model to a text file
 """
-function write_model_txt(model::JuMP.Model, model_name::AbstractString, result_dir::AbstractString)::Nothing
+function write_model_txt(model::JuMP.Model, model_name::AbstractString, res_dir::AbstractString)::Nothing
     model_str = string(model)
-    open(joinpath(result_dir, "$(model_name).txt"), "w") do file
+    open(joinpath(res_dir, "$(model_name).txt"), "w") do file
         write(file, model_str)
     end
     return
 end
 
-function find_sol_files(result_dir::AbstractString, master_folder::AbstractString, POLICY::AbstractString, uc_folder::AbstractString, ed_folder::AbstractString)
+function find_sol_files(res_dir::AbstractString, master_folder::AbstractString, POLICY::AbstractString, uc_folder::AbstractString, ed_folder::AbstractString)
     uc_time = Dates.Date(2019,12,29)
     month = 12
     while month >= 1
-        uc_sol_file = joinpath(result_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time)).json")
-        ed_sol_file = joinpath(result_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time)).json")
+        uc_sol_file = joinpath(res_dir, master_folder, POLICY, uc_folder, "UC_$(Date(uc_time)).json")
+        ed_sol_file = joinpath(res_dir, master_folder, POLICY, ed_folder, "ED_$(Date(uc_time)).json")
         if (isfile(uc_sol_file) && isfile(ed_sol_file))
             uc_sol = read_json(uc_sol_file)
             if length(uc_sol["Time"]) >= 24 # check if the solution is at least for 24 hours
@@ -78,11 +78,11 @@ function find_sol_files(result_dir::AbstractString, master_folder::AbstractStrin
     error("No solution files found")
 end
 
-function determine_init_flag(result_dir::AbstractString, master_folder::AbstractString, POLICY::AbstractString, uc_folder::AbstractString, ed_folder::AbstractString)
+function determine_init_flag(res_dir::AbstractString, master_folder::AbstractString, POLICY::AbstractString, uc_folder::AbstractString, ed_folder::AbstractString)
     init_fr_ED_flag = true
-    if ispath(joinpath(result_dir, master_folder, POLICY, uc_folder)) && !isempty(readdir(joinpath(result_dir, master_folder, POLICY, uc_folder)))
+    if ispath(joinpath(res_dir, master_folder, POLICY, uc_folder)) && !isempty(readdir(joinpath(res_dir, master_folder, POLICY, uc_folder)))
         try 
-            find_sol_files(result_dir, master_folder, POLICY, uc_folder, ed_folder)
+            find_sol_files(res_dir, master_folder, POLICY, uc_folder, ed_folder)
         catch e
             return true
         end
