@@ -2,3 +2,18 @@ name = "UnitCom"
 uuid = "86f23209-cbb7-4272-8205-61caf0d4eb63"
 authors = ["Han-shu <1051565276@qq.com>"]
 version = "0.1.0"
+
+[deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
+HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
+InfrastructureSystems = "2cd47ed4-ca9b-11e9-27f2-ab636a7671f1"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PowerSystems = "bcd98974-b02a-5e2f-9ee0-a103f5c450dd"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+TimeSeries = "9e3dc215-6440-5c97-bce1-76c03772f85e"

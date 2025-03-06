@@ -33,7 +33,7 @@ uc_horizon = 36 # hours
 # Save the solution when day is in save_date: save SB more frequently to release memory
 save_date = POLICY == "SB" ? [1, 11, 21] : [1] 
 scenario_cnt = POLICY == "SB" ? 11 : 1 # only SB is with 11 scenarios (stochastic), o.w. 1 scenario (deterministic)
-master_folder, uc_folder, ed_folder = policy_model_folder_name(POLICY, run_date)
+master_folder, uc_folder, _ = policy_model_folder_name(POLICY, run_date)
 
 @info "Policy: $(POLICY), Master folder: $(master_folder), UC folder: $(uc_folder)"
 @info "UC horizon: $(uc_horizon)"
@@ -54,16 +54,15 @@ end
 # Create folders if not exist
 if !ispath(joinpath(result_dir, master_folder, POLICY))
     mkdir(joinpath(result_dir, master_folder, POLICY))
-    @info "Create folders $(joinpath(result_dir, master_folder, POLICY, uc_folder)) and $(joinpath(result_dir, master_folder, POLICY, ed_folder))"
+    @info "Create folders $(joinpath(result_dir, master_folder, POLICY, uc_folder))"
     mkdir(joinpath(result_dir, master_folder, POLICY, uc_folder))
-    mkdir(joinpath(result_dir, master_folder, POLICY, ed_folder))
 end
 
 init_time = DateTime(2019, 7, 30, 0)
 uc_sol = init_solution_uc_only(UCsys)
 UC_init_value = _get_init_value_for_UC(UCsys; horizon = 12, scenario_cnt = scenario_cnt, init_fr_ED_flag = true, start_time = init_time)
 
-# Run rolling horizon UC-ED
+# Run rolling horizon UC
 for t in 1:8760
     global POLICY, uc_time, uc_sol_file
     global uc_model, uc_sol, UC_init_value
@@ -73,7 +72,7 @@ for t in 1:8760
     if uc_time > DateTime(2019,9,1,1) 
         break
     end
-
+  
     # For the first hour of the month, save the solution and reinitialize
     if day(uc_time) in save_date && hour(uc_time) == 0
         # save the solution only if final hour of last month has been solved
