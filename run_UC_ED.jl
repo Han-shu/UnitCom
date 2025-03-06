@@ -51,6 +51,9 @@ add_scenarios_time_series!(POLICY, UCsys; min5_flag = false)
 add_scenarios_time_series!(POLICY, EDsys; min5_flag = true)
 
 # Create Master Model folder if not exist
+if !ispath(res_dir)
+    mkdir(res_dir)
+end
 if !ispath(joinpath(res_dir, master_folder))
     @info "Create Master folder for $(POLICY) at $(joinpath(res_dir, master_folder))"
     mkdir(joinpath(res_dir, master_folder))
