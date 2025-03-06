@@ -11,7 +11,6 @@ include("../src/functions.jl")
     key = time, value = forecast data indexed by time
 """
 function _construct_fcst_data(POLICY::String, base_power::Float64; min5_flag::Bool, uc_only_flag::Bool)
-    # ts_dir = "/Users/hanshu/Desktop/Price_formation/Data/time_series"
     file_suffix = min5_flag ? "min5" : "hourly"
     solar_file = joinpath(ts_dir, "solar_scenarios_multi_" * file_suffix * ".h5")
     wind_file = joinpath(ts_dir, "wind_scenarios_multi_" * file_suffix * ".h5")
@@ -112,7 +111,7 @@ end
 
 
 function _add_time_series_hydro!(system::System; min5_flag)::Nothing
-    hydro_file = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid/hydro_2019.csv"
+    hydro_file = joinpath(grid_dir, "hydro_2019.csv")
     df_ts = CSV.read(hydro_file, DataFrame)
     init_time = Dates.DateTime(2018, 12, 31, 21)
     df_ts = df_ts[df_ts.Time_Stamp .>= init_time, :]

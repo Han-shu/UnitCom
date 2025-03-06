@@ -5,7 +5,6 @@ const PSY = PowerSystems
     
 include("NYGrid/build_ny_system.jl") # function to build the NYGrid system
 include("NYGrid/add_scenarios_ts.jl") # function to add scenario time series data
-include("NYGrid/comp_new_reserve_req.jl")
 include("src/stochastic_uc.jl")
 include("src/stochastic_ed.jl")
 include("src/get_solution.jl")

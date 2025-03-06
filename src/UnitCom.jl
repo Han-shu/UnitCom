@@ -3,7 +3,5 @@ module UnitCom
     using Gurobi, JuMP
     using JSON, HDF5, CSV, DataFrames, DataStructures, Statistics
     const PSY = PowerSystems
-    const file_dir = "../Data/NYGrid/FuelMix"
-    const ts_dir = "../Data/time_series" 
-
+    const Data_dir = "../Data"
 end

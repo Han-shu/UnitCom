@@ -97,12 +97,6 @@ function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::
         return [0.0 for t in model[:param].time_steps]
     elseif policy[1:2] =="BF"
         return [0.0 for t in model[:param].time_steps]
-    elseif policy == "FR"
-        start_time = model[:param].start_time
-        time_steps = model[:param].time_steps
-        index = (Dates.hour(start_time), Dates.minute(start_time))
-        subdic = isED ? reserve_requirement["ED"] : reserve_requirement["UC"]
-        return subdic[index][time_steps]
     elseif policy == "DR60" || policy == "DR30"
         netload_diff = _get_mean_fcst_netload_diff(sys, model)
         return netload_diff

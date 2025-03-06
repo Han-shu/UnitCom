@@ -1,6 +1,5 @@
 include("NYGrid/build_ny_system.jl") # function to build the NYGrid system
 include("NYGrid/add_scenarios_ts.jl") # function to add scenario time series data
-include("NYGrid/comp_new_reserve_req.jl")
 include("src/stochastic_uc.jl")
 include("src/stochastic_ed.jl")
 include("src/get_solution.jl")
@@ -19,7 +18,6 @@ include("src/get_uc_dual.jl")
             "BF8": Biased forecast with p = 0.8
             "BF9": Biased forecast with p = 0.9
     "WF": Worst forecast (highest net load case)
-    ~~"FR": Fixed reserve requirement~~
     "DR60": Dynamic reserve requirement to be added to 60T
     "DR30": Dynamic reserve requirement to be added to 30T
 =#
@@ -51,13 +49,6 @@ EDsys = build_ny_system(base_power = 100)
 add_scenarios_time_series!(POLICY, UCsys; min5_flag = false)
 @info "Adding scenarios time series data for ED"
 add_scenarios_time_series!(POLICY, EDsys; min5_flag = true)
-
-# Compute fixed reserve requirement for FR policy
-reserve_requirement = Dict()
-if POLICY == "FR"
-    reserve_requirement["UC"] = comp_fixed_reserve_requirement(min5_flag = false)
-    reserve_requirement["ED"] = comp_fixed_reserve_requirement(min5_flag = true)
-end
 
 # Create Master Model folder if not exist
 if !ispath(joinpath(res_dir, master_folder))

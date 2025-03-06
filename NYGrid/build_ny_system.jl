@@ -8,7 +8,6 @@ include("parsing_utils.jl")
 include("manual_data_entries.jl")
 
 function build_ny_system(; base_power = 100)::System
-    data_dir = "/Users/hanshu/Desktop/Price_formation/Data/NYGrid"
     system = PSY.System(base_power)
     set_units_base_system!(system, PSY.UnitSystem.NATURAL_UNITS)
 
@@ -77,11 +76,11 @@ function build_ny_system(; base_power = 100)::System
     # Add thermal generators
     gen_header = ["GEN_BUS", "PG", "QG", "QMAX", "QMIN", "VG", "MBASE", "GEN_STATUS", "PMAX", "PMIN", "PC1", "PC2", "QC1MIN", "QC1MAX", "QC2MIN", "QC2MAX", "RAMP_AGC", "RAMP_10", "RAMP_30", "RAMP_Q", "APF"]
     gencost_header = ["MODEL", "STARTUP", "SHUTDOWN", "NCOST", "COST_1", "COST_0"]
-    df_gen = CSV.read(joinpath(data_dir, "gen_2019.csv"), DataFrame, header = gen_header)
-    df_gencost = CSV.read(joinpath(data_dir, "gencost_2019.csv"), DataFrame, header = gencost_header)
-    df_geninfo = CSV.read(joinpath(data_dir, "geninfo.csv"), DataFrame)
-    df_genprop = CSV.read(joinpath(data_dir, "gen_prop.csv"), DataFrame)
-    df_nygen = CSV.read(joinpath(data_dir, "NY_gen.csv"), DataFrame)
+    df_gen = CSV.read(joinpath(grid_dir, "gen_2019.csv"), DataFrame, header = gen_header)
+    df_gencost = CSV.read(joinpath(grid_dir, "gencost_2019.csv"), DataFrame, header = gencost_header)
+    df_geninfo = CSV.read(joinpath(grid_dir, "geninfo.csv"), DataFrame)
+    df_genprop = CSV.read(joinpath(grid_dir, "gen_prop.csv"), DataFrame)
+    df_nygen = CSV.read(joinpath(grid_dir, "NY_gen.csv"), DataFrame)
     for (gen_id, gen) in enumerate(eachrow(df_gen))
         # 1-227: Thermal, 228-233: Nuclear, 
         # 232, 233 (Nuclear_H_0 and H_1) do not consider as Indian Point were shut down in 2020 and 2021
