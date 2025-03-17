@@ -98,14 +98,14 @@ function  _get_new_reserve_rerquirement(sys::System, model::JuMP.Model, policy::
     elseif policy[1:2] =="BF"
         return [0.0 for t in model[:param].time_steps]
     elseif policy == "DR60" || policy == "DR30"
-        netload_diff = _get_mean_fcst_netload_diff(sys, model)
+        netload_diff = _get_mean_fcst_netload_diff(sys, model, isED)
         return netload_diff
     else
         error("Policy $policy is not defined")
     end
 end
 
-function _get_mean_fcst_netload_diff(sys::System, model::JuMP.Model)::Vector{Float64}
+function _get_mean_fcst_netload_diff(sys::System, model::JuMP.Model, isED::Bool)::Vector{Float64}
     start_time = model[:param].start_time
     time_steps = model[:param].time_steps
     solar_gen = first(get_components(x -> x.prime_mover_type == PrimeMovers.PVe, RenewableGen, sys))
@@ -123,6 +123,12 @@ function _get_mean_fcst_netload_diff(sys::System, model::JuMP.Model)::Vector{Flo
     # worst_index = argmax(fcst_netload, dims = 2)
     # fcst_netload_diff2 = fcst_netload[worst_index] .- mean(fcst_netload, dims = 2)
     # @assert abs(fcst_netload_diff .- fcst_netload_diff2) .< 1e-6 
-
+    
+    if !isED
+        if fcst_netload_diff[1] < 1e-2
+            fcst_netload_diff[1] = model[:init_value].uncertainty_reserve
+        end
+        model[:init_value].uncertainty_reserve = fcst_netload_diff[2]
+    end
     return fcst_netload_diff
 end

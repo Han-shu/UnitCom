@@ -24,6 +24,7 @@ end
 
 
 mutable struct UCInitValue
+    uncertainty_reserve::Float64
     ug_t0::Dict
     Pg_t0::Dict
     eb_t0::Dict

@@ -10,13 +10,15 @@ include("add_hydro.jl")
 include("add_thermal.jl")
 include("add_storage.jl")
 include("add_system_eqs.jl")
+include("add_binding_const.jl")
 include("compute_conflict.jl")
 include("../NYGrid/manual_data_entries.jl")
 
 function stochastic_uc(
     sys::System, optimizer, VOLL; 
     start_time, scenario_count, horizon, 
-    use_must_run=true, init_value=nothing,
+    binding = false,
+    use_must_run = true, init_value = nothing,
     )
     
     model = Model(optimizer)
@@ -43,6 +45,10 @@ function stochastic_uc(
     _add_power_balance_eq!(model)
 
     _add_reserve_requirement_eq!(sys, model)
+
+    if POLICY == "SB" && binding
+        _add_binding_constraints!(sys, model)
+    end
 
     @objective(model, Min, model[:obj])
 

@@ -21,7 +21,7 @@ function _get_init_value_for_UC(sys::System;
         history_vg = Dict(g => zeros(24) for g in thermal_gen_names)
         history_wg = Dict(g => zeros(8) for g in thermal_gen_names)
         history_LMP = Float64.([0, 0, 0, 0, 29, 31, 35, 70])
-        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
+        return UCInitValue(0.0, ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
     elseif init_fr_file_flag # Initiate from solution
         if isnothing(init_fr_file_time)
             @info "Obtain initial conditions from existing solution files at the latest time"
@@ -37,8 +37,8 @@ function _get_init_value_for_UC(sys::System;
         history_wg = Dict(g => uc_sol["Shut down"][g][t-7:t] for g in thermal_gen_names)
         history_vg = Dict(g => uc_sol["Start up"][g][t-23:t] for g in thermal_gen_names)
         history_LMP = uc_sol["Hourly average LMP"]
-        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
-    elseif !isnothing(ed_model) #length(all_variables(uc_model)) > 0 && length(all_variables(ed_model)) > 0 # Initiate from model
+        return UCInitValue(0.0, ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
+    elseif !isnothing(ed_model) # Initiate from model and run rolling horizon UC-ED
         @info "Obtain initial conditions from existing model"
         history_wg = uc_model[:init_value].history_wg
         history_vg = uc_model[:init_value].history_vg
@@ -55,8 +55,8 @@ function _get_init_value_for_UC(sys::System;
         if length(history_LMP) > 368
             popfirst!(history_LMP)
         end
-        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
-    elseif length(all_variables(uc_model)) > 0 
+        return UCInitValue(0.0, ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
+    elseif length(all_variables(uc_model)) > 0 # Initiate from model and run rolling horizon UC
         @info "Obtain initial conditions from previous UC model"
         history_wg = uc_model[:init_value].history_wg
         history_vg = uc_model[:init_value].history_vg
@@ -73,7 +73,7 @@ function _get_init_value_for_UC(sys::System;
         # if length(history_LMP) > 368
         #     popfirst!(history_LMP)
         # end
-        return UCInitValue(ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
+        return UCInitValue(uc_model[:init_value].uncertainty_reserve, ug_t0, Pg_t0, eb_t0, history_vg, history_wg, history_LMP)
     else
         error("The initial value is not properly set")
         return nothing

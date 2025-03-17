@@ -39,14 +39,26 @@ function get_uc_prices(sys::System, model::JuMP.Model, option::String)
     time_steps = model[:param].time_steps
     scenarios = model[:param].scenarios
     optimize!(model)  
-    uc_LMP = [sum(dual(model[:eq_power_balance][s,t]) for s in scenarios) for t in time_steps]
-    uc_10Spin = [sum(dual(model[:eq_reserve_10Spin][s,t]) for s in scenarios) for t in time_steps]
-    uc_10Total = [sum(dual(model[:eq_reserve_10Total][s,t]) for s in scenarios) for t in time_steps]
-    uc_30Total = [sum(dual(model[:eq_reserve_30Total][s,t]) for s in scenarios) for t in time_steps]
-    uc_60Total = [sum(dual(model[:eq_reserve_60Total][s,t]) for s in scenarios) for t in time_steps]
+
+    uc_LMP = _get_policy_price(model, :eq_power_balance)
+    uc_10Spin = _get_policy_price(model, :eq_reserve_10Spin)
+    uc_10Total = _get_policy_price(model, :eq_reserve_10Total)
+    uc_30Total = _get_policy_price(model, :eq_reserve_30Total)
+    uc_60Total = _get_policy_price(model, :eq_reserve_60Total)
+
     return uc_LMP, uc_10Spin, uc_10Total, uc_30Total, uc_60Total
 end
 
+
+function _get_policy_price(model::JuMP.Model, key::Symbol)
+    time_steps = model[:param].time_steps
+    scenarios = model[:param].scenarios
+    if POLICY != "SB"
+        return [dual(model[key][1,t]) for t in time_steps]
+    else
+        return [dual(model[key][s, t]) for s in scenarios, t in time_steps]
+    end
+end
 
 """
     get_integer_solution(model::JuMP.Model, thermal_gen_names::Vector)::OrderedDict

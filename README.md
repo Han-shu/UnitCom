@@ -2,6 +2,12 @@
 
 UnitCom.jl is a Julia package for the unit commitment problem. You can either run a rolling horizon UC or a rolling horzion UC together with ED.
 
+This repository contains the code accompanying the paper "Operational uncertainty and the missing money problem" by Han Shu, Siva Visvesvaran, and Jacob Mays. 
+
+## Citation
+If you use this code or find it useful for your research, please cite the following paper:
+Under review.
+
 ## Data availability
 Data used in the code can be downloaded from [Data](https://doi.org/10.5281/zenodo.14952623)
 ## Usage

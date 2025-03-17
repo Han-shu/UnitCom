@@ -182,19 +182,32 @@ function get_solution_uc(sys::System, model::JuMP.Model, sol::OrderedDict)::Orde
     storage_names = get_name.(get_components(GenericBattery, sys))
 
     for g in thermal_gen_names
-        push!(sol["Generator Dispatch"][g], [value(model[:pg][g,1,t]) for t in model[:param].time_steps])
-        push!(sol["Reserve Dispatch"][g]["10S"], [value(model[:rg][g,"10S",1,t]) for t in model[:param].time_steps])
-        push!(sol["Reserve Dispatch"][g]["10T"], [value(model[:rg][g,"10S",1,t]) + value(model[:rg][g,"10N",1,t]) 
-                                                for t in model[:param].time_steps])
-        push!(sol["Reserve Dispatch"][g]["30T"], [value(model[:rg][g,"10S",1,t]) + value(model[:rg][g,"10N",1,t]) + value(model[:rg][g,"30S",1,t]) + value(model[:rg][g,"30N",1,t]) 
-                                                for t in model[:param].time_steps] )
+        if POLICY != "SB"
+            push!(sol["Generator Dispatch"][g], [value(model[:pg][g,1,t]) for t in model[:param].time_steps])
+            push!(sol["Reserve Dispatch"][g]["10S"], [value(model[:rg][g,"10S",1,t]) for t in model[:param].time_steps])
+            push!(sol["Reserve Dispatch"][g]["10T"], [value(model[:rg][g,"10S",1,t]) + value(model[:rg][g,"10N",1,t]) 
+                                                    for t in model[:param].time_steps])
+            push!(sol["Reserve Dispatch"][g]["30T"], [value(model[:rg][g,"10S",1,t]) + value(model[:rg][g,"10N",1,t]) + value(model[:rg][g,"30S",1,t]) + value(model[:rg][g,"30N",1,t]) 
+                                                    for t in model[:param].time_steps])
+        else # save the values for all scenarios as a matrix with size (scenarios, time_steps)
+            push!(sol["Generator Dispatch"][g], [value(model[:pg][g,s,t]) for s in model[:param].scenarios, t in model[:param].time_steps])
+            push!(sol["Reserve Dispatch"][g]["10S"], [value(model[:rg][g,"10S",s,t]) for s in model[:param].scenarios, t in model[:param].time_steps])
+            push!(sol["Reserve Dispatch"][g]["10T"], [value(model[:rg][g,"10S",s,t]) + value(model[:rg][g,"10N",s,t]) 
+                                                    for s in model[:param].scenarios, t in model[:param].time_steps])
+            push!(sol["Reserve Dispatch"][g]["30T"], [value(model[:rg][g,"10S",s,t]) + value(model[:rg][g,"10N",s,t]) + value(model[:rg][g,"30S",s,t]) + value(model[:rg][g,"30N",s,t])
+                                                    for s in model[:param].scenarios, t in model[:param].time_steps])
+        end
+
         push!(sol["Commitment status"][g], [Int(round(value(model[:ug][g,t]), digits=0)) for t in model[:param].time_steps])
         push!(sol["Start up"][g], [Int(round(value(model[:vg][g,t]), digits=0)) for t in model[:param].time_steps])
         push!(sol["Shut down"][g], [Int(round(value(model[:wg][g,t]), digits=0)) for t in model[:param].time_steps])
     end
     
     for b in storage_names
-        push!(sol["Storage Energy"][b], [value(model[:eb][b,1,t]) for t in model[:param].time_steps])
+        if POLICY != "SB"
+            push!(sol["Storage Energy"][b], [value(model[:eb][b,1,t]) for t in model[:param].time_steps])
+        else
+            push!(sol["Storage Energy"][b], [value(model[:eb][b,s,t]) for s in model[:param].scenarios, t in model[:param].time_steps])
     end
 
     fix_LMP, fix_10Spin, fix_10Total, fix_30Total, fix_60Total = get_uc_prices(sys, model, "fix")
@@ -227,7 +240,7 @@ function init_solution_uc_only(sys::System)::OrderedDict
     sol["10Spin relax"] = []
     sol["10Total relax"] = []
     sol["30Total relax"] = []
-
+    
     sol["Generator Dispatch"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Reserve Dispatch"] = OrderedDict(g => OrderedDict(r => [] for r in ["10S", "10T", "30T"]) for g in thermal_gen_names)
 

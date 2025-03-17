@@ -29,13 +29,13 @@ include("src/get_uc_dual.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "BF" # "SB", "PF", "MF", "BF", "WF", "DR60", "DR30" 
-run_date = Date(2025,3,6)
+POLICY = "SB" # "SB", "PF", "MF", "BF", "WF", "DR60", "DR30" 
+run_date = Date(2025,3,15)
 res_dir = "Result"
 uc_horizon = 36 # hours
 
 # Save the solution when day is in save_date: save SB more frequently to release memory
-save_date = POLICY == "SB" ? [1, 11, 21] : [1] 
+save_date = POLICY == "XX" ? [1, 11, 21] : [1] 
 scenario_cnt = POLICY == "SB" ? 11 : 1 # only SB is with 11 scenarios (stochastic), o.w. 1 scenario (deterministic)
 master_folder, uc_folder, _ = policy_model_folder_name(POLICY, run_date)
 
@@ -96,7 +96,7 @@ for t in 1:8760
     @info "Solving UC model at $(uc_time)"
     one_uc_time = @elapsed begin
         # Solve UC model (MIP)
-        uc_model = stochastic_uc(UCsys, Gurobi.Optimizer, VOLL; init_value = UC_init_value,
+        uc_model = stochastic_uc(UCsys, Gurobi.Optimizer, VOLL; binding = true, init_value = UC_init_value,
                             start_time = uc_time, scenario_count = scenario_cnt, horizon = uc_horizon)
         # update UC_init_value for the next UC model                   
         UC_init_value = _get_init_value_for_UC(UCsys; scenario_cnt = scenario_cnt, uc_model = uc_model) 
