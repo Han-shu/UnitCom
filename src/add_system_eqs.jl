@@ -16,6 +16,8 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
     storage_names = get_name.(get_components(GenericBattery, sys))
 
     new_reserve_requirement = _get_new_reserve_rerquirement(sys, model, POLICY, isED)
+    # set different penalty multiplier for ED and UC model
+    multiplier = isED ? 1 : 1
 
     @variable(model, reserve_short[rr in reserve_products, s in scenarios, t in time_steps, k in 1:length(penalty[rr])] >= 0)
 
@@ -25,7 +27,7 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
             for k in eachindex(penalty[rr])
                 @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= penalty[rr][k].MW)
                 add_to_expression!(model[:obj], sum(reserve_short[rr,s,t,k] for s in scenarios, t in time_steps), 
-                                            penalty[rr][k].price/length(scenarios))
+                                            multiplier * penalty[rr][k].price/length(scenarios))
             end
         elseif rr == "30Total"
             for k in eachindex(penalty[rr])
@@ -35,13 +37,13 @@ function _add_reserve_requirement_eq!(sys::System, model::JuMP.Model; isED = fal
                     @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= penalty[rr][k].MW)
                 end
                 add_to_expression!(model[:obj], sum(reserve_short[rr,s,t,k] for s in scenarios, t in time_steps), 
-                                            penalty[rr][k].price/length(scenarios))
+                                            multiplier * penalty[rr][k].price/length(scenarios))
             end
         elseif (POLICY == "DR60") && (rr == "60Total")
             for k in eachindex(penalty[rr])
                 @constraint(model, [s in scenarios, t in time_steps], reserve_short[rr,s,t,k] <= new_reserve_requirement[t])
                 add_to_expression!(model[:obj], sum(reserve_short[rr,s,t,k] for s in scenarios, t in time_steps), 
-                                                penalty[rr][k].price/length(scenarios))
+                                                multiplier * penalty[rr][k].price/length(scenarios))
             end
         end
     end

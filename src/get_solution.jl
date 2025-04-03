@@ -208,7 +208,10 @@ function get_solution_uc(sys::System, model::JuMP.Model, sol::OrderedDict)::Orde
             push!(sol["Storage Energy"][b], [value(model[:eb][b,1,t]) for t in model[:param].time_steps])
         else
             push!(sol["Storage Energy"][b], [value(model[:eb][b,s,t]) for s in model[:param].scenarios, t in model[:param].time_steps])
+        end
     end
+
+    push!(sol["Imports"], [value(model[:imports][s,t,1]) + value(model[:imports][s,t,2]) + value(model[:imports][s,t,3]) for s in model[:param].scenarios, t in model[:param].time_steps])
 
     fix_LMP, fix_10Spin, fix_10Total, fix_30Total, fix_60Total = get_uc_prices(sys, model, "fix")
     relax_LMP, relax_10Spin, relax_10Total, relax_30Total, relax_60Total = get_uc_prices(sys, model, "relax")
@@ -248,5 +251,6 @@ function init_solution_uc_only(sys::System)::OrderedDict
     sol["Start up"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Shut down"] = OrderedDict(g => [] for g in thermal_gen_names)
     sol["Storage Energy"] = OrderedDict(b => [] for b in storage_names)
+    sol["Imports"] = []
     return sol
 end

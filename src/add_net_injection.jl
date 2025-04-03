@@ -1,5 +1,5 @@
 # Add net injection, expr_net_injection = - forecast_load + curtaliment + pS + pW + hydro + imports + pg + (kb_discharge - kb_charge) = 0
-function _add_net_injection!(sys::System, model::JuMP.Model)::Nothing
+function _add_net_injection!(sys::System, model::JuMP.Model; isED::Bool = false)::Nothing
     expr_net_injection = _init(model, :expr_net_injection)
 
     scenarios = model[:param].scenarios
@@ -27,9 +27,11 @@ function _add_net_injection!(sys::System, model::JuMP.Model)::Nothing
     # Load curtailment
     @variable(model, curtailment[s in scenarios, t in time_steps], lower_bound = 0, upper_bound = forecast_load[t,s])
 
+    # set different penalty multiplier for ED and UC model
+    multiplier = isED ? 1 : 1 
     for s in scenarios, t in time_steps   
         add_to_expression!(expr_net_injection[s,t], curtailment[s,t], 1.0)
-        add_to_expression!(model[:obj], curtailment[s,t], VOLL/length(scenarios))
+        add_to_expression!(model[:obj], curtailment[s,t], multiplier * VOLL/length(scenarios))
     end
 
     return

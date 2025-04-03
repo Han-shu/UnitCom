@@ -23,8 +23,8 @@ include("src/get_uc_dual.jl")
 =#
 
 # Specify the policy and running date
-POLICY = "DR60" # "SB", "PF", "MF", "BF", "WF", "DR60", "DR30" 
-run_date = Date(2025,2,5)
+POLICY = "MF" # "SB", "PF", "MF", "BF", "WF", "DR60", "DR30" 
+run_date = Date(2025,3,28)
 res_dir = "Result"
 uc_horizon = 36 # hours
 ed_horizon = 12 # n*5 minutes 
@@ -131,14 +131,14 @@ for t in 1:8760
     @info "Solving UC model at $(uc_time)"
     one_uc_time = @elapsed begin
     if t > 1
-        UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, uc_model = uc_model, ed_model = ed_model, ed_hour_LMP = mean(ed_hour_sol["LMP"])) 
+        UC_init_value = _get_init_value_for_UC(UCsys; horizon = ed_horizon, scenario_cnt = scenario_cnt, uc_model = uc_model, ed_model = ed_model, curr_hour_LMP = mean(ed_hour_sol["LMP"])) 
     end
     uc_model = stochastic_uc(UCsys, Gurobi.Optimizer, VOLL; init_value = UC_init_value,
                         start_time = uc_time, scenario_count = scenario_cnt, horizon = uc_horizon)
     end
     @info "$(POLICY)-UC model at $(uc_time) is solved in $(one_uc_time) seconds"
     # Get commitment status that will be passed to ED
-    uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = Int(ed_horizon / 2) + 1)
+    uc_status = _get_binary_status_for_ED(uc_model, get_name.(get_components(ThermalGen, UCsys)); CoverHour = Int(ed_horizon / 12) + 1)
     storage_value, uc_LMP = get_uc_dual(UCsys, uc_model)
 
     # Solve ED model every 5 minutes (12 times in an hour)

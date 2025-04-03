@@ -7,15 +7,11 @@
 function get_uc_dual(sys::System, model::JuMP.Model)
     @info "Reoptimize with fixed integer variables ..."
     fix!(sys, model)
-    thermal_gen_names = get_name.(get_components(ThermalGen, sys))
+
+    optimize!(model)
+   
     time_steps = model[:param].time_steps
     scenarios = model[:param].scenarios
-    for g in thermal_gen_names, t in time_steps
-        unset_binary(model[:ug][g,t])
-        unset_binary(model[:vg][g,t])
-        unset_binary(model[:wg][g,t])
-    end 
-    optimize!(model)
     storage_names = get_name.(get_components(GenericBattery, sys))
     # Take a specific hour at hour 3
     storage_value = OrderedDict(b => sum(dual(model[:eq_storage_energy][b,s,3]) for s in scenarios) for b in storage_names)
@@ -48,7 +44,6 @@ function get_uc_prices(sys::System, model::JuMP.Model, option::String)
 
     return uc_LMP, uc_10Spin, uc_10Total, uc_30Total, uc_60Total
 end
-
 
 function _get_policy_price(model::JuMP.Model, key::Symbol)
     time_steps = model[:param].time_steps

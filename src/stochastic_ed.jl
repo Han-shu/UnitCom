@@ -22,7 +22,7 @@ function stochastic_ed(sys::System, optimizer, VOLL;
     end
 
     # net load = load - wind - solar
-    _add_net_injection!(sys, model)
+    _add_net_injection!(sys, model; isED = true)
 
     _add_imports!(sys, model)
 
